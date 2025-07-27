@@ -27,7 +27,7 @@
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
           #inherit "x86_64-linux";
           modules = [
-            ./hosts/dinth-nix-desktop/configuration.nix
+            ./hosts/dinth-nixos-desktop/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
