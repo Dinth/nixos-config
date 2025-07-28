@@ -18,6 +18,8 @@
 
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
 
+  security.hardening.enable = true;
+
   # Set your time zone.
   time.timeZone = "Europe/London";
 
