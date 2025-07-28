@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 {
-  home.xdg.dataFile."mime/packages/x-plist.xml".text = ''
+  xdg.enable = true;
+  xdg.dataFile."mime/packages/x-plist.xml".text = ''
     <?xml version="1.0" encoding="UTF-8"?>
     <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
       <mime-type type="application/x-plist">
@@ -9,7 +10,7 @@
       </mime-type>
     </mime-info>
   '';
-  home.xdg.dataFile."mime/packages/x-applescript.xml".text = ''
+  xdg.dataFile."mime/packages/x-applescript.xml".text = ''
     <?xml version="1.0" encoding="UTF-8"?>
     <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
       <mime-type type="text/x-applescript">
@@ -26,7 +27,7 @@
       "x-scheme-handler/prusaslicer" = "OrcaSlicer.desktop"; # printables
       "x-scheme-handler/applescript" = "Kate.desktop"; # applescript:// urls
       "application/x-plist" = "Kate.desktop"; # mac plist files
-      "application/x-applescript" = "Kate.desktop";
+      "text/x-applescript" = "Kate.desktop"; # applescript
     };
   };
 }

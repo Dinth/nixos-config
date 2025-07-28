@@ -7,8 +7,9 @@
     dates = "weekly";
     options = "--delete-older-than 30d";
   };
-  nix.daemonIOLowPriority = true;
-  nix.substituters = [
+  nix.daemonCPUSchedPolicy = "idle";
+  nix.daemonIOSchedClass = "idle";
+  nix.settings.substituters = [
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
   ];

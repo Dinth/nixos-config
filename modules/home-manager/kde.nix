@@ -233,9 +233,16 @@ in
       }
     ];
     configFile = {
-      "kwinrc"."NightColor"."Active" = true;
-      "kwinrc"."NightColor"."NightTemperature" = 4800;
-      "kwinrc"."Xwayland"."Scale" = 1.25;
+      "kwinrc" = {
+        "Xwayland"."Scale" = 1.25;
+        "NightColor" = {
+          "Active" = true;
+          "NightTemperature" = 4800;
+        };
+      };
+#      "kwinrc"."NightColor"."Active" = true;
+#      "kwinrc"."NightColor"."NightTemperature" = 4800;
+#      "kwinrc"."Xwayland"."Scale" = 1.25;
       "ktrashrc"."\\/home\\/michal\\/.local\\/share\\/Trash"."Days" = 7;
       "ktrashrc"."\\/home\\/michal\\/.local\\/share\\/Trash"."LimitReachedAction" = 0;
       "ktrashrc"."\\/home\\/michal\\/.local\\/share\\/Trash"."Percent" = 10;
