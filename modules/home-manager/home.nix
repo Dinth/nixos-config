@@ -37,6 +37,8 @@ in
       "x-scheme-handler/orcaslicer" = "OrcaSlicer.desktop";
       "x-scheme-handler/bambustudio" = "OrcaSlicer.desktop"; # makerworld
       "x-scheme-handler/prusaslicer" = "OrcaSlicer.desktop"; # printables
+      "x-scheme-handler/applescript" = "Kate.desktop"; # applescript:// urls
+      "application/x-plist" = "Kate.desktop"; # mac plist files
     };
   };
 
