@@ -7,7 +7,11 @@
     dates = "weekly";
     options = "--delete-older-than 30d";
   };
-
+  nix.daemonIOLowPriority = true;
+  nix.substituters = [
+        "https://cache.nixos.org"
+        "https://nix-community.cachix.org"
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -17,8 +21,6 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
-
-  security.hardening.enable = true;
 
   # Set your time zone.
   time.timeZone = "Europe/London";

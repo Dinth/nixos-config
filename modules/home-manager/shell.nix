@@ -66,7 +66,7 @@
       ls = "${pkgs.eza}/bin/eza -l";
       tree = "${pkgs.eza}/bin/eza --tree --all";
       htop = "${pkgs.btop}/bin/btop";
-      lscontent = "{ tree -I 'node_modules|.git'; echo; echo "--- FILE CONTENTS ---"; echo; find . -type f -not -path '*/.git/*' -not -path '*/node_modules/*' -not -path '*/flake.lock' -exec sh -c 'echo "--- FILE: {} ---"; cat {}; echo' \;; }"
+      lscontent = "{ tree -I 'node_modules|.git'; echo; echo \"--- FILE CONTENTS ---\"; echo; find . -type f -not -path '*/.git/*' -not -path '*/node_modules/*' -not -path '*/flake.lock' -exec sh -c 'echo \"--- FILE: {} ---\"; cat {}; echo' \;; }";
     };
     initContent = ''
       function cd {
