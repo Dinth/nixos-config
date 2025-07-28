@@ -21,7 +21,6 @@
     hdparm
     amdgpu_top # AMD graphic card resource monitor
     lm_sensors
-    cifs-utils
     jq # JSON processor
     btop # system monitor and process viewer
     btop-rocm
@@ -41,11 +40,8 @@
     kdePackages.kaccounts-integration
     kdePackages.skanlite
     kdePackages.phonon-vlc
-    kdePackages.ktorrent
     kdePackages.ksshaskpass
     kdePackages.ark
-    kdePackages.dolphin-plugins
-    kdePackages.kio-extras
     kdePackages.kdegraphics-thumbnailers
     kdePackages.kimageformats
     kdePackages.qtimageformats
