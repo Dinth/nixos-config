@@ -1,3 +1,5 @@
+{ config, pkgs, ... }:
+{
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "pl";
@@ -59,3 +61,4 @@
   security.rtkit.enable = true;
   services.colord.enable = true;
   security.polkit.enable = true;
+}

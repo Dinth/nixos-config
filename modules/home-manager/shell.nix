@@ -1,3 +1,5 @@
+{ config, lib, pkgs, ... }:
+{
   programs.git = {
     enable = true;
     userName  = "Michal Gawronski-Kot";
@@ -107,7 +109,7 @@
 #     };
   };
   programs.zoxide = {
-    enable = true;;
+    enable = true;
     enableZshIntegration = true;
   };
   nixpkgs.overlays = [
@@ -129,3 +131,4 @@
       };
     })
   ];
+}

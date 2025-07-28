@@ -1,3 +1,5 @@
+{ config, pkgs, ... }:
+{
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
@@ -15,3 +17,4 @@
     allowedTCPPorts = [ 8883 9999 ];
     allowPing = true;
   };
+}
