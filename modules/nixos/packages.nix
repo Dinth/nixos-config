@@ -89,12 +89,29 @@
   virtualisation.virtualbox.host.enableExtensionPack = true;
   virtualisation.virtualbox.host.enableKvm = true;
   virtualisation.virtualbox.host.addNetworkInterface = false;
-  systemd.services.virtualbox-suspend-inhibitor = {
+  systemd.user.services.virtualbox-suspend-inhibitor = {
     description = "Suspend Inhibitor for VirtualBox";
     after = [ "graphical-session.target" ];
     wantedBy = [ "graphical-session.target" ];
     serviceConfig = {
-      ExecStart="/bin/sh -c \"while true; do while ! /run/current-system/sw/bin/VBoxManage list runningvms | /run/current-system/sw/bin/grep -q '.'; do sleep 30; done; echo 'VM detected. Acquiring suspend lock.'; /run/current-system/sw/bin/systemd-inhibit --what=sleep --who='VirtualBox' --why='A Virtual Machine is running' /usr/bin/env bash -c 'while /run/current-system/sw/bin/VBoxManage list runningvms | /run/current-system/sw/bin/grep -q '.'; do sleep 30; done; echo 'Last VM shut down. Releasing suspend lock.'; done\"";
+      ExecStart = ''
+        ${pkgs.bash}/bin/bash -c " \
+          while true; do \
+            # Wait until a VM is running \
+            while ! ${pkgs.virtualbox}/bin/VBoxManage list runningvms | ${pkgs.gnugrep}/bin/grep -q '.'; do \
+              sleep 30; \
+            done; \
+            \
+            echo 'VM detected. Acquiring suspend lock.'; \
+            \
+            # Inhibit suspend while VMs are active. The lock is held for the duration of this command. \
+            ${pkgs.systemd}/bin/systemd-inhibit --what=sleep --who='VirtualBox' --why='A Virtual Machine is running' \
+            ${pkgs.bash}/bin/bash -c 'while ${pkgs.virtualbox}/bin/VBoxManage list runningvms | ${pkgs.gnugrep}/bin/grep -q \".\"; do sleep 30; done'; \
+            \
+            echo 'Last VM shut down. Releasing suspend lock.'; \
+          done \
+        "
+      '';
       Restart = "always";
       RestartSec = "10";
     };

@@ -7,12 +7,17 @@
 #    system = "x86_64-linux";
 #  };
 
-  fileSystems."/" =
-  { device = "/dev/disk/by-uuid/789d3481-8d64-4a39-b219-95b98db2a3a7";
-      fsType = "ext4";
-      options = [ "noatime" "nodiratime" ];
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/789d3481-8d64-4a39-b219-95b98db2a3a7";
+    fsType = "ext4";
+    options = [ "noatime" "nodiratime" ];
   };
-
+  swapDevices = [
+    {
+      device = "/var/swap/swapfile";
+      size = 32 * 1024;
+    }
+  ];
   networking.networkmanager.enable = true; # Enable networking
 
   hardware.block.defaultScheduler = "none";
