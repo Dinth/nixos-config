@@ -53,11 +53,7 @@
     hinting.style = "full";
     allowBitmaps = false;
   };
-  hardware.steam-hardware.enable = true;
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-  };
+
   security.rtkit.enable = true;
   services.colord.enable = true;
   security.polkit.enable = true;

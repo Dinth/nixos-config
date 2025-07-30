@@ -1,7 +1,30 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
-  # Enable networking
-  networking.networkmanager.enable = true;
+# Set optimisations for compilations
+#  nixpkgs.hostPlatform = {
+#    gcc.arch = "znver3";
+#    gcc.tune = "znver3";
+#    system = "x86_64-linux";
+#  };
+
+  fileSystems."/" =
+  { device = "/dev/disk/by-uuid/789d3481-8d64-4a39-b219-95b98db2a3a7";
+      fsType = "ext4";
+      options = [ "noatime" "nodiratime" ];
+  };
+
+  networking.networkmanager.enable = true; # Enable networking
+
+  hardware.block.defaultScheduler = "none";
+
+  boot.kernelParams = lib.mkAfter [
+    "preempt=full" #
+    "amd_iommu=on" #
+    "amd_pstate=active" # AMD Active Pstates instead of cpufreq
+    "tsc=reliable" # Trust AMD builtin clock for better latency
+    "clocksource=tsc" # Trust AMD builtin cock for etter latency
+    "rcu_nocbs=2,4,6,8,10,12,14" # Offload RCU calls from every second core for latency
+  ];
 
   services.avahi = {
     enable = true;
@@ -43,6 +66,19 @@
      ];
      ensureDefaultPrinter = "Canon_MF270_Series";
    };
+  hardware.steam-hardware.enable = true;
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      amdvlk
+      rocmPackages.clr.icd
+      vulkan-tools
+      clinfo
+      radeontop
+      amdgpu_top # AMD graphic card resource monitor
+    ];
+  };
   hardware.sane.enable = true;
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
@@ -63,8 +99,8 @@
   };
   systemd.services.logiops = {
     description = "An unofficial userspace driver for HID++ Logitech devices";
-    # wantedBy = [ "graphical.target" ];
-    # after = [ "bluetooth.target" ];
+    wantedBy = [ "graphical.target" ];
+    after = [ "bluetooth.target" ];
     serviceConfig = {
       ExecStart = "${pkgs.logiops}/bin/logid";
     };

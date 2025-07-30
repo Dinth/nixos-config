@@ -4,6 +4,7 @@
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
     mc
+    logiops # Unofficial HID driver for Logitech devices
     wget
     cifs-utils
     vim
@@ -19,7 +20,6 @@
     ffmpeg # multimedia framework
     libfido2 # FIDO2 library (for Yubikeys)
     hdparm
-    amdgpu_top # AMD graphic card resource monitor
     lm_sensors
     jq # JSON processor
     btop # system monitor and process viewer
@@ -51,6 +51,11 @@
     inxi
     yubikey-manager # Yubikey manager
     ragenix
+    aspell
+    aspellDicts.en
+    aspellDicts.en-computers
+    aspellDicts.en-science
+    aspellDicts.pl
   ];
 
   programs._1password.enable = true;
@@ -89,27 +94,7 @@
     after = [ "graphical-session.target" ];
     wantedBy = [ "graphical-session.target" ];
     serviceConfig = {
-      ExecStart = ''
-        /usr/bin/env bash -c '
-          while true; do
-            # 1. WAITING LOOP: Silently wait until a VM is running.
-            while ! /run/current-system/sw/bin/VBoxManage list runningvms | /run/current-system/sw/bin/grep -q "."; do
-              sleep 30;
-            done;
-
-            # 2. LOCK & MONITOR: A VM is running. Acquire the lock and monitor it.
-            echo "VM detected. Acquiring suspend lock.";
-            /run/current-system/sw/bin/systemd-inhibit --what=sleep --who="VirtualBox" --why="A Virtual Machine is running" \
-              /usr/bin/env bash -c "
-                # This inner loop runs as long as the lock should be held.
-                while /run/current-system/sw/bin/VBoxManage list runningvms | /run/current-system/sw/bin/grep -q \".\"; do
-                  sleep 30;
-                done;
-                echo \"Last VM shut down. Releasing suspend lock.\";
-              ";
-          done
-        '
-      '';
+      ExecStart="/bin/sh -c \"while true; do while ! /run/current-system/sw/bin/VBoxManage list runningvms | /run/current-system/sw/bin/grep -q '.'; do sleep 30; done; echo 'VM detected. Acquiring suspend lock.'; /run/current-system/sw/bin/systemd-inhibit --what=sleep --who='VirtualBox' --why='A Virtual Machine is running' /usr/bin/env bash -c 'while /run/current-system/sw/bin/VBoxManage list runningvms | /run/current-system/sw/bin/grep -q '.'; do sleep 30; done; echo 'Last VM shut down. Releasing suspend lock.'; done\"";
       Restart = "always";
       RestartSec = "10";
     };
