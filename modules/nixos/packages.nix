@@ -121,6 +121,21 @@
     };
   };
   programs.ssh.startAgent = true;
-
+  #security.sudo.enable = false;
+  security.doas = {
+    enable = true;
+    extraRules = [
+      {
+        users = ["userName"];
+        # persist = true;
+        # noPass = true;
+        keepEnv = true;
+        # cmd = "ALL";
+      }
+    ];
+  };
+  environment.shellAliases = {
+    sudo = "doas";
+  };
 
 }
