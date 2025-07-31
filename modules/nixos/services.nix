@@ -17,4 +17,57 @@
     allowedTCPPorts = [ 8883 9999 ];
     allowPing = true;
   };
+
+  services.cron = {
+    enable = true;
+      systemCronJobs = [
+        "00 2 * * 0 root ${pkgs.chkrootkit}/bin/chkrootkit | grep --extended-regexp \"INFECTED|Warning\" | logger -t chkrootkit"
+        "10 2 * * 0 root ${pkgs.lynis}/bin/lynis audit system --cronjob > /dev/null 2>&1"
+      ];
+  };
+  services.clamav = {
+    daemon = {
+      enable = true;
+      settings = {
+        OnAccessIncludePath = "/home";
+        OnAccessPrevention = true;
+        OnAccessExtraScanning = true;
+        OnAccessExcludeUname = "clamav";
+        User = "clamav";
+      };
+    };
+    updater = {
+      enable = true;
+      interval = "daily";
+      frequency = 1;
+    };
+    fangfrisch = {
+      enable = true;
+      interval = "daily";
+    };
+    scanner = {
+      scanDirectories = [
+        "/home"
+        "/var/lib"
+        "/tmp"
+        "/etc"
+        "/var/tmp"
+      ];
+      interval = "*-*-* 04:00:00";
+    };
+  };
+  systemd.services."clamav-clamonacc" = {
+    description = "ClamAV On-Access Scanner";
+    documentation = ["man:clamonacc(8)" "man:clamd.conf(5)" "https://docs.clamav.net/"];
+    requires = ["clamav-daemon.service"];
+    after = ["clamav-daemon.service"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "simple";
+      User = "root";
+      ExecStartPre = ''${pkgs.bash}/bin/bash -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
+      ExecStart = ''${pkgs.clamav}/bin/clamonacc -F -c /etc/clamav/clamd.conf --move /root/quarantine  --fdpass --allmatch'';
+      ExecReload = ''${pkgs.coreutils}/bin/kill -USR2 $MAINPID'';
+    };
+  };
 }

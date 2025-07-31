@@ -27,7 +27,11 @@
     detach
     tabiew
     vivid
-    difftastic # structural diff tool
+    difftastic # structural diff
+    lynis # vulnerability scanner
+    chkrootkit # rootkit scanner
+    clamav # AV scanner
+#    aide
     kdePackages.korganizer
     kdePackages.kontact
     kdePackages.kio-extras
@@ -117,4 +121,6 @@
     };
   };
   programs.ssh.startAgent = true;
+
+
 }
