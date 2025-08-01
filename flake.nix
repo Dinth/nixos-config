@@ -67,7 +67,7 @@
               home-manager.users.michal = {
                 imports = [
                   ./modules/home-manager/darwin.nix
-                  catppuccin.homeModules.catppuccin
+#                  catppuccin.homeModules.catppuccin
                 ];
               };
             }
