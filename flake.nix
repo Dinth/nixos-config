@@ -66,7 +66,7 @@
               home-manager.verbose = true;
               home-manager.users.michal = {
                 imports = [
-                  ./modules/home-manager/home.nix
+                  ./modules/home-manager/darwin.nix
                   catppuccin.homeModules.catppuccin
                 ];
               };
