@@ -130,7 +130,7 @@
     enable = true;
     extraRules = [
       {
-        users = ["userName"];
+        users = ["michal"];
         # persist = true;
         # noPass = true;
         keepEnv = true;
