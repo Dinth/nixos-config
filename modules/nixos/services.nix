@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
   # Enable the OpenSSH daemon.
   services.openssh = {
@@ -21,8 +21,8 @@
   services.cron = {
     enable = true;
       systemCronJobs = [
-        "00 2 * * 0 root ${pkgs.chkrootkit}/bin/chkrootkit | grep --extended-regexp \"INFECTED|Warning\" | logger -t chkrootkit"
-        "10 2 * * 0 root ${pkgs.lynis}/bin/lynis audit system --cronjob > /dev/null 2>&1"
+        "00 2 * * 0 root ${lib.getExe' pkgs.chkrootkit "chkroot"} | grep --extended-regexp \"INFECTED|Warning\" | logger -t chkrootkit"
+        "10 2 * * 0 root ${lib.getExe pkgs.lynis} audit system --cronjob > /dev/null 2>&1"
       ];
   };
   services.clamav = {
@@ -65,9 +65,9 @@
     serviceConfig = {
       Type = "simple";
       User = "root";
-      ExecStartPre = ''${pkgs.bash}/bin/bash -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
-      ExecStart = ''${pkgs.clamav}/bin/clamonacc -F -c /etc/clamav/clamd.conf --move /root/quarantine  --fdpass --allmatch'';
-      ExecReload = ''${pkgs.coreutils}/bin/kill -USR2 $MAINPID'';
+      ExecStartPre = ''${lib.getExe pkgs.bash} -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
+      ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F -c /etc/clamav/clamd.conf --move /root/quarantine  --fdpass --allmatch'';
+      ExecReload = ''${lib.getExe' pkgs.coreutils "kill"} -USR2 $MAINPID'';
     };
   };
   users.groups.libvirtd.members = ["michal"];

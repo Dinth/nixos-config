@@ -157,8 +157,8 @@ in
           Version = 4.0;
         };
       Default = {
-        Open = "detach xdg-open %d/%p";
-        View = "detach xdg-open %d/%p";
+        Open = "${lib.getExe pkgs.detach} ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
+        View = "${lib.getExe pkgs.detach} ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
       };
     };
   };

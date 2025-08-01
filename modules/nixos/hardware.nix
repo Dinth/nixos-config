@@ -107,7 +107,7 @@
     wantedBy = [ "graphical.target" ];
     after = [ "bluetooth.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.logiops}/bin/logid";
+      ExecStart = "${lib.getExe pkgs.logiops}";
     };
     restartTriggers = [ config.environment.etc."logid.cfg".source ];
   };

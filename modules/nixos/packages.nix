@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -102,7 +102,7 @@
     wantedBy = [ "graphical-session.target" ];
     serviceConfig = {
       ExecStart = ''
-        ${pkgs.bash}/bin/bash -c " \
+        ${lib.getExe pkgs.bash} -c " \
           while true; do \
             # Wait until a VM is running \
             while ! ${pkgs.virtualbox}/bin/VBoxManage list runningvms | ${pkgs.gnugrep}/bin/grep -q '.'; do \
@@ -112,8 +112,8 @@
             echo 'VM detected. Acquiring suspend lock.'; \
             \
             # Inhibit suspend while VMs are active. The lock is held for the duration of this command. \
-            ${pkgs.systemd}/bin/systemd-inhibit --what=sleep --who='VirtualBox' --why='A Virtual Machine is running' \
-            ${pkgs.bash}/bin/bash -c 'while ${pkgs.virtualbox}/bin/VBoxManage list runningvms | ${pkgs.gnugrep}/bin/grep -q \".\"; do sleep 30; done'; \
+            ${lib.getExe' pkgs.systemd "systemd-inhibit"} --what=sleep --who='VirtualBox' --why='A Virtual Machine is running' \
+            ${lib.getExe pkgs.bash} -c 'while ${lib.getExe' pkgs.virtualbox "VBoxManage"} list runningvms | ${lib.getExe pkgs.gnugrep} -q \".\"; do sleep 30; done'; \
             \
             echo 'Last VM shut down. Releasing suspend lock.'; \
           done \
