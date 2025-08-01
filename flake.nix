@@ -58,6 +58,18 @@
             ./hosts/michal-macbook-pro/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
+            home-manager.darwinModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.verbose = true;
+              home-manager.users.michal = {
+                imports = [
+                  ./modules/home-manager/home.nix
+                  catppuccin.homeModules.catppuccin
+                ];
+              };
+            }
           ];
         };
       };
