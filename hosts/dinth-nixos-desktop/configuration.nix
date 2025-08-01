@@ -6,11 +6,11 @@
       ./hardware-configuration.nix
       ../../secrets/deployment.nix
 
-    ../../modules/nixos/core.nix
-    ../../modules/nixos/desktop.nix
-    ../../modules/nixos/hardware.nix
-    ../../modules/nixos/packages.nix
-    ../../modules/nixos/services.nix
+      ../../modules/nixos/core.nix
+      ../../modules/nixos/desktop.nix
+      ../../modules/nixos/hardware.nix
+      ../../modules/nixos/packages.nix
+      ../../modules/nixos/services.nix
     ];
 
   environment.etc."/opt/chrome/policies/enrollment/CloudManagementEnrollmentToken".source = config.age.secrets.chrome-enrolment.path;
