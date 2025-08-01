@@ -86,7 +86,7 @@
         if [[ -n "$MC_SID" ]]; then
           builtin cd "$@"
         else
-          ${lib.getExe' pkgs.zoxide "z"} "$@"
+          z "$@"
         fi
       }
       function pbcopy {
