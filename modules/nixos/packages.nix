@@ -62,6 +62,7 @@
     aspellDicts.pl
     git
     _7zz
+    python
   ];
 
   programs._1password.enable = true;
