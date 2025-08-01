@@ -53,12 +53,12 @@
         };
       };
       darwinConfigurations = {
-        system = "aarch64-darwin";
         michal-macbook-pro = nix-darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
           modules = [
             ./hosts/michal-macbook-pro/configuration.nix
             agenix.nixosModules.default
-            catppuccin.nixosModules.catppuccin
+#            catppuccin.nixosModules.catppuccin
             home-manager.darwinModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
