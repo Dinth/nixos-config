@@ -57,4 +57,6 @@
   security.rtkit.enable = true;
   services.colord.enable = true;
   security.polkit.enable = true;
+
+  programs.virt-manager.enable = true;
 }

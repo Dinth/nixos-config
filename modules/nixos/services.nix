@@ -70,4 +70,10 @@
       ExecReload = ''${pkgs.coreutils}/bin/kill -USR2 $MAINPID'';
     };
   };
+  users.groups.libvirtd.members = ["michal"];
+
+  virtualisation.libvirtd.enable = true;
+
+  virtualisation.spiceUSBRedirection.enable = true;
+
 }

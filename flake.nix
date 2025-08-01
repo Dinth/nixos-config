@@ -25,7 +25,7 @@
   };
 
   outputs =
-    inputs@{ nixpkgs, home-manager, plasma-manager, catppuccin, agenix, ... }:
+    inputs@{ nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nix-darwin, ... }:
     {
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
@@ -49,6 +49,15 @@
               # Optionally, use home-manager.extraSpecialArgs to pass
               # arguments to home.nix
             }
+          ];
+        };
+      };
+      darwinConfigurations = {
+        michal-macbook-pro = nixpkgs.lib.nixosSystem {
+          modules = [
+            ./hosts/michal-macbook-pro/configuration.nix
+            agenix.nixosModules.default
+            catppuccin.nixosModules.catppuccin
           ];
         };
       };
