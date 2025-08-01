@@ -73,7 +73,10 @@
   users.groups.libvirtd.members = ["michal"];
 
   virtualisation.libvirtd.enable = true;
-
+  virtualisation.libvirtd.qemu = {
+    swtpm.enable = true;
+    ovmf.enable = true;
+  };
   virtualisation.spiceUSBRedirection.enable = true;
 
 }

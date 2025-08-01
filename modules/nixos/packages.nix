@@ -61,6 +61,7 @@
     aspellDicts.en-science
     aspellDicts.pl
     git
+    _7zz
   ];
 
   programs._1password.enable = true;
