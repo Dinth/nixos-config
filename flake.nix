@@ -54,7 +54,7 @@
       };
       darwinConfigurations = {
         system = "aarch64-darwin";
-        michal-macbook-pro = nixpkgs.lib.darwinSystem {
+        michal-macbook-pro = nix-darwin.lib.darwinSystem {
           modules = [
             ./hosts/michal-macbook-pro/configuration.nix
             agenix.nixosModules.default
