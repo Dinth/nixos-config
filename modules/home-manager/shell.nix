@@ -69,7 +69,7 @@
     };
     initContent = ''
       function lscontent {
-        tree -I 'node_modules|.git'
+        ${pkgs.tree}/bin/tree -I 'node_modules|.git'
         printf "\n--- FILE CONTENTS ---\n\n"
         find . -type f \
         -not -path '*/.git/*' \

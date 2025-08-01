@@ -60,6 +60,7 @@
     aspellDicts.en-computers
     aspellDicts.en-science
     aspellDicts.pl
+    git
   ];
 
   programs._1password.enable = true;
