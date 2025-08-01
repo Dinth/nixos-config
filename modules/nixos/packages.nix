@@ -126,6 +126,7 @@
   };
   programs.ssh.startAgent = true;
   #security.sudo.enable = false;
+  security.sudo.enable = false;
   security.doas = {
     enable = true;
     extraRules = [
