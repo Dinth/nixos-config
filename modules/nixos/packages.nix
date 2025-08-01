@@ -63,6 +63,7 @@
     git
     _7zz
     python3
+    doas-sudo-shim
   ];
 
   programs._1password.enable = true;
@@ -105,7 +106,7 @@
         ${lib.getExe pkgs.bash} -c " \
           while true; do \
             # Wait until a VM is running \
-            while ! ${pkgs.virtualbox}/bin/VBoxManage list runningvms | ${pkgs.gnugrep}/bin/grep -q '.'; do \
+            while ! ${lib.getExe' pkgs.virtualbox "VBoxManage"} list runningvms | ${lib.getExe pkgs.gnugrep}/bin/grep -q '.'; do \
               sleep 30; \
             done; \
             \
@@ -137,8 +138,4 @@
       }
     ];
   };
-  environment.shellAliases = {
-    sudo = "doas";
-  };
-
 }
