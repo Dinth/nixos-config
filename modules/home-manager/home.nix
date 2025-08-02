@@ -1,4 +1,4 @@
-{config, pkgs, inputs,lib, ...}:
+{config, pkgs, inputs,lib,  ...}:
 let
   catppuccin_konsole = pkgs.fetchFromGitHub {
     owner = "catppuccin";
@@ -30,7 +30,8 @@ in
     ./kde.nix
     ./shell.nix
     ./mime.nix
-  ];
+  ]
+  ++ (if machineType == "desktop" || machineType == "laptop" then [ ./kde.nix ] else []);
 
   catppuccin = {
     enable = true;

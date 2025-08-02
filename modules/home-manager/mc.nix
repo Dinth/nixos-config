@@ -6,6 +6,10 @@ let
     rev = "23562615818820900c8967fb3fe2779182763f12";
     hash = "sha256-3qnbAt1AjyCNfoBT6vVGmAwNGYS2zOh81GRA7/shbVA=";
   };
+  openCmd = if pkgs.stdenv.isDarwin then
+    "open %d/%p"
+  else
+    "${lib.getExe pkgs.detach} ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
 in
 {
   home.file."/.local/share/mc/skins/catppuccin.ini" = {
@@ -157,8 +161,8 @@ in
           Version = 4.0;
         };
       Default = {
-        Open = "${lib.getExe pkgs.detach} ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
-        View = "${lib.getExe pkgs.detach} ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
+        Open = openCmd;
+        View = openCmd;
       };
     };
   };
