@@ -80,6 +80,7 @@
       darwinConfigurations = {
         michal-macbook-pro = nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
+          specialArgs = { machineType = "laptop"; };
           modules = [
             ./hosts/michal-macbook-pro/configuration.nix
             agenix.nixosModules.default
