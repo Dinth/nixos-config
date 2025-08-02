@@ -51,6 +51,28 @@
             }
           ];
         };
+        r230-nixos = nixpkgs.lib.nixosSystem {
+          modules = [
+            ./hosts/r230-nixos/configuration.nix
+            agenix.nixosModules.default
+            catppuccin.nixosModules.catppuccin
+            home-manager.nixosModules.home-manager
+            {
+              #home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.sharedModules = [ agenix.homeManagerModules.default];
+              home-manager.users.michal = {
+                imports = [
+                  ./modules/home-manager/home.nix
+                  catppuccin.homeModules.catppuccin
+                ];
+              };
+              # Optionally, use home-manager.extraSpecialArgs to pass
+              # arguments to home.nix
+            }
+          ];
+        };
       };
       darwinConfigurations = {
         michal-macbook-pro = nix-darwin.lib.darwinSystem {

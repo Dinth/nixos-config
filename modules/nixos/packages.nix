@@ -64,6 +64,7 @@
     _7zz
     python3
     doas-sudo-shim
+    nixos-anywhere
   ];
 
   programs._1password.enable = true;
