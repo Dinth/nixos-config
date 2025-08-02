@@ -34,7 +34,7 @@ in
   ];
 
   catppuccin = {
-    enable = true;
+#    enable = true;
     flavor = "mocha";
   };
 
