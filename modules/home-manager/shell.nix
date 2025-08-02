@@ -67,6 +67,7 @@
       tree = "${lib.getExe pkgs.eza} --tree --all";
       top = "${lib.getExe pkgs.btop}";
     };
+
     initContent = ''
       function lscontent {
         ${lib.getExe pkgs.tree} -I 'node_modules|.git'
@@ -82,19 +83,28 @@
           ${lib.getExe' pkgs.coreutils "echo"}
         ' \;
       }
-      function cd {
-        if [[ -n "$MC_SID" ]]; then
-          builtin cd "$@"
-        else
-          z "$@"
-        fi
-      }
-      function pbcopy {
-        ${lib.getExe' pkgs.kdePackages.qttools "qdbus"} org.kde.klipper /klipper setClipboardContents "$(${lib.getExe' pkgs.coreutils "cat"} "$@")"
-      }
+    '' +
+      ( lib.optionalString (pkgs.zoxide != null) ''
+          function cd {
+            if [[ -n "$MC_SID" ]]; then
+              builtin cd "$@"
+            else
+              z "$@"
+            fi
+          }
+        ''
+      ) +
+      ( lib.optionalString (pkgs.kdePackages.plasma-workspace != null) ''
+          function pbcopy {
+            ${lib.getExe' pkgs.kdePackages.qttools "qdbus"} org.kde.klipper /klipper setClipboardContents "$(${lib.getExe' pkgs.coreutils "cat"} "$@")"
+          }
+        ''
+      ) +
+    ''
       export LS_COLORS="$(${lib.getExe pkgs.vivid} generate catppuccin-mocha)"
     '';
   };
+
   programs.btop = {
     enable = true;
     settings = {
