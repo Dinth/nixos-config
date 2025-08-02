@@ -26,8 +26,7 @@ in
     ];
   };
   imports = [
-    ./mc.nix
-    ./kde.nix
+    ../system/kde.nix
     ./shell.nix
     ./mime.nix
     ./kde.nix
