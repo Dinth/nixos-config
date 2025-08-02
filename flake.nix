@@ -29,7 +29,8 @@
     {
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
-          #inherit "x86_64-linux";
+          system = "x86_64-linux";
+          specialArgs = { machineType = "desktop"; };
           modules = [
             ./hosts/dinth-nixos-desktop/configuration.nix
             agenix.nixosModules.default
@@ -52,6 +53,8 @@
           ];
         };
         r230-nixos = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { machineType = "server"; };
           modules = [
             ./hosts/r230-nixos/configuration.nix
             agenix.nixosModules.default

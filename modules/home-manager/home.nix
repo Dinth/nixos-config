@@ -36,6 +36,7 @@ in
     enable = true;
     flavor = "mocha";
   };
+
   dconf.settings = {
     "org/virt-manager/virt-manager/connections" = {
       autoconnect = ["qemu:///system"];
