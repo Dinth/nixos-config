@@ -48,27 +48,6 @@
 
   hardware.flipperzero.enable = true;
 
-  services.printing = {
-    enable = true;
-    drivers = with pkgs; [
-      canon-cups-ufr2
-  ];
-  };
-   hardware.printers = {
-     ensurePrinters = [
-       {
-         name = "Canon_MF270_Series";
-         location = "Wickhay";
-         deviceUri = "socket://10.10.10.40:9100";
-         model = "CNRCUPSMF270ZJ.ppd";
-         ppdOptions = {
-           PageSize = "A4";
-         };
-       }
-     ];
-     ensureDefaultPrinter = "Canon_MF270_Series";
-   };
-  hardware.sane.enable = true;
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   services.fwupd.enable = true;

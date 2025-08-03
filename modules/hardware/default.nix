@@ -3,5 +3,6 @@
   imports = [
     ./amd_gpu
     ./logitech
+    ./printers
   ];
 }
