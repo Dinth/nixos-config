@@ -5,6 +5,7 @@
     ./btop
     ./eza
     ./git
+    ./kate
     ./konsole
     ./mc
     ./sddm

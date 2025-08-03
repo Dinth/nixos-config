@@ -2,10 +2,11 @@
 let
   inherit (lib) mkIf;
   cfg = config.cli;
+  primaryUsername = config.primaryUser.name;
 in
 {
   config = mkIf cfg.enable {
-    programs.git = {
+    home-manager.users.${primaryUsername}.programs.git = {
       enable = true;
       userName  = "Michal Gawronski-Kot";
       userEmail = "michal@gawronskikot.com";
