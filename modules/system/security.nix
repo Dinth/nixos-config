@@ -1,5 +1,42 @@
 { config, lib, pkgs, ... }:
 {
+  security.protectKernelImage = true;
+  boot.blacklistedKernelModules = [
+    # Obscure network protocols
+    "ax25"
+    "netrom"
+    "rose"
+    # Obscure/Legacy Filesystems
+    "adfs"
+    "affs"
+    "bfs"
+    "befs"
+    "efs"
+    "erofs"
+    "exofs"
+    "freevxfs"
+    "f2fs"
+    "vivid"
+    "gfs2"
+    "cramfs"
+    "jffs2"
+    "hfs"
+    "hpfs"
+    "jfs"
+    "minix"
+    "nilfs2"
+    "omfs"
+    "qnx4"
+    "qnx6"
+    "sysv"
+    "ufs"
+    "ksmbd"
+    "uvcvideo"
+  ];
+  services.journald.extraConfig = ''
+    SystemMaxUse=100M
+    MaxFileSec=7day
+  '';
   security.sudo.enable = false;
   security.doas = {
     enable = true;

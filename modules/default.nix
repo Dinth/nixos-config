@@ -1,7 +1,8 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 {
   imports = [
-    ./system
     ./apps
+    ./hardware
+    ./system
   ];
 }

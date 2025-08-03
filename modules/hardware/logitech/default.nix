@@ -1,21 +1,21 @@
-{ config, lib, pkgs, ... }:
+{ config, pkgs, lib,...}:
 let
   inherit (lib) mkIf;
   inherit (lib) mkOption;
-  cfg = config.gaming;
+  cfg = config.logitech;
   primaryUsername = config.primaryUser.name;
 in
 {
   options = {
-    gaming = {
+    logitech = {
       enable = mkOption {
         type = lib.types.bool;
         default = false;
-        description = "Enable gaming features.";
+        description = "Enable 1Password CLI";
       };
     };
   };
   config = mkIf cfg.enable {
-    programs.gamemode.enable = true;
+
   };
 }

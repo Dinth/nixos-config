@@ -19,6 +19,7 @@ in
   config = mkIf cfg.enable {
     users.groups.libvirtd.members = ["michal"];
 
+    programs.virt-manager.enable = true;
     virtualisation.libvirtd.enable = true;
     virtualisation.libvirtd.qemu = {
       swtpm.enable = true;

@@ -5,7 +5,6 @@
   environment.systemPackages = with pkgs; [
     logiops # Unofficial HID driver for Logitech devices
     cifs-utils
-    google-chrome
     yubioath-flutter
     vlc
     libvlc

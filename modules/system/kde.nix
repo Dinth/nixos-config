@@ -16,6 +16,7 @@ in
     };
   };
   config = mkIf cfg.enable {
+    services.desktopManager.plasma6.enable = true;
     environment.systemPackages = with pkgs; [
       kdePackages.korganizer
       kdePackages.kontact
@@ -37,6 +38,8 @@ in
       kdePackages.ffmpegthumbs
       haruna # KDE video player based on mpv
     ];
+    programs.kde-pim.kontact = true;
+    programs.kdeconnect.enable = true;
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;
       overrideConfig = true;
