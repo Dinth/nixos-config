@@ -3,6 +3,7 @@ let
   inherit (lib) mkIf;
   inherit (lib) mkOption;
   cfg = config.cli;
+  primaryUsername = config.primaryUser.name;
 in
 {
   options = {

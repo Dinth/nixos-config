@@ -6,7 +6,7 @@ let
 in
 {
   config = mkIf cfg.enable {
-    programs.kate = {
+    home-manager.users.${primaryUsername}.programs.kate = {
       enable = true;
       editor = {
         font = {
