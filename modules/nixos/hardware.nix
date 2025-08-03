@@ -45,10 +45,7 @@
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableRedistributableFirmware = true;
   hardware.keyboard.qmk.enable = true;
-  hardware.logitech = {
-    wireless.enable = true;
-    wireless.enableGraphical = true;
-  };
+
   hardware.flipperzero.enable = true;
 
   services.printing = {
@@ -71,18 +68,6 @@
      ];
      ensureDefaultPrinter = "Canon_MF270_Series";
    };
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-    extraPackages = with pkgs; [
-      amdvlk
-      rocmPackages.clr.icd
-      vulkan-tools
-      clinfo
-      radeontop
-      amdgpu_top # AMD graphic card resource monitor
-    ];
-  };
   hardware.sane.enable = true;
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
@@ -101,14 +86,4 @@
     # no need to redefine it in your config for now)
     #media-session.enable = true;
   };
-  systemd.services.logiops = {
-    description = "An unofficial userspace driver for HID++ Logitech devices";
-    wantedBy = [ "graphical.target" ];
-    after = [ "bluetooth.target" ];
-    serviceConfig = {
-      ExecStart = "${lib.getExe pkgs.logiops}";
-    };
-    restartTriggers = [ config.environment.etc."logid.cfg".source ];
-  };
-  environment.etc."logid.cfg".source = ./files/logid.cfg;
 }

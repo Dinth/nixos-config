@@ -50,6 +50,12 @@
       }
     ];
   };
+  environment.systemPackages = with pkgs; [
+    lynis # vulnerability scanner
+    chkrootkit # rootkit scanner
+    clamav # AV scanner
+#    aide
+  ];
   services.cron = {
     enable = true;
       systemCronJobs = [

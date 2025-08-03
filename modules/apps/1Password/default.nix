@@ -1,7 +1,6 @@
 { config, pkgs, lib,...}:
 let
-  inherit (lib) mkIf;
-  inherit (lib) mkOption;
+  inherit (lib) mkIf mkOption mkMerge;
   cfg = config._1password;
   primaryUsername = config.primaryUser.name;
 in
@@ -20,7 +19,20 @@ in
       };
     };
   };
-  config = mkIf cfg.enable {
-
-  };
+  config = mkMerge [
+    (mkIf cfg.enable {
+      programs._1password.enable = true;
+      environment.systemPackages = with pkgs; [
+        libfido2 # FIDO2 library (for Yubikeys)
+        yubikey-manager # Yubikey manager
+      ];
+    })
+    (mkIf cfg.gui {
+      programs._1password-gui.enable = true;
+      programs._1password-gui.polkitPolicyOwners = [  ];
+      environment.systemPackages = with pkgs; [
+        yubioath-flutter
+      ];
+    })
+  ];
 }
