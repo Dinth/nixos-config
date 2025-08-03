@@ -16,4 +16,21 @@ in
     };
   };
 
+  config = mkIf cfg.enable {
+    users.groups.libvirtd.members = ["michal"];
+
+    virtualisation.libvirtd.enable = true;
+    virtualisation.libvirtd.qemu = {
+      swtpm.enable = true;
+      ovmf.enable = true;
+    };
+    virtualisation.spiceUSBRedirection.enable = true;
+    home-manager.users.${primaryUsername}.dconf.settings = {
+      "org/virt-manager/virt-manager/connections" = {
+        autoconnect = ["qemu:///system"];
+        uris = ["qemu:///system"];
+      };
+    };
+  };
+
 }
