@@ -1,5 +1,8 @@
 { config, pkgs, ... }:
 {
+  imports = [
+   ../system/kde.nix
+  ];
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "pl";
@@ -59,4 +62,5 @@
   security.polkit.enable = true;
 
   programs.virt-manager.enable = true;
+
 }

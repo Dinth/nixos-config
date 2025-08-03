@@ -26,10 +26,8 @@ in
     ];
   };
   imports = [
-    ../system/kde.nix
-    ./shell.nix
+    ../system/cli.nix
     ./mime.nix
-    ./kde.nix
   ];
 
   catppuccin = {
