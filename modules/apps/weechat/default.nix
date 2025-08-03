@@ -1,7 +1,6 @@
 { config, pkgs, lib,...}:
 let
-  inherit (lib) mkIf;
-  inherit (lib) mkOption;
+  inherit (lib) mkIf mkOption;
   cfg = config.weechat;
   primaryUsername = config.primaryUser.name;
 in

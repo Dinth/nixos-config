@@ -4,7 +4,6 @@
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
     cifs-utils
-    yubioath-flutter
     vlc
     libvlc
     pciutils

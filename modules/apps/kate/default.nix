@@ -20,5 +20,32 @@ in
         tabWidth = 2;
       };
     };
+    home-manager.users.${primaryUsername}.xdg = {
+      dataFile = {
+        "mime/packages/x-plist.xml".text = ''
+          <?xml version="1.0" encoding="UTF-8"?>
+          <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+            <mime-type type="application/x-plist">
+              <comment>Apple Property List</comment>
+              <glob pattern="*.plist"/>
+            </mime-type>
+          </mime-info>
+        '';
+        "mime/packages/x-applescript.xml".text = ''
+          <?xml version="1.0" encoding="UTF-8"?>
+          <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+            <mime-type type="text/x-applescript">
+              <comment>AppleScript Source</comment>
+              <glob pattern="*.applescript"/>
+            </mime-type>
+          </mime-info>
+        '';
+      };
+      mimeApps.defaultApplications = {
+        "x-scheme-handler/applescript" = "Kate.desktop"; # applescript:// urls
+        "application/x-plist" = "Kate.desktop"; # mac plist files
+        "text/x-applescript" = "Kate.desktop"; # applescript
+      };
+    };
   };
 }

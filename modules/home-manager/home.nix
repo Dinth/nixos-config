@@ -12,13 +12,9 @@
     packages = with pkgs; [
       mqtt-explorer
       discord
-      orca-slicer
       signal-desktop
     ];
   };
-  imports = [
-    ./mime.nix
-  ];
 
   catppuccin = {
 #    enable = true;

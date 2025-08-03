@@ -48,5 +48,10 @@ in
     security.rtkit.enable = true;
     services.colord.enable = true;
     security.polkit.enable = true;
+
+    home-manager.users.${primaryUsername}.xdg = {
+      enable = true;
+      mimeApps.enable = true;
+    };
   };
 }

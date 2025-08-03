@@ -71,7 +71,6 @@
     extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" ];
     packages = with pkgs; [
       discord
-      orca-slicer
 #       (bambu-studio.overrideAttrs {
 #         version = "02.01.01.52";
 #         buildInputs = oldAttrs.buildInputs ++ [ pkgs.boost188 ];
