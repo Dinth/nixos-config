@@ -2,6 +2,7 @@
 {
   imports = [
    ../system/kde.nix
+   ../system/gaming.nix
   ];
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -25,14 +26,6 @@
 
   programs.kde-pim.kontact = true;
   programs.kdeconnect.enable = true;
-
-  programs.steam = {
-    enable = true;
-    gamescopeSession.enable = true;
-    localNetworkGameTransfers.openFirewall = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
-  };
 
   programs.gamemode.enable = true;
 
