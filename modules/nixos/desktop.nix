@@ -27,8 +27,6 @@
   programs.kde-pim.kontact = true;
   programs.kdeconnect.enable = true;
 
-  programs.gamemode.enable = true;
-
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   fonts.packages = with pkgs; [

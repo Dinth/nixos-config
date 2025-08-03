@@ -7,6 +7,5 @@
   };
   imports = [
     ./shell.nix
-    ./mc.nix
   ];
 }
