@@ -22,6 +22,7 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
       programs._1password.enable = true;
+      services.pcscd.enable = true;
       environment.systemPackages = with pkgs; [
         libfido2 # FIDO2 library (for Yubikeys)
         yubikey-manager # Yubikey manager

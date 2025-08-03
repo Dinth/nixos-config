@@ -32,6 +32,8 @@ in
       wget
       git
       difftastic # structural diff
+      vivid # LS_COLOURS generator
     ];
+  programs.usbtop.enable = true;
   };
 }

@@ -14,7 +14,6 @@
     lm_sensors
     detach
     tabiew
-    vivid
     ragenix
     aspell
     aspellDicts.en
@@ -44,7 +43,6 @@
     enable = true;
     defaultEditor = true;
   };
-  programs.usbtop.enable = true;
 
   programs.ssh.startAgent = true;
   #security.sudo.enable = false;

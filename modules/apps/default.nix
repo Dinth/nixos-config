@@ -10,6 +10,7 @@
     ./kate
     ./konsole
     ./mc
+    ./neovim
     ./OrcaSlicer
     ./sddm
     ./ssh
