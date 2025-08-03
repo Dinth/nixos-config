@@ -6,6 +6,7 @@
     ./btop
     ./eza
     ./git
+    ./google-chrome
     ./kate
     ./konsole
     ./mc

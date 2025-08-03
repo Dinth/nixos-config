@@ -14,7 +14,6 @@
       discord
       orca-slicer
       signal-desktop
-      weechat
     ];
   };
   imports = [
@@ -25,5 +24,6 @@
 #    enable = true;
     flavor = "mocha";
   };
+
 
 }

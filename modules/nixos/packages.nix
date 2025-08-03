@@ -19,12 +19,10 @@
     detach
     tabiew
     vivid
-    difftastic # structural diff
     lynis # vulnerability scanner
     chkrootkit # rootkit scanner
     clamav # AV scanner
 #    aide
-    haruna
     yubikey-manager # Yubikey manager
     ragenix
     aspell

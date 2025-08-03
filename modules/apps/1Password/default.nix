@@ -1,12 +1,13 @@
 { config, pkgs, lib,...}:
 let
   inherit (lib) mkIf;
-  cfg = config.1password;
+  inherit (lib) mkOption;
+  cfg = config._1password;
   primaryUsername = config.primaryUser.name;
 in
 {
   options = {
-    1password = {
+    _1password = {
       enable = mkOption {
         type = lib.types.bool;
         default = false;

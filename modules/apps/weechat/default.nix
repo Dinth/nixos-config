@@ -1,9 +1,20 @@
-{ config, lib,...}:
+{ config, pkgs, lib,...}:
 let
   inherit (lib) mkIf;
-  cfg = config.cli;
+  inherit (lib) mkOption;
+  cfg = config.weechat;
+  primaryUsername = config.primaryUser.name;
 in
 {
+  options = {
+    weechat = {
+      enable = mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Enable weechat client.";
+      };
+    };
+  };
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername}.home.packages = with pkgs; [
       weechat
