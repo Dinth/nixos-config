@@ -3,11 +3,8 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
-    mc
     logiops # Unofficial HID driver for Logitech devices
-    wget
     cifs-utils
-    vim
     google-chrome
     yubioath-flutter
     vlc
@@ -15,15 +12,10 @@
     pciutils
     usbutils
     psmisc
-    iotop
-    iftop #
     ffmpeg # multimedia framework
     libfido2 # FIDO2 library (for Yubikeys)
     hdparm
     lm_sensors
-    jq # JSON processor
-    btop # system monitor and process viewer
-    btop-rocm
     detach
     tabiew
     vivid
@@ -32,27 +24,7 @@
     chkrootkit # rootkit scanner
     clamav # AV scanner
 #    aide
-    kdePackages.korganizer
-    kdePackages.kontact
-    kdePackages.kio-extras
-    kdePackages.kio-fuse
-    kdePackages.dolphin-plugins
-    kdePackages.ktorrent
-    kdePackages.kdepim-addons
-    kdePackages.kompare
-    kdePackages.kaccounts-providers
-    kdePackages.kaccounts-integration
-    kdePackages.skanlite
-    kdePackages.phonon-vlc
-    kdePackages.ksshaskpass
-    kdePackages.ark
-    kdePackages.kdegraphics-thumbnailers
-    kdePackages.kimageformats
-    kdePackages.qtimageformats
-    kdePackages.ffmpegthumbs
     haruna
-    hwinfo
-    inxi
     yubikey-manager # Yubikey manager
     ragenix
     aspell
@@ -60,7 +32,6 @@
     aspellDicts.en-computers
     aspellDicts.en-science
     aspellDicts.pl
-    git
     _7zz
     python3
     doas-sudo-shim
@@ -127,17 +98,4 @@
   };
   programs.ssh.startAgent = true;
   #security.sudo.enable = false;
-  security.sudo.enable = false;
-  security.doas = {
-    enable = true;
-    extraRules = [
-      {
-        users = ["michal"];
-        # persist = true;
-        # noPass = true;
-        keepEnv = true;
-        # cmd = "ALL";
-      }
-    ];
-  };
 }

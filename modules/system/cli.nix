@@ -20,4 +20,17 @@ in
       };
     };
   };
+  config = mkIf cfg.enable {
+    environment.systemPackages = with pkgs; [
+      jq # JSON processor
+      btop # system monitor and process viewer
+      btop-rocm # btop addon for AMD GPUs
+      iotop
+      iftop #
+      hwinfo
+      inxi
+      wget
+      git
+    ];
+  };
 }

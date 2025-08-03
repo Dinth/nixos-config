@@ -17,6 +17,9 @@ let
 in
 {
   config = mkIf cfg.enable {
+    environment.systemPackages = with pkgs; [
+      mc
+    ];
     home-manager.users.${primaryUsername}.home.file."/.local/share/mc/skins/catppuccin.ini" = {
       source = "${mc_catppuccin}/catppuccin.ini";
     };

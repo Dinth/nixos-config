@@ -16,6 +16,26 @@ in
     };
   };
   config = mkIf cfg.enable {
+    environment.systemPackages = with pkgs; [
+      kdePackages.korganizer
+      kdePackages.kontact
+      kdePackages.kio-extras
+      kdePackages.kio-fuse
+      kdePackages.dolphin-plugins
+      kdePackages.ktorrent
+      kdePackages.kdepim-addons
+      kdePackages.kompare
+      kdePackages.kaccounts-providers
+      kdePackages.kaccounts-integration
+      kdePackages.skanlite
+      kdePackages.phonon-vlc
+      kdePackages.ksshaskpass
+      kdePackages.ark
+      kdePackages.kdegraphics-thumbnailers
+      kdePackages.kimageformats
+      kdePackages.qtimageformats
+      kdePackages.ffmpegthumbs
+    ];
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;
       overrideConfig = true;
