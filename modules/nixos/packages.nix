@@ -53,12 +53,7 @@
       show_thread_names = true;
     };
   };
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    autosuggestions.enable = true;
-    syntaxHighlighting.enable = true;
-  };
+
   programs.neovim = {
     enable = true;
     defaultEditor = true;

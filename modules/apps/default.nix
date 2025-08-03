@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 {
   imports = [
+    ./1Password
     ./bat
     ./btop
     ./eza
@@ -8,6 +9,7 @@
     ./kate
     ./konsole
     ./mc
+    ./OrcaSlicer
     ./sddm
     ./ssh
     ./steam

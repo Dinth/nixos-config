@@ -31,6 +31,7 @@ in
       inxi
       wget
       git
+      difftastic # structural diff
     ];
   };
 }

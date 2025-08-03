@@ -6,6 +6,12 @@ let
 in
 {
   config = mkIf cfg.enable {
+    programs.zsh = {
+      enable = true;
+      enableCompletion = true;
+      autosuggestions.enable = true;
+      syntaxHighlighting.enable = true;
+    };
     home-manager.users.${primaryUsername}.programs.zsh = {
       enable = true;
       enableCompletion = true;

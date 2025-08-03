@@ -35,6 +35,7 @@ in
       kdePackages.kimageformats
       kdePackages.qtimageformats
       kdePackages.ffmpegthumbs
+      haruna # KDE video player based on mpv
     ];
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;

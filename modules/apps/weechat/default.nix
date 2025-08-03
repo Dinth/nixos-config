@@ -5,6 +5,9 @@ let
 in
 {
   config = mkIf cfg.enable {
+    home-manager.users.${primaryUsername}.home.packages = with pkgs; [
+      weechat
+    ];
     nixpkgs.overlays = [
       (self: super: {
         weechat = super.weechat.override {
