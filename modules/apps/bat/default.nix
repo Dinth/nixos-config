@@ -4,7 +4,7 @@ let
   cfg = config.cli;
 in
 {
-  cfg = mkIf cfg.enable {
+  config = mkIf cfg.enable {
     programs.bat = {
       enable = true;
       config = {
@@ -12,8 +12,8 @@ in
         style = "numbers,changes";
       };
     };
-    catppuccin.bat = mkIf cfg.catppuccin {
-      enable = true;
-    };
+#    catppuccin.bat = mkIf cfg.catppuccin {
+#      enable = true;
+#    };
   };
 }

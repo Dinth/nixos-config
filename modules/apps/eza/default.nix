@@ -4,7 +4,7 @@ let
   cfg = config.cli;
 in
 {
-  cfg = mkIf cfg.enable {
+  config = mkIf cfg.enable {
     programs.eza = {
         enable = true;
         enableZshIntegration = true;

@@ -13,6 +13,12 @@
       ../../modules/nixos/services.nix
     ];
 
+  primaryUser = {
+    name = "michal";
+    fullName = "Michal Gawronski-Kot";
+    email = "michal@gawronskikot.com";
+  };
+
   environment.etc."/opt/chrome/policies/enrollment/CloudManagementEnrollmentToken".source = config.age.secrets.chrome-enrolment.path;
   environment.etc."/opt/chrome/policies/enrollment/CloudManagementEnrollmentOptions".text = "Mandatory";
 

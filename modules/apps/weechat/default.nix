@@ -4,7 +4,7 @@ let
   cfg = config.cli;
 in
 {
-  cfg = mkIf cfg.enable {
+  config = mkIf cfg.enable {
     nixpkgs.overlays = [
       (self: super: {
         weechat = super.weechat.override {

@@ -2,6 +2,7 @@
 let
   inherit (lib) mkIf;
   cfg = config.cli;
+  hm = config.home-manager.users.${config.primaryUser.name};
 
   mc_catppuccin = pkgs.fetchFromGitHub {
     owner = "catppuccin";
@@ -15,8 +16,8 @@ let
     "${lib.getExe pkgs.detach} ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
 in
 {
-  cfg = mkIf cfg.enable {
-    home.file."/.local/share/mc/skins/catppuccin.ini" = {
+  config = mkIf cfg.enable {
+    hm.home.file."/.local/share/mc/skins/catppuccin.ini" = {
       source = "${mc_catppuccin}/catppuccin.ini";
     };
     programs.mc = {
