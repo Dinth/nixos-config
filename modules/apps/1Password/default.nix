@@ -27,7 +27,7 @@ in
         yubikey-manager # Yubikey manager
       ];
     })
-    (mkIf cfg.gui {
+    (mkIf (cfg.enable && cfg.gui) {
       programs._1password-gui.enable = true;
       programs._1password-gui.polkitPolicyOwners = [  ];
       environment.systemPackages = with pkgs; [
