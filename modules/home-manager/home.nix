@@ -26,7 +26,6 @@ in
     ];
   };
   imports = [
-    ../system/cli.nix
     ./mime.nix
   ];
 

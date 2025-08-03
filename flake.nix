@@ -32,7 +32,8 @@
           system = "x86_64-linux";
           specialArgs = { machineType = "desktop"; };
           modules = [
-            ./libs/users.nix
+            ./libs
+            ./modules
             ./hosts/dinth-nixos-desktop/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
@@ -57,7 +58,8 @@
           system = "x86_64-linux";
           specialArgs = { machineType = "server"; };
           modules = [
-            ./libs/users.nix
+            ./libs
+            ./modules
             ./hosts/r230-nixos/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
@@ -84,7 +86,8 @@
           system = "aarch64-darwin";
           specialArgs = { machineType = "laptop"; };
           modules = [
-            ./lib/users.nix
+            ./libs
+            ./modules
             ./hosts/michal-macbook-pro/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
