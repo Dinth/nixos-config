@@ -6,5 +6,14 @@ let
   primaryUsername = config.primaryUser.name;
 in
 {
+  options = {
+    virtualisation = {
+      enable = mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Enable virtualisation.";
+      };
+    };
+  };
 
 }
