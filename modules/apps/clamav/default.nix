@@ -40,3 +40,7 @@ in
     )
     cfg.accessScanning.homeDirectories;
   in
+  {
+
+  };
+}
