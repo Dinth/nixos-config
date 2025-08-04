@@ -7,6 +7,7 @@
     ./eza
     ./git
     ./google-chrome
+    ./htop
     ./kate
     ./konsole
     ./mc

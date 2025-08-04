@@ -27,20 +27,6 @@
   ];
 
 
-  programs.htop = {
-    enable = true;
-    settings = {
-      detailed_cpu_time = true;
-      hide_kernel_threads = false;
-      show_cpu_frequency = true;
-      show_cpu_usage = true;
-      show_program_path = false;
-      show_thread_names = true;
-    };
-  };
 
 
-
-
-  #security.sudo.enable = false;
 }

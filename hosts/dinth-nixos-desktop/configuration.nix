@@ -21,10 +21,37 @@
       size = 32 * 1024;
     }
   ];
-  networking.networkmanager.enable = true; # Enable networking
+
+  networking.networkmanager.enable = true; # Enable networking via NM
 
   hardware.block.defaultScheduler = "none";
+{
 
+  # Bootloader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.timeout = 1;
+  boot.initrd.systemd.enable = true;
+  # Use latest kernel.
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelParams = [
+    "quiet"
+    "splash"
+    "loglevel=3"
+    "systemd.show_status=auto"
+    "rd.udev.log_level=3"
+  ];
+  boot = {
+    kernel.sysctl = {
+      "vm.swappiness" = 10;
+      "vm.max_map_count" = 524288; # 64GB ram,
+      "vm.vfs_cache_pressure" = 50; # more memory for filesystem data
+      "vm.dirty_ratio" = 30;
+      "vm.dirty_background_ratio" = 15;
+      "net.core.default_qdisc" = "fq";
+      "net.ipv4.tcp_congestion_control" = "bbr";
+    };
+  };
   boot.kernelParams = lib.mkAfter [
     "preempt=full" #
     "amd_iommu=on" #
@@ -44,6 +71,7 @@
     enable = true;
     powerOnBoot = true;
   };
+
   services.hardware.bolt.enable = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableRedistributableFirmware = true;
@@ -60,6 +88,19 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+
+  cli.enable = true;
+  graphical.enable = true;
+  kde.enable = true;
+  _1password.enable = true;
+  _1password.gui = true;
+  gaming.enable = true;
+  virtualisation.enable = true;
+  logitech.enable = true;
+  amd_gpu.enable = true;
+  printers.enable = true;
+  weechat.enable = true;
+
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
