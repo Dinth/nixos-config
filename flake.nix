@@ -45,7 +45,6 @@
               home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default];
               home-manager.users.michal = {
                 imports = [
-                  ./modules/home-manager/home.nix
                   catppuccin.homeModules.catppuccin
                 ];
               };
@@ -71,7 +70,6 @@
               home-manager.sharedModules = [ agenix.homeManagerModules.default];
               home-manager.users.michal = {
                 imports = [
-                  ./modules/home-manager/home.nix
                   catppuccin.homeModules.catppuccin
                 ];
               };
@@ -98,7 +96,6 @@
               home-manager.verbose = true;
               home-manager.users.michal = {
                 imports = [
-                  ./modules/home-manager/darwin.nix
                   catppuccin.homeModules.catppuccin
                 ];
               };

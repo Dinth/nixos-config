@@ -5,9 +5,6 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ../../secrets/deployment.nix
-
-      ../../modules/nixos/core.nix
-      ../../modules/nixos/packages.nix
     ];
 
   fileSystems."/" = {
@@ -25,7 +22,6 @@
   networking.networkmanager.enable = true; # Enable networking via NM
 
   hardware.block.defaultScheduler = "none";
-{
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -40,6 +36,12 @@
     "loglevel=3"
     "systemd.show_status=auto"
     "rd.udev.log_level=3"
+    "preempt=full" #
+    "amd_iommu=on" #
+    "amd_pstate=active" # AMD Active Pstates instead of cpufreq
+    "tsc=reliable" # Trust AMD builtin clock for better latency
+    "clocksource=tsc" # Trust AMD builtin cock for etter latency
+    "rcu_nocbs=2,4,6,8,10,12,14" # Offload RCU calls from every second core for latency
   ];
   boot = {
     kernel.sysctl = {
@@ -52,14 +54,6 @@
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
   };
-  boot.kernelParams = lib.mkAfter [
-    "preempt=full" #
-    "amd_iommu=on" #
-    "amd_pstate=active" # AMD Active Pstates instead of cpufreq
-    "tsc=reliable" # Trust AMD builtin clock for better latency
-    "clocksource=tsc" # Trust AMD builtin cock for etter latency
-    "rcu_nocbs=2,4,6,8,10,12,14" # Offload RCU calls from every second core for latency
-  ];
 
   services.avahi = {
     enable = true;
@@ -106,6 +100,70 @@
     fullName = "Michal Gawronski-Kot";
     email = "michal@gawronskikot.com";
   };
+  networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
+
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.users.michal = {
+    isNormalUser = true;
+    shell = pkgs.zsh;
+    description = "Michal";
+    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" ];
+    packages = with pkgs; [
+      discord
+#       (bambu-studio.overrideAttrs {
+#         version = "02.01.01.52";
+#         buildInputs = oldAttrs.buildInputs ++ [ pkgs.boost188 ];
+#         src = fetchFromGitHub {
+#           owner = "bambulab";
+#           repo = "BambuStudio";
+#           rev = "v02.01.01.52";
+#           hash = "sha256-AyHb2Gxa7sWxxZaktfy0YGhITr1RMqmXrdibds5akuQ=";
+#         };
+#       })
+    ];
+  };
+  nixpkgs = {
+    config = {
+      allowUnfree = true;
+    };
+  };
+  home-manager.users.${config.primaryUser.name} = {
+    home = {
+      stateVersion = "25.05";
+      username = "michal";
+      homeDirectory = "/home/michal";
+      packages = with pkgs; [
+        mqtt-explorer
+        discord
+        signal-desktop
+      ];
+    };
+    catppuccin.flavor = "mocha";
+  };
+  environment.systemPackages = with pkgs; [
+    cifs-utils
+    vlc
+    libvlc
+    pciutils
+    usbutils
+    psmisc
+    ffmpeg # multimedia framework
+    hdparm
+    lm_sensors
+    detach
+    tabiew
+    ragenix
+    aspell
+    aspellDicts.en
+    aspellDicts.en-computers
+    aspellDicts.en-science
+    aspellDicts.pl
+    _7zz
+    python3
+    nixos-anywhere
+  ];
+
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
