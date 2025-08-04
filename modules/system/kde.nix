@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  inherit (lib) mkIf;
-  inherit (lib) mkOption;
+  inherit (lib) mkIf mkOption;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
 in
