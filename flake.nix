@@ -18,10 +18,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
-    nix-darwin = {
-      url = "github:nix-darwin/nix-darwin/master";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+#     nix-darwin = {
+#       url = "github:nix-darwin/nix-darwin/master";
+#       inputs.nixpkgs.follows = "nixpkgs";
+#     };
   };
 
   outputs =
@@ -79,29 +79,30 @@
           ];
         };
       };
-      darwinConfigurations = {
-        michal-macbook-pro = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          specialArgs = { machineType = "laptop"; };
-          modules = [
-            ./libs
-            ./modules
-            ./hosts/michal-macbook-pro/configuration.nix
-            agenix.nixosModules.default
-#            catppuccin.nixosModules.catppuccin
-            home-manager.darwinModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.verbose = true;
-              home-manager.users.michal = {
-                imports = [
-                  catppuccin.homeModules.catppuccin
-                ];
-              };
-            }
-          ];
-        };
-      };
+# Doesnt work
+#       darwinConfigurations = {
+#         michal-macbook-pro = nix-darwin.lib.darwinSystem {
+#           system = "aarch64-darwin";
+#           specialArgs = { machineType = "laptop"; };
+#           modules = [
+#             ./libs
+#             ./modules
+#             ./hosts/michal-macbook-pro/configuration.nix
+#             agenix.nixosModules.default
+# #            catppuccin.nixosModules.catppuccin
+#             home-manager.darwinModules.home-manager
+#             {
+#               home-manager.useGlobalPkgs = true;
+#               home-manager.useUserPackages = true;
+#               home-manager.verbose = true;
+#               home-manager.users.michal = {
+#                 imports = [
+#                   catppuccin.homeModules.catppuccin
+#                 ];
+#               };
+#             }
+#           ];
+#         };
+#       };
     };
 }
