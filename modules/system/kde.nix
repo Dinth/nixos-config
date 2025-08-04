@@ -228,6 +228,14 @@ in
         }
       ];
       configFile = {
+        "spectaclerc" = {
+          "GuiConfig"."captureMode" = 0;
+          "ImageSave"."translatedScreenshotsFolder" = "Screenshots";
+          "VideoSave" = {
+            "preferredVideoFormat" = 2;
+            "translatedScreencastsFolder" = "Screencasts";
+          };
+        };
         "kwinrc" = {
           "Xwayland"."Scale" = 1.25;
           "NightColor" = {
