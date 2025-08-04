@@ -22,7 +22,7 @@
     aspellDicts.pl
     _7zz
     python3
-    doas-sudo-shim
+
     nixos-anywhere
   ];
 
@@ -39,11 +39,8 @@
     };
   };
 
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-  };
 
-  programs.ssh.startAgent = true;
+
+
   #security.sudo.enable = false;
 }

@@ -34,6 +34,7 @@ in
       difftastic # structural diff
       vivid # LS_COLOURS generator
     ];
-  programs.usbtop.enable = true;
+    programs.usbtop.enable = true;
+    programs.ssh.startAgent = true;
   };
 }

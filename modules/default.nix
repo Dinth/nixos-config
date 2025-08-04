@@ -3,6 +3,7 @@
   imports = [
     ./apps
     ./hardware
+    ./services
     ./system
   ];
 }
