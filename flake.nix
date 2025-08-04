@@ -96,7 +96,6 @@
               home-manager.verbose = true;
               home-manager.users.michal = {
                 imports = [
-                  catppuccin.homeModules.catppuccin
                 ];
               };
             }
