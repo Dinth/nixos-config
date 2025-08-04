@@ -1,4 +1,4 @@
-{ config, lib,...}:
+{ config, lib, pkgs,...}:
 let
   inherit (lib) mkIf;
   cfg = config.kde;
@@ -6,6 +6,9 @@ let
 in
 {
   config = mkIf cfg.enable {
+    environment.systemPackages = with pkgs; [
+      nil
+    ];
     home-manager.users.${primaryUsername} = {
       programs.kate = {
         enable = true;
@@ -48,6 +51,17 @@ in
           "text/x-applescript" = "Kate.desktop"; # applescript
         };
       };
+      home.file.".config/kate/lspclient/settings.json".text = ''
+        {
+          "servers": {
+            "nix": {
+              "command": ["nil"],
+              "url": "https://github.com/oxalica/nil",
+              "highlightingModeRegex": "^Nix$"
+            }
+          }
+        }
+      '';
     };
   };
 }

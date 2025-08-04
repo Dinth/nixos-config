@@ -34,6 +34,33 @@ in
           name = "FiraCode Nerd Font Med";
           size = 10;
         };
+        extraConfig = {
+          Appearance = {
+            LineSpacing = 0;
+            BoldIntense = true; # otherwise, nothing seems to even happen with bold fonts!
+          };
+          General = {
+            DimWhenInactive = false;
+            InvertSelectionColors = true;
+            SemanticInputClick = true;
+            SemanticUpDown = true;
+            TerminalCenter = true;
+          };
+          "Interaction Options" = {
+            AllowEscapedLinks = false;
+            AutoCopySelectedText = false;
+            CopyTextAsHTML = false;
+            OpenLinksByDirectClickEnabled = true;
+            TextEditorCmd = 0;
+            TrimLeadingSpacesInSelectedText = true;
+            TrimTrailingSpacesInSelectedText = true;
+            UnderlineFilesEnabled = true;
+          };
+          "Scrolling" = {
+            HistoryMode = 1;
+            HistorySize = 40000;
+          };
+        };
       };
     };
   };
