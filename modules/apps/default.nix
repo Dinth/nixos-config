@@ -4,6 +4,7 @@
     ./1Password
     ./bat
     ./btop
+    ./clamav
     ./eza
     ./git
     ./google-chrome
