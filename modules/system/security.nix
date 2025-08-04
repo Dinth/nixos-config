@@ -91,9 +91,7 @@ in
       scanner = {
         scanDirectories = [
           "/home"
-          "/var/lib"
           "/tmp"
-          "/etc"
           "/var/tmp"
         ];
         interval = "*-*-* 04:00:00";
