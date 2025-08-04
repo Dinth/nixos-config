@@ -2,6 +2,7 @@
 {
   imports = [
     ./cli.nix
+    ./darwin.nix
     ./gaming.nix
     ./graphical.nix
     ./locale.nix
