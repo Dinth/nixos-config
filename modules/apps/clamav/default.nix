@@ -26,7 +26,10 @@ in
         };
         directories = mkOption {
           type = lib.types.listOf lib.types.str;
-          default = [ ];
+          default = [
+            "/run/media"
+            "/tmp"
+          ];
           description = "Additional directories to scan on access. Must be absolute paths.";
         };
       };
@@ -41,6 +44,80 @@ in
     cfg.accessScanning.homeDirectories;
   in
   {
-
+    antivirus.accessScanning.directories = allACScanHomeDirs;
+    services.clamav = {
+      daemon = {
+        enable = true;
+        settings = {
+          LogFile = "/var/log/clamav/clamav.log";
+          ExtendedDetectionInfo = "yes";
+          OnAccessIncludePath = cfg.accessScanning.directories;
+          OnAccessPrevention = true;
+          OnAccessExtraScanning = true;
+          OnAccessExcludeUname = "clamav";
+          MaxFileSize = "4000M";
+          MaxScanTime = "60000";
+          StreamMaxLength = "100M";
+          OnAccessMaxFileSize = "100M";
+          BytecodeTimeout = "60000";
+          User = "clamav";
+          ScanPE = true;
+          ScanELF = true;
+          ScanMail = true;
+          ScanArchive = true;
+          ScanHTML = true;
+          ScanOLE2 = true;
+          ScanPDF = true;
+          ScanSWF = true;
+          MaxThreads = 4;
+          CrossFilesystems = false;
+        };
+      };
+      updater = {
+        enable = true;
+        settings = {
+          UpdateLogFile = "/var/log/clamav/freshclam.log";
+          DatabaseDirectory = "/var/lib/clamav";
+          CompressLocalDatabase = false;
+        };
+          interval = "daily";
+          frequency = 1;
+      };
+      fangfrisch = {
+        enable = true;
+        interval = "daily";
+        settings = {
+          DEFAULT.db_url = "sqlite:////var/lib/clamav/fangfrisch_db.sqlite";
+          DEFAULT.local_directory = "/var/lib/clamav";
+          DEFAULT.log_level = "INFO";
+          urlhaus.enabled = "yes";
+          urlhaus.max_size = "2MB";
+          sanesecurity.enabled = "yes";
+        };
+      };
+      scanner = {
+        scanDirectories = [
+          "/"
+        ];
+        interval = "*-*-* 09:00:00";
+      };
+    };
+    systemd.services."clamav-clamonacc" = {
+      description = "ClamAV On-Access Scanner";
+      documentation = ["man:clamonacc(8)" "man:clamd.conf(5)" "https://docs.clamav.net/"];
+      requires = ["clamav-daemon.service"];
+      after = ["clamav-daemon.service"];
+      wantedBy = ["multi-user.target"];
+      serviceConfig = {
+        Type = "simple";
+        User = "root";
+        ExecStartPre = ''${lib.getExe pkgs.bash} -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
+        ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F --log=/var/log/clamav/clamonacc.log -c /etc/clamav/clamd.conf --move /root/quarantine  --fdpass --allmatch'';
+        ExecReload = ''${lib.getExe' pkgs.coreutils "kill"} -USR2 $MAINPID'';
+        PrivateTmp = "yes";
+        PrivateDevices = "yes";
+        PrivateNetwork = "yes";
+      };
+    };
   };
 }

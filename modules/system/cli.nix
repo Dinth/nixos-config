@@ -33,6 +33,7 @@ in
       git
       difftastic # structural diff
       vivid # LS_COLOURS generator
+      net-snmp # client and server for SNMP protocol
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;

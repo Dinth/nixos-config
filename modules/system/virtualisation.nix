@@ -46,7 +46,7 @@ in
             ${lib.getExe pkgs.bash} -c " \
               while true; do \
                 # Wait until a VM is running \
-                while ! ${lib.getExe' pkgs.virtualbox "VBoxManager"} list runningvms | ${lib.getExe pkgs.gnugrep} -q '.'; do \
+                while ! ${lib.getExe' pkgs.virtualbox "VBoxManage"} list runningvms | ${lib.getExe pkgs.gnugrep} -q '.'; do \
                   sleep 30; \
                 done; \
                 \
