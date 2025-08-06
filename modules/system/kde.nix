@@ -120,109 +120,118 @@ in
       }
     ];
       desktop.widgets = [
+        # --- Applet 1014: IO ---
         {
-          name = "org.kde.plasma.systemmonitor.net";
-          # Geometry from ItemGeometries: Applet-39 -> 1696,656,352,208
+          name = "org.kde.plasma.systemmonitor.diskactivity";
           position = { horizontal = 1696; vertical = 656; };
           size = { width = 352; height = 224; };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.linechart";
-              title = "Network Speed";
+              title = "SSD";
             };
-            # Keys with special characters like '/' must be quoted
-            SensorColors."network/all/download" = "61,174,233";
-            SensorColors."network/all/upload" = "233,120,61";
+            SensorColors."disk/nvme0n1/read" = "186,61,233";
+            SensorColors."disk/nvme0n1/write" = "179,233,61";
+            SensorColors."lmsensors/nvme-pci-0100/temp1" = "134,233,61";
+            SensorLabels."disk/nvme0n1/read" = "Read Rate";
+            SensorLabels."disk/nvme0n1/write" = "Write Rate";
+            SensorLabels."lmsensors/nvme-pci-0100/temp1" = "Temperature";
             # Convert the JSON-like string to a proper Nix list
-            Sensors.highPrioritySensorIds = [ "network/all/download" "network/all/upload" ];
+            Sensors.highPrioritySensorIds = [ "disk/nvme0n1/read" "disk/nvme0n1/write" ];
+            Sensors.lowPrioritySensorIds = [ "lmsensors/nvme-pci-0100/temp1" ];
           };
         }
 
-        # --- Applet 40: General System Monitor (GPU) ---
-        {
-          name = "org.kde.plasma.systemmonitor";
-          # Geometry from ItemGeometries: Applet-40 -> 1696,16,352,208
-          position = { horizontal = 1696; vertical = 16; };
-          size = { width = 352; height = 208; };
-          config = {
-            Appearance.chartFace = "org.kde.ksysguard.linechart";
-            SensorColors = {
-              "gpu/all/usage" = "142,233,61";
-              "gpu/all/usedVram" = "61,130,233";
-              "gpu/gpu1/coreFrequency" = "61,216,233";
-              "gpu/gpu1/in0" = "61,233,115";
-              "gpu/gpu1/memoryFrequency" = "233,61,108";
-              "gpu/gpu1/power" = "233,231,61";
-              "gpu/gpu1/totalVram" = "233,120,61";
-              "gpu/gpu1/usage" = "61,174,233";
-              # Double backslash is needed to escape the backslash in a Nix string
-              "gpu/gpu\\d+/totalVram" = "61,233,98";
-              "gpu/gpu\\d+/usage" = "233,61,186";
-            };
-            Sensors.highPrioritySensorIds = [ "gpu/all/usedVram" "gpu/all/usage" ];
-          };
-        }
-
-        # --- Applet 41: CPU Monitor ---
-        {
-          name = "org.kde.plasma.systemmonitor.cpu";
-          position = { horizontal = 1696; vertical = 224; };
-          size = { width = 352; height = 224; };
-          # Geometry from ItemGeometries: Applet-41 -> 1696,224,352,224
-          config = {
-            Appearance = {
-              chartFace = "org.kde.ksysguard.linechart";
-              title = "Total CPU Use";
-            };
-            SensorColors."cpu/all/usage" = "61,174,233";
-            Sensors = {
-              highPrioritySensorIds = [ "cpu/all/usage" ];
-              lowPrioritySensorIds = [ "cpu/all/cpuCount" "cpu/all/coreCount" ];
-              totalSensors = [ "cpu/all/usage" ];
-            };
-          };
-        }
-
-        # --- Applet 42: Memory Monitor ---
+        # --- Applet 1016: Memory ---
         {
           name = "org.kde.plasma.systemmonitor.memory";
-          # Geometry from ItemGeometries: Applet-42 -> 1696,448,352,208
+          position = { horizontal = 1696; vertical = 224; };
+          size = { width = 352; height = 224; };
+          config = {
+            Appearance = {
+              chartFace = "org.kde.ksysguard.piechart";
+              title = "Memory";
+            };
+            SensorColors = {
+              "memory/physical/applicationPercent" = "61,163,233";
+              "memory/physical/bufferPercent" = "233,181,61";
+              "memory/physical/cachePercent" = "233,82,61";
+              "memory/swap/usedPercent" = "71,61,233";
+            };
+            SensorLabels."memory/swap/usedPercent" = "Swap";
+            Sensors.highPrioritySensorIds = [ "memory/physical/applicationPercent" "memory/physical/bufferPercent" "memory/physical/cachePercent" "memory/swap/usedPercent" ];
+          };
+        }
+        # --- Applet 1017: GPU ---
+        {
+          name = "org.kde.plasma.systemmonitor.gpu";
           position = { horizontal = 1696; vertical = 448; };
           size = { width = 352; height = 208; };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.linechart";
-              title = "Memory Usage";
+              title = "GPU";
             };
             SensorColors = {
-              "memory/physical/used" = "61,174,233";
-              "memory/swap/used" = "233,61,155";
+              "gpu/gpu1/temp3" = "233,107,61";
+              "gpu/gpu1/usage" = "66,233,61";
+              "gpu/gpu1/usedVram" = "61,233,224";
+            };
+            SensorLabels = {
+              "gpu/gpu1/usage" = "GPU %";
+              "gpu/gpu1/usedVram" = "Memory";
+              "gpu/gpu1/temp3" = "Temperature";
             };
             Sensors = {
-              highPrioritySensorIds = [ "memory/physical/used" "memory/swap/used" ];
-              # An empty JSON array becomes an empty Nix list
-              lowPrioritySensorIds = [ ];
-              totalSensors = [ "memory/physical/usedPercent" "memory/swap/usedPercent" ];
+              highPrioritySensorIds = [ "gpu/gpu1/usage" "gpu/gpu1/usedVram" ];
+              lowPrioritySensorIds = [ "gpu/gpu1/temp3" ];
             };
           };
         }
-
-        # --- Applet 44: Disk Activity Monitor ---
+        # --- Applet 1018: Network ---
         {
-          name = "org.kde.plasma.systemmonitor.diskactivity";
-          # Geometry from ItemGeometries: Applet-44 -> 1696,864,352,224
-          position = { horizontal = 1696; vertical = 864; };
+          name = "org.kde.plasma.systemmonitor.network";
+          position = { horizontal = 1696; vertical = 880; };
           size = { width = 352; height = 224; };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.linechart";
-              title = "Hard Disk Activity";
+              title = "Network";
             };
             SensorColors = {
-              "disk/all/read" = "233,120,61";
-              "disk/all/write" = "61,174,233";
+              "network/all/download" = "89,233,61";
+              "network/all/upload" = "233,61,140";
             };
-            Sensors.highPrioritySensorIds = [ "disk/all/write" "disk/all/read" ];
+            Sensors = {
+              highPrioritySensorIds = [ "network/all/download" "network/all/upload" ];
+            };
+          };
+        }
+        # --- Applet 1020: CPU ---
+        {
+          name = "org.kde.plasma.systemmonitor.cpu";
+          position = { horizontal = 1696; vertical = 0; };
+          size = { width = 352; height = 224; };
+          config = {
+            Appearance = {
+              chartFace = "org.kde.ksysguard.linechart";
+              title = "CPU";
+            };
+            SensorColors = {
+              "cpu/all/averageFrequency" = "175,61,233";
+              "cpu/all/averageTemperature" = "74,61,233";
+              "cpu/all/usage" = "61,174,233";
+            };
+            SensorLabels = {
+              "cpu/all/averageFrequency" = "Frequency";
+              "cpu/all/averageTemperature" = "Temperature";
+              "cpu/loadaverages/loadaverage1" = "Load avg 1m";
+              "cpu/loadaverages/loadaverage15" = "Load avg 15m";
+              "cpu/loadaverages/loadaverage5" = "Load avg 5m";
+              "pressure/cpu/full10Sec" = "Pressure 10s";
+            };
+            Sensors.highPrioritySensorIds = [ "cpu/all/averageFrequency" "cpu/all/averageTemperature" ];
+            Sensors.lowPrioritySensorIds = [ "cpu/loadaverages/loadaverage1" "cpu/loadaverages/loadaverage5" "cpu/loadaverages/loadaverage15" "pressure/cpu/full10Sec" ];
           };
         }
       ];

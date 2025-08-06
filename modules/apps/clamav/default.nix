@@ -119,5 +119,11 @@ in
         PrivateNetwork = "yes";
       };
     };
+    systemd.tmpfiles.rules = [
+      "d /var/log/clamav 0600 clamav clamav"
+      "f /var/log/clamav/clamav.log 0600 clamav clamav"
+      "f /var/log/clamav/freshclam.log 0600 clamav clamav"
+      "f /var/log/clamav/clamonacc.log 0600 clamav clamav"
+    ];
   };
 }

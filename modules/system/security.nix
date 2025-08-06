@@ -32,6 +32,10 @@
     "ufs"
     "ksmbd"
     "uvcvideo"
+    "tipc"
+    "sctp"
+    "dccp"
+    "rds"
   ];
   services.journald.extraConfig = ''
     SystemMaxUse=100M
