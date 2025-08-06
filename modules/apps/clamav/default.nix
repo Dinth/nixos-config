@@ -112,7 +112,7 @@ in
         Type = "simple";
         User = "root";
         ExecStartPre = ''${lib.getExe pkgs.bash} -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
-        ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F --log=/var/log/clamav/clamonacc.log -c /etc/clamav/clamd.conf --move /root/quarantine  --fdpass --allmatch'';
+        ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F --log=/var/log/clamav/clamonacc.log -c /etc/clamav/clamd.conf --move /var/lib/quarantine  --fdpass --allmatch'';
         ExecReload = ''${lib.getExe' pkgs.coreutils "kill"} -USR2 $MAINPID'';
         PrivateTmp = "yes";
         PrivateDevices = "yes";
