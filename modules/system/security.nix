@@ -38,7 +38,8 @@
     "rds"
   ];
   services.journald.extraConfig = ''
-    SystemMaxUse=100M
+    SystemMaxFileSize=100M
+    SystemMaxUse=500M
     MaxFileSec=7day
   '';
   security.sudo.enable = false;

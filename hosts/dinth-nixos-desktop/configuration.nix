@@ -39,7 +39,8 @@
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
   };
-
+  services.thermald.enable = true;
+  services.modemManager.enable = false;
   services.avahi = {
     enable = true;
     nssmdns4 = true;

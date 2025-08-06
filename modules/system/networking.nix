@@ -16,6 +16,7 @@
     allowedUDPPorts = [ 1900 2021 9999 ];
     allowedTCPPorts = [ 8883 9999 ];
     allowPing = true;
+    logRefusedPackets = true;
   };
 
 }
