@@ -40,7 +40,7 @@
     };
   };
   services.thermald.enable = true;
-  services.modemManager.enable = false;
+  networking.modemmanager.enable = false;
   services.avahi = {
     enable = true;
     nssmdns4 = true;
