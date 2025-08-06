@@ -7,17 +7,6 @@
       ../../secrets/deployment.nix
     ];
 
-  fileSystems."/" = {
-    device = "/dev/disk/by-uuid/789d3481-8d64-4a39-b219-95b98db2a3a7";
-    fsType = "ext4";
-    options = [ "noatime" "nodiratime" ];
-  };
-  swapDevices = [
-    {
-      device = "/swapfile";
-      size = 32 * 1024;
-    }
-  ];
 
   networking.networkmanager.enable = true; # Enable networking via NM
 
@@ -31,13 +20,9 @@
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [
-    "quiet"
-    "splash"
-    "loglevel=3"
     "systemd.show_status=auto"
     "rd.udev.log_level=3"
     "preempt=full" #
-    "amd_iommu=on" #
     "amd_pstate=active" # AMD Active Pstates instead of cpufreq
     "tsc=reliable" # Trust AMD builtin clock for better latency
     "clocksource=tsc" # Trust AMD builtin cock for etter latency

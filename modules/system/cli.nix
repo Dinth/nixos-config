@@ -34,6 +34,11 @@ in
       difftastic # structural diff
       vivid # LS_COLOURS generator
       net-snmp # client and server for SNMP protocol
+      zip
+      unzip
+      rar
+      unar
+
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
