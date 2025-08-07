@@ -23,6 +23,14 @@ in
     environment.systemPackages = with pkgs; [
       vlc
       libvlc
+      libva
+      libva-utils
+      mesa.drivers
+      glxinfo
+      vulkan-tools
+      vulkan-loader
+      vulkan-validation-layers
+      mpv
     ];
     fonts.packages = with pkgs; [
       noto-fonts

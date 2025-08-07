@@ -64,7 +64,7 @@ in
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
       # KDE Wayland session
-      KWIN_COMPOSE = "wayland";
+      KWIN_COMPOSE = "auto";
     };
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;
