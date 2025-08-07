@@ -56,6 +56,11 @@
       }
     ];
   };
+  boot.kernelParams = [
+    "kernel.kptr_restrict=2"
+    "kernel.yama.ptrace_scope=1"
+    "kernel.dmesg_restrict=1"
+  ];
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
     lynis # vulnerability scanner
