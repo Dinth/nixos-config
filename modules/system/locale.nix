@@ -17,7 +17,12 @@ in
       LC_TELEPHONE = "en_GB.UTF-8";
       LC_TIME = "en_GB.UTF-8";
     };
-    console.keyMap = "pl";
+    console = {
+#      font = "Lat2-Terminus16";
+# TODO: choose a console font
+      useXkbConfig = true;
+      keyMap = "pl";
+    };
     environment.systemPackages = with pkgs; [
       aspellDicts.en
       aspellDicts.en-computers
