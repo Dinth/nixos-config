@@ -4,6 +4,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ../common.nix
       ../../secrets/deployment.nix
     ];
 
@@ -12,13 +13,6 @@
 
   hardware.block.defaultScheduler = "none";
 
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 1;
-  boot.initrd.systemd.enable = true;
-  # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [
     "systemd.show_status=auto"
     "rd.udev.log_level=3"
@@ -87,7 +81,7 @@
     email = "michal@gawronskikot.com";
   };
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
-
+  services.fstrim.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.michal = {
@@ -95,24 +89,6 @@
     shell = pkgs.zsh;
     description = "Michal";
     extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" ];
-    packages = with pkgs; [
-      discord
-#       (bambu-studio.overrideAttrs {
-#         version = "02.01.01.52";
-#         buildInputs = oldAttrs.buildInputs ++ [ pkgs.boost188 ];
-#         src = fetchFromGitHub {
-#           owner = "bambulab";
-#           repo = "BambuStudio";
-#           rev = "v02.01.01.52";
-#           hash = "sha256-AyHb2Gxa7sWxxZaktfy0YGhITr1RMqmXrdibds5akuQ=";
-#         };
-#       })
-    ];
-  };
-  nixpkgs = {
-    config = {
-      allowUnfree = true;
-    };
   };
   home-manager.users.${config.primaryUser.name} = {
     home = {
@@ -135,7 +111,6 @@
     hdparm
     lm_sensors
     detach
-    ragenix
     nixos-anywhere
   ];
 

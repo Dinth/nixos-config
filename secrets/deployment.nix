@@ -1,5 +1,8 @@
 { config, ... }:
 {
+  environment.systemPackages = with pkgs; [
+    ragenix
+  ];
   age.secrets = {
     user-password = {
       file = ./michal-password.age;
