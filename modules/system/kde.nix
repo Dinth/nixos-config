@@ -36,9 +36,9 @@ in
       kdePackages.qtimageformats
       kdePackages.ffmpegthumbs
       haruna # KDE video player based on mpv
-      kdePackages.partitionmanager
       kdePackages.ksystemlog
     ];
+    programs.partition-manager.enable = true;
     programs.kde-pim.kontact = true;
     programs.kdeconnect.enable = true;
     qt = {
