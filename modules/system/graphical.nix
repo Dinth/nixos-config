@@ -42,6 +42,8 @@ in
       corefonts
       vista-fonts
       nerd-fonts.fira-code
+      dejavu_fonts
+      ubuntu_font_family
     ];
     fonts.fontconfig = {
       enable = true;
