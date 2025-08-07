@@ -9,6 +9,7 @@
     ];
 
 
+  networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
 
   hardware.block.defaultScheduler = "none";
@@ -80,9 +81,6 @@
     fullName = "Michal Gawronski-Kot";
     email = "michal@gawronskikot.com";
   };
-  networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
-  services.fstrim.enable = true;
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.michal = {
     isNormalUser = true;
