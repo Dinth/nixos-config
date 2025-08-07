@@ -16,11 +16,6 @@ in
     };
   };
   config = mkIf cfg.enable {
-    services.xserver.xkb = {
-      layout = "pl";
-      variant = "legacy";
-      options = "terminate:ctrl_alt_bksp,kpdl:dot";
-    };
 
     services.xserver.enable = true;
 

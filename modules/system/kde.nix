@@ -37,7 +37,10 @@ in
       kdePackages.ffmpegthumbs
       haruna # KDE video player based on mpv
       kdePackages.ksystemlog
+      libreoffice-qt
     ];
+    blueman.enable = false; # Use KDE Bluetooth instead
+    services.accounts-daemon.enable = true;
     programs.partition-manager.enable = true;
     programs.kde-pim.kontact = true;
     programs.kdeconnect.enable = true;
