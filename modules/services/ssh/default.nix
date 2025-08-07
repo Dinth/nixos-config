@@ -14,6 +14,13 @@ in
     };
   };
   config = mkIf cfg.enable {
-
+    services.openssh = {
+      enable = lib.mkDefault false; # Disabled by default, enable per host
+      settings = {
+        PasswordAuthentication = false;
+        PermitRootLogin = "no";
+        X11Forwarding = false;
+      };
+    };
   };
 }
