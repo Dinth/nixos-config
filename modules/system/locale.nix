@@ -21,7 +21,11 @@ in
 #      font = "Lat2-Terminus16";
 # TODO: choose a console font
       useXkbConfig = true;
-      keyMap = "pl";
+    };
+    services.xserver.xkb = {
+      layout = "pl";
+      variant = "legacy";
+      options = "terminate:ctrl_alt_bksp,kpdl:dot";
     };
     environment.systemPackages = with pkgs; [
       aspellDicts.en
