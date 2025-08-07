@@ -9,7 +9,7 @@
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
+  boot.kernelModules = [ "kvm-amd" "k10temp" "it87"];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
@@ -20,6 +20,71 @@
 
   boot.initrd.luks.devices."luks-4110bc56-975a-4d51-b39e-9452ea0294f7".device = "/dev/disk/by-uuid/4110bc56-975a-4d51-b39e-9452ea0294f7";
 
+  environment.etc = {
+    "sysconfig/lm_sensors".text = ''
+      HWMON_MODULES="nct6775"
+    '';
+    "sensors.d/gigabyte-x570.conf".text = ''
+    chip "it8688-*"
+      label fan1 "CPU_FAN"
+      label fan2 "SYS_FAN1"
+      label fan3 "SYS_FAN2"
+      label fan4 "Chipset fan"
+      label fan5 "CPU_OPT"
+
+      label temp1 "SYS1 (rear)"
+      label temp2 "SYS2 (front)"
+      label temp3 "CPU"
+      label temp4 "PCIe"
+      label temp5 "VRM"
+      label temp6 "Chipset"
+
+    chip "it8688-*"
+      label in0 "Vcore"
+
+      label in1 "+3.3V"
+      compute in1 1.65*@,@/1.65
+
+      label in2 "+12V"
+      compute in2  @ * (72/12), @ / (72/12)
+
+      label in3 "+5V"
+      compute in3 2.5*@,@/2.5
+
+      label in4 "SoC"
+
+      label in5 "VDDP"
+
+      label in6 "DRAM A/B"
+      compute in6 @-.03,@-.03
+  '';
+  };
+  boot.kernelParams = [
+    "systemd.show_status=auto"
+    "rd.udev.log_level=3"
+    "preempt=full" #
+    "amd_pstate=active" # AMD Active Pstates instead of cpufreq
+    "tsc=reliable" # Trust AMD builtin clock for better latency
+    "clocksource=tsc" # Trust AMD builtin cock for etter latency
+    "rcu_nocbs=2,4,6,8,10,12,14" # Offload RCU calls from every second core for latency
+    "thermal.acpi_disabled=1" # Fix a bug with acpitz reporting overheat on resume from suspend
+    "amd_iommu=on"
+    "amd_iommu=pt"
+  ];
+  boot.extraModprobeConfig = ''
+      options it87 ignore_resource_conflict=1
+  '';
+  boot = {
+    kernel.sysctl = {
+      "vm.swappiness" = 10;
+      "vm.max_map_count" = 524288; # 64GB ram,
+      "vm.vfs_cache_pressure" = 50; # more memory for filesystem data
+      "vm.dirty_ratio" = 30;
+      "vm.dirty_background_ratio" = 15;
+      "net.core.default_qdisc" = "fq";
+      "net.ipv4.tcp_congestion_control" = "bbr";
+    };
+  };
   fileSystems."/boot" =
     { device = "/dev/disk/by-uuid/0C4B-B2B3";
       fsType = "vfat";
@@ -31,6 +96,27 @@
     size = 64 * 1024; # 32GB
   }];
 
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+  services.thermald.enable = true;
+  networking.modemmanager.enable = false;
+  services.hardware.bolt.enable = true;
+  hardware.enableRedistributableFirmware = true;
+  hardware.block.defaultScheduler = "none";
+  hardware.keyboard.qmk.enable = true;
+  hardware.flipperzero.enable = true;
+  # Enable sound with pipewire.
+  services.pulseaudio.enable = false;
+  services.fwupd.enable = true;
+  services.fstrim.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
   # still possible to use this option, but it's recommended to use it in conjunction

@@ -12,56 +12,10 @@
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
 
-  hardware.block.defaultScheduler = "none";
-
-  boot.kernelParams = [
-    "systemd.show_status=auto"
-    "rd.udev.log_level=3"
-    "preempt=full" #
-    "amd_pstate=active" # AMD Active Pstates instead of cpufreq
-    "tsc=reliable" # Trust AMD builtin clock for better latency
-    "clocksource=tsc" # Trust AMD builtin cock for etter latency
-    "rcu_nocbs=2,4,6,8,10,12,14" # Offload RCU calls from every second core for latency
-  ];
-  boot = {
-    kernel.sysctl = {
-      "vm.swappiness" = 10;
-      "vm.max_map_count" = 524288; # 64GB ram,
-      "vm.vfs_cache_pressure" = 50; # more memory for filesystem data
-      "vm.dirty_ratio" = 30;
-      "vm.dirty_background_ratio" = 15;
-      "net.core.default_qdisc" = "fq";
-      "net.ipv4.tcp_congestion_control" = "bbr";
-    };
-  };
-  services.thermald.enable = true;
-  networking.modemmanager.enable = false;
   services.avahi = {
     enable = true;
     nssmdns4 = true;
     openFirewall = true;
-  };
-
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-  };
-
-  services.hardware.bolt.enable = true;
-  hardware.cpu.amd.updateMicrocode = true;
-  hardware.enableRedistributableFirmware = true;
-  hardware.keyboard.qmk.enable = true;
-  hardware.flipperzero.enable = true;
-
-  # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
-  services.fwupd.enable = true;
-  services.fstrim.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
   };
 
   cli.enable = true;
