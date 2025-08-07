@@ -37,6 +37,7 @@ in
       ensureDefaultPrinter = "Canon_MF270_Series";
     };
     hardware.sane.enable = true;
+    services.saned.enable = true;
   };
 }
 

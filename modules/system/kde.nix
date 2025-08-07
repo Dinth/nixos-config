@@ -39,7 +39,7 @@ in
       kdePackages.ksystemlog
       libreoffice-qt
     ];
-    blueman.enable = false; # Use KDE Bluetooth instead
+    services.blueman.enable = false; # Use KDE Bluetooth instead
     services.accounts-daemon.enable = true;
     programs.partition-manager.enable = true;
     programs.kde-pim.kontact = true;
@@ -48,6 +48,23 @@ in
       enable = true;
       platformTheme = "kde6";
       style = "breeze";
+    };
+    # Session variables for KDE
+    environment.sessionVariables = {
+      # Common KDE variables
+      # Qt theming
+      QT_QPA_PLATFORMTHEME = "kde";
+      QT_STYLE_OVERRIDE = "breeze";
+
+      # KDE session type
+      XDG_SESSION_TYPE = "wayland";
+      XDG_CURRENT_DESKTOP = "KDE";
+
+      QT_QPA_PLATFORM = "wayland;xcb"; # Fallback to X11 if needed
+      QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+
+      # KDE Wayland session
+      KWIN_COMPOSE = "wayland";
     };
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;
