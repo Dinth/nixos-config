@@ -107,6 +107,7 @@
   hardware.block.defaultScheduler = "none";
   hardware.keyboard.qmk.enable = true;
   hardware.flipperzero.enable = true;
+  systemd.tpm2.enable = true;
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   services.fwupd.enable = true;

@@ -44,6 +44,8 @@ in
       psmisc #fuser, killall, pidof, pstree, peekfd
       ripgrep # modern grep replacement
       tealdeer # modern implementation of tldr - quick info about shell command usage
+
+      # TODO: Add aliases & config for ripgrep and tealdeer
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
