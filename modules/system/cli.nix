@@ -38,7 +38,10 @@ in
       unzip
       rar
       unar
-
+      tabiew # Terminal CSV viewer
+      _7zz
+      python3
+      psmisc #fuser, killall, pidof, pstree, peekfd
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
