@@ -42,6 +42,8 @@ in
       _7zz
       python3
       psmisc #fuser, killall, pidof, pstree, peekfd
+      ripgrep # modern grep replacement
+      tealdeer # modern implementation of tldr - quick info about shell command usage
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
