@@ -29,6 +29,7 @@
   amd_gpu.enable = true;
   printers.enable = true;
   weechat.enable = true;
+  ssh.enable = true;
 
   primaryUser = {
     name = "michal";
