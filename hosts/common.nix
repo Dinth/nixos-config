@@ -12,6 +12,6 @@
   boot.initrd.systemd.enable = true;
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.tmp.cleanOnBoot = true;
+#  boot.tmp.cleanOnBoot = true;
   services.fwupd.enable = true;
 }
