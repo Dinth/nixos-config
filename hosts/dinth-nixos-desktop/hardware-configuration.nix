@@ -70,6 +70,7 @@
     "thermal.acpi_disabled=1" # Fix a bug with acpitz reporting overheat on resume from suspend
     "amd_iommu=on"
     "amd_iommu=pt"
+    "thermal.crt=105"
   ];
   boot.extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
