@@ -15,6 +15,11 @@
           type = lib.types.str;
           description = "The email address of the primary user.";
         };
+        publicKeys = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          description = "A list of SSH public keys for the primary user.";
+          default = [];
+        };
       };
     };
     description = "Configuration for the main user of this system.";

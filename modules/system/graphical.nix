@@ -25,7 +25,7 @@ in
       libvlc
       libva
       libva-utils
-      mesa.drivers
+      mesa
       glxinfo
       vulkan-tools
       vulkan-loader

@@ -10,7 +10,7 @@
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" "k10temp" "it87"];
-  boot.extraModulePackages = [ ];
+  boot.extraModulePackages = [ pkgs.linuxPackages.r8125 ];
 
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/789d3481-8d64-4a39-b219-95b98db2a3a7";
@@ -63,14 +63,13 @@
     "systemd.show_status=auto"
     "rd.udev.log_level=3"
     "preempt=full" #
-    "amd_pstate=active" # AMD Active Pstates instead of cpufreq
+    "amd_pstate=guided" # AMD Active Pstates instead of cpufreq
     "tsc=reliable" # Trust AMD builtin clock for better latency
     "clocksource=tsc" # Trust AMD builtin cock for etter latency
     "rcu_nocbs=2,4,6,8,10,12,14" # Offload RCU calls from every second core for latency
-    "thermal.acpi_disabled=1" # Fix a bug with acpitz reporting overheat on resume from suspend
-    "amd_iommu=on"
-    "amd_iommu=pt"
-    "thermal.crt=105"
+    "thermal.acpi_disabled=1"
+    "iommu=pt"
+    "thermal.crt=105" # Fix a bug with acpitz reporting overheat on resume from suspend
   ];
   boot.extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
@@ -141,4 +140,5 @@
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  amd_gpu.enable = true;
 }
