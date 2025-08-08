@@ -71,7 +71,7 @@ in
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
       # KDE Wayland session
-      KWIN_COMPOSE = "auto";
+      # KWIN_COMPOSE = "auto";
     };
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;
@@ -543,7 +543,7 @@ in
             "viewShade" = "81,49,95";
           };
           "lspclient" = {
-            "AllowedServerCommandLines" = "";
+            "AllowedServerCommandLines" = "/run/current-system/sw/bin/nil";
             "AutoHover" = true;
             "AutoImport" = true;
             "BlockedServerCommandLines" = "";

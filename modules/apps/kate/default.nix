@@ -8,6 +8,8 @@ in
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       nil
+      yaml-language-server
+      bash-language-server
     ];
     home-manager.users.${primaryUsername} = {
       programs.kate = {
