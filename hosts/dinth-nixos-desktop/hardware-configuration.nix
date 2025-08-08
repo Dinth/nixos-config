@@ -83,6 +83,7 @@
       "vm.dirty_background_ratio" = 15;
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
+      "acpi_enforce_resource" = "lax";
     };
   };
   fileSystems."/boot" =

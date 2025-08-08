@@ -44,8 +44,9 @@ in
       psmisc #fuser, killall, pidof, pstree, peekfd
       ripgrep # modern grep replacement
       tealdeer # modern implementation of tldr - quick info about shell command usage
-
+      stress # cpu and memory stress tester
       # TODO: Add aliases & config for ripgrep and tealdeer
+      acpi # show acpi information
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
