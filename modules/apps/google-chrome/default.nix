@@ -11,5 +11,6 @@ in
     environment.systemPackages = with pkgs; [
       google-chrome
     ];
+    environment.sessionVariables.NO_AT_BRIDGE = "1";
   };
 }

@@ -49,6 +49,13 @@ in
       platformTheme = "kde6";
       style = "breeze";
     };
+    security.wrappers = {
+      kwin_wayland = {
+        owner = "root";
+        group = "root";
+        source = "${lib.getExe' pkgs.kdePackages.kwin "kwin_wayland"}";
+      };
+    };
     # Session variables for KDE
     environment.sessionVariables = {
       # Common KDE variables
@@ -64,7 +71,7 @@ in
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
       # KDE Wayland session
- #     KWIN_COMPOSE = "auto";
+      KWIN_COMPOSE = "auto";
     };
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;

@@ -47,6 +47,7 @@ in
       stress-ng # cpu and memory stress tester
       # TODO: Add aliases & config for ripgrep and tealdeer
       acpi # show acpi information
+      wakeonlan
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
