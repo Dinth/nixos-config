@@ -121,6 +121,7 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+# messes up sound
 #    extraConfig.pipewire =  {
 #      "92-low-latency" = {
 #        "context.properties" = {
@@ -130,7 +131,7 @@
 #          "default.clock.max-quantum" = 32;
 #        };
 #      };
-    };
+#   };
   };
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's

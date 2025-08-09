@@ -31,6 +31,7 @@ in
       vulkan-loader
       vulkan-validation-layers
       mpv
+      wl-clipboard
     ];
     fonts.packages = with pkgs; [
       noto-fonts
@@ -42,7 +43,6 @@ in
       corefonts
       vista-fonts
       nerd-fonts.fira-code
-      dejavu_fonts
       ubuntu_font_family
     ];
     fonts.fontconfig = {
