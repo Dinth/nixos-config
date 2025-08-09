@@ -30,7 +30,7 @@ in
     })
     (mkIf (cfg.enable && cfg.gui) {
       programs._1password-gui.enable = true;
-      programs._1password-gui.polkitPolicyOwners = [  ];
+      programs._1password-gui.polkitPolicyOwners = [ ${config.primaryUser.name} ];
       environment.systemPackages = with pkgs; [
         yubioath-flutter
       ];
