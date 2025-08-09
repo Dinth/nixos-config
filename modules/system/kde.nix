@@ -49,13 +49,13 @@ in
       platformTheme = "kde6";
       style = "breeze";
     };
-    security.wrappers = {
-      kwin_wayland = {
-        owner = "root";
-        group = "root";
-        source = "${lib.getExe' pkgs.kdePackages.kwin "kwin_wayland"}";
-      };
-    };
+#    security.wrappers = {
+#      kwin_wayland = {
+#        owner = "root";
+#        group = "root";
+#        source = "${lib.getExe' pkgs.kdePackages.kwin "kwin_wayland"}";
+#      };
+#    };
     # Session variables for KDE
     environment.sessionVariables = {
       # Common KDE variables

@@ -11,7 +11,9 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" "k10temp" "it87"];
   boot.extraModulePackages = [ config.boot.kernelPackages.r8125 ];
-
+  boot.blacklistedKernelModules = [
+    "gigabyte-wmi"
+  ];
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/789d3481-8d64-4a39-b219-95b98db2a3a7";
       fsType = "ext4";
@@ -84,6 +86,7 @@
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
       "acpi_enforce_resource" = "lax";
+      "dev.drm.drm_sched_jobs" = "64";
     };
   };
   fileSystems."/boot" =
@@ -101,7 +104,7 @@
     enable = true;
     powerOnBoot = true;
   };
-  services.thermald.enable = true;
+#  services.thermald.enable = true;
   networking.modemmanager.enable = false;
   services.hardware.bolt.enable = true;
   hardware.enableRedistributableFirmware = true;
