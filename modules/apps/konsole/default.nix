@@ -32,7 +32,7 @@ in
         colorScheme = "catppuccinMocha";
         font = {
           name = "FiraCode Nerd Font Med";
-          size = 10;
+          size = 11;
         };
         extraConfig = {
           Appearance = {
@@ -45,12 +45,14 @@ in
             SemanticInputClick = true;
             SemanticUpDown = true;
             TerminalCenter = true;
+            TerminalColumns = 160;
+            TerminalRows = 40;
           };
           "Interaction Options" = {
             AllowEscapedLinks = false;
             AutoCopySelectedText = false;
             CopyTextAsHTML = false;
-            OpenLinksByDirectClickEnabled = true;
+            OpenLinksByDirectClickEnabled = false;
             TextEditorCmd = 0;
             TrimLeadingSpacesInSelectedText = true;
             TrimTrailingSpacesInSelectedText = true;
