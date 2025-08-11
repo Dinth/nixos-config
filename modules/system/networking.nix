@@ -18,5 +18,9 @@
     allowPing = true;
     logRefusedPackets = true;
   };
-
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
 }

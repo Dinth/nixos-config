@@ -12,11 +12,6 @@
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
 
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
-  };
   boot.plymouth = {
     enable = true;
   };
@@ -51,7 +46,7 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" ];
+    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "scanner" "lp" ];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {
