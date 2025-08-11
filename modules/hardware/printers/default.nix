@@ -32,7 +32,7 @@ in
         {
           name = "Canon_MF270_Series";
           location = "Wickhay";
-          deviceUri = "socket://10.10.10.40:9100";
+          deviceUri = "ipp://10.10.10.40/ipp/print";
           model = "CNRCUPSMF270ZK.ppd";
           ppdOptions = {
             PageSize = "A4";
