@@ -19,14 +19,9 @@
   };
   boot.plymouth = {
     enable = true;
-    theme = "rings";
-    themePackages = with pkgs; [
-      # By default we would install all themes
-      (adi1090x-plymouth-themes.override {
-        selected_themes = [ "rings" ];
-      })
-    ];
   };
+  catppuccin.plymouth.enable = true;
+  catppuccin.plymouth.flavor = "mocha";
 
   cli.enable = true;
   graphical.enable = true;

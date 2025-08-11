@@ -20,7 +20,10 @@ in
       enable = true;
       drivers = with pkgs; [
         canon-cups-ufr2
-    ];
+      ];
+      extraConf = ''
+        DefaultPaperSize A4
+      '';
     };
     hardware.printers = {
       ensurePrinters = [
@@ -28,15 +31,17 @@ in
           name = "Canon_MF270_Series";
           location = "Wickhay";
           deviceUri = "socket://10.10.10.40:9100";
-          model = "CNRCUPSMF270ZJ.ppd";
+          model = "CNRCUPSMF270ZK.ppd";
           ppdOptions = {
             PageSize = "A4";
+            Duplex = "DuplexNoTumble";
           };
         }
       ];
       ensureDefaultPrinter = "Canon_MF270_Series";
     };
     hardware.sane.enable = true;
+    hardware.sane.extraBackends = [ pkgs.sane-airscan ];
     services.saned.enable = true;
   };
 }
