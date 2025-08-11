@@ -33,7 +33,7 @@ in
           name = "Canon_MF270_Series";
           location = "Wickhay";
           deviceUri = "ipp://10.10.10.40/ipp/print";
-          model = "CNRCUPSMF270ZK.ppd";
+          model = "everywhere";
           ppdOptions = {
             PageSize = "A4";
             Duplex = "DuplexNoTumble";

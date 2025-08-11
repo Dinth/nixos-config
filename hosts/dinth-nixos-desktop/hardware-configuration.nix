@@ -72,6 +72,7 @@
     "thermal.acpi_disabled=1"
     "iommu=pt"
     "thermal.crt=105" # Fix a bug with acpitz reporting overheat on resume from suspend
+    "plymouth.use-simpledrm"
   ];
   boot.extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
