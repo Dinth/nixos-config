@@ -18,7 +18,7 @@
       "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIMOPDiAQbAD53X2neUh/vbIv7pRx2+qkZ7Ti9PH+CJ1yAAAABHNzaDo="
     ];
   };
-  system.stateVersion = "25.11";
+  system.stateVersion = "25.05";
   users.users.${config.primaryUser.name} = {
     isNormalUser = true;
     shell = pkgs.zsh;
