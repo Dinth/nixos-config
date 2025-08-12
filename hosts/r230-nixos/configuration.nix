@@ -43,7 +43,7 @@
   graphical.enable = false;
   kde.enable = false;
   _1password.enable = false;
-  _1password.gui = true;
+  _1password.gui = false;
   gaming.enable = false;
   virtualisation.enable = false;
   logitech.enable = false;
