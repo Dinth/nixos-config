@@ -32,9 +32,6 @@
       username = config.primaryUser.name;
       homeDirectory = "/home/${config.primaryUser.name}";
       packages = with pkgs; [
-        mqtt-explorer
-        discord
-        signal-desktop
       ];
     };
     catppuccin.flavor = "mocha";
