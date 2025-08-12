@@ -7,6 +7,11 @@
     ../../secrets/deployment.nix
   ];
   networking.hostName = "r230-nixos";
+  networking = {
+    interfaces.ens18 = {
+      useDHCP = true;
+    };
+  };
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";

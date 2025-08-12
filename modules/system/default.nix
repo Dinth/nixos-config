@@ -3,6 +3,7 @@
   imports = [
     ./cli.nix
     ./darwin.nix
+    ./docker.nix
     ./gaming.nix
     ./graphical.nix
     ./locale.nix
