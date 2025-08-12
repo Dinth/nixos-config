@@ -20,7 +20,7 @@
     fsType = "ext4";
   };
 
-  swapDevices [ ];
+  swapDevices = [ ];
 
   networking.wireless.enable = false;
   networking.networkmanager.enable = false;
