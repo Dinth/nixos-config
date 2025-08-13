@@ -29,6 +29,7 @@
   amd_gpu.enable = true;
   printers.enable = true;
   weechat.enable = true;
+  docker.enable = false;
 
   primaryUser = {
     name = "michal";

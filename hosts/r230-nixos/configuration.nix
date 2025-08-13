@@ -52,4 +52,5 @@
   amd_gpu.enable = false;
   printers.enable = false;
   weechat.enable = false;
+  docker.enable = true;
 }
