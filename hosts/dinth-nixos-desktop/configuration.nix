@@ -62,9 +62,7 @@
     };
     catppuccin.flavor = "mocha";
   };
-  services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="usb", TEST=="power/autosuspend_delay_ms", ATTR{power/autosuspend_delay_ms}="0"
-  '';
+
   environment.systemPackages = with pkgs; [
     cifs-utils
     pciutils

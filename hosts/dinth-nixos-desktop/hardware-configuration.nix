@@ -110,6 +110,9 @@
     powerOnBoot = true;
   };
 #  services.thermald.enable = true;
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="usb", TEST=="power/autosuspend_delay_ms", ATTR{power/autosuspend_delay_ms}="0"
+  '';
   networking.modemmanager.enable = false;
   services.hardware.bolt.enable = true;
   hardware.enableRedistributableFirmware = true;
