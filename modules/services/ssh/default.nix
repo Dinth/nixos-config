@@ -8,14 +8,14 @@ in
     ssh = {
       enable = mkOption {
         type = lib.types.bool;
-        default = false;
+        default = true;
         description = "Enable SSH server";
       };
     };
   };
   config = mkIf cfg.enable {
     services.openssh = {
-      enable = lib.mkDefault false; # Disabled by default, enable per host
+      enable = true; # Disabled by default, enable per host
       settings = {
         PasswordAuthentication = false;
         PermitRootLogin = "no";
