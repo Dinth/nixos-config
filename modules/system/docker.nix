@@ -22,6 +22,6 @@ in
         setSocketVariable = true;
       };
     };
-    users.users.$primaryUsername.extraGroups = [ "docker" ];
+    users.users.${primaryUsername}.extraGroups = [ "docker" ];
   };
 }
