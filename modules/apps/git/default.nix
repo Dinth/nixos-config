@@ -11,11 +11,11 @@ in
       userName  = "Michal Gawronski-Kot";
       userEmail = "michal@gawronskikot.com";
       extraConfig = {
-        url = {
-          "ssh://git@github.com" = {
-            insteadOf = [ "https://github.com" "gh" ];
-          };
-        };
+#        url = {
+#          "ssh://git@github.com" = {
+#            insteadOf = [ "https://github.com" "gh" ];
+#          };
+#        };
         url = {
           "ssh://git@bitbucket.org" = {
             insteadOf = "https://bitbucket.org";
