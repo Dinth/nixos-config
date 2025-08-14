@@ -48,6 +48,7 @@ in
       acpi # show acpi information
       wakeonlan
       netcat
+      xxd
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
