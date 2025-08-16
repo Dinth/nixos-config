@@ -38,6 +38,7 @@ in
       haruna # KDE video player based on mpv
       kdePackages.ksystemlog
       libreoffice-qt
+      kdePackages.isoimagewriter
     ];
     services.blueman.enable = false; # Use KDE Bluetooth instead
     services.accounts-daemon.enable = true;
@@ -85,9 +86,9 @@ in
         cursor.theme = "catppuccin-mocha-dark-cursors";
       };
       spectacle.shortcuts = {
-        captureRectangularRegion = "Ctrl+$";
-        captureActiveWindow = "Ctrl+%";
-        captureCurrentMonitor = "Ctrl+Shift+#";
+        captureRectangularRegion = "Alt+$";
+        captureActiveWindow = "Alt+%";
+        captureCurrentMonitor = "Alt+#";
           launch = "Print";
       };
       panels = [
