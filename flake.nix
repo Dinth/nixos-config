@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:nixos/nixos-hardware/master"; # Hardware Specific Configurations
     catppuccin.url = "github:catppuccin/nix";
     home-manager = {
       url = "github:nix-community/home-manager/35e1f5a7c29f2b05e8f53177f6b5c71108c5f4c3";
@@ -18,6 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
 #     nix-darwin = {
 #       url = "github:nix-darwin/nix-darwin/master";
 #       inputs.nixpkgs.follows = "nixpkgs";
@@ -25,7 +27,7 @@
   };
 
   outputs =
-    inputs@{ nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nix-darwin, ... }:
+    inputs@{ nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nix-darwin, nixos-hardware, ... }:
     {
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
@@ -79,6 +81,32 @@
           ];
         };
       };
+      michal-surface-go = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { machineType = "tablet"; };
+          modules = [
+            ./libs
+            ./modules
+            ./hosts/dinth-nixos-desktop/configuration.nix
+            agenix.nixosModules.default
+            catppuccin.nixosModules.catppuccin
+            nixos-hardware.nixosModules.microsoft-surface-go
+            home-manager.nixosModules.home-manager
+            {
+              #home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default];
+              home-manager.users.michal = {
+                imports = [
+                  catppuccin.homeModules.catppuccin
+                ];
+              };
+              # Optionally, use home-manager.extraSpecialArgs to pass
+              # arguments to home.nix
+            }
+          ];
+        };
 # Doesnt work
 #       darwinConfigurations = {
 #         michal-macbook-pro = nix-darwin.lib.darwinSystem {
