@@ -12,5 +12,6 @@ in
       google-chrome
     ];
     environment.sessionVariables.NO_AT_BRIDGE = "1";
+    environment.etc."xdg/applications/google-chrome.desktop".source = ./google-chrome.desktop;
   };
 }
