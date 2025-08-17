@@ -106,6 +106,7 @@
               }
             ];
           };
+        };
 # Doesnt work
 #       darwinConfigurations = {
 #         michal-macbook-pro = nix-darwin.lib.darwinSystem {
