@@ -9,12 +9,12 @@
   boot.kernelModules = [ "kvm-intel "];
   boot.extraModulePackages = [ ];
 
-  filesystems."/" = {
+  fileSystems."/" = {
     device = "/dev/disk/by-uuid/f458e530-c7f3-450e-b4fe-859fd65a94f3";
     fsType = "ext4";
   };
   boot.initrd.luks.devices."luks-8159708a-cba7-4234-b4a5-9e643f481a00".device = "/dev/disk/by-uuid/8159708a-cba7-4234-b4a5-9e643f481a00";
-  filesystems."/boot" = {
+  fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/D2E3-5273";
     fsType = "vfat";
     options = [ "fmask=0077" "dmask=0077" ];
