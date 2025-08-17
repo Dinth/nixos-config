@@ -1,8 +1,10 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, machineType ? "", ... }:
 let
   inherit (lib) mkIf mkOption;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
+  inherit (config) specialArgs;
+
 in
 {
   options = {
@@ -39,6 +41,8 @@ in
       kdePackages.ksystemlog
       libreoffice-qt
       kdePackages.isoimagewriter
+    ] ++ lib.optionals (machineType == "tablet") [
+      maliit-keyboard
     ];
     services.blueman.enable = false; # Use KDE Bluetooth instead
     services.accounts-daemon.enable = true;
