@@ -87,7 +87,7 @@
           modules = [
             ./libs
             ./modules
-            ./hosts/dinth-nixos-desktop/configuration.nix
+            ./hosts/michal-surface-go/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
             nixos-hardware.nixosModules.microsoft-surface-go
