@@ -80,33 +80,32 @@
             }
           ];
         };
-      };
-      michal-surface-go = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { machineType = "tablet"; };
-          modules = [
-            ./libs
-            ./modules
-            ./hosts/michal-surface-go/configuration.nix
-            agenix.nixosModules.default
-            catppuccin.nixosModules.catppuccin
-            nixos-hardware.nixosModules.microsoft-surface-go
-            home-manager.nixosModules.home-manager
-            {
-              #home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default];
-              home-manager.users.michal = {
-                imports = [
-                  catppuccin.homeModules.catppuccin
-                ];
-              };
-              # Optionally, use home-manager.extraSpecialArgs to pass
-              # arguments to home.nix
-            }
-          ];
-        };
+        michal-surface-go = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            specialArgs = { machineType = "tablet"; };
+            modules = [
+              ./libs
+              ./modules
+              ./hosts/michal-surface-go/configuration.nix
+              agenix.nixosModules.default
+              catppuccin.nixosModules.catppuccin
+              nixos-hardware.nixosModules.microsoft-surface-go
+              home-manager.nixosModules.home-manager
+              {
+                #home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.backupFileExtension = "backup";
+                home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default];
+                home-manager.users.michal = {
+                  imports = [
+                    catppuccin.homeModules.catppuccin
+                  ];
+                };
+                # Optionally, use home-manager.extraSpecialArgs to pass
+                # arguments to home.nix
+              }
+            ];
+          };
 # Doesnt work
 #       darwinConfigurations = {
 #         michal-macbook-pro = nix-darwin.lib.darwinSystem {
