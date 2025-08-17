@@ -22,7 +22,7 @@
   swapDevices = [
     {
       device = "/dev/disk/by-uuid/3334d6a1-ef4d-4f22-b3d9-4bf7165df56d";
-    };
+    }
   ];
   systemd.tpm2.enable = true;
   services.fwupd.enable = true;
