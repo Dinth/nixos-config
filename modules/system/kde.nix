@@ -43,6 +43,7 @@ in
       kdePackages.isoimagewriter
     ] ++ lib.optionals (machineType == "tablet") [
       maliit-keyboard
+      maliit-framework
     ];
     services.blueman.enable = false; # Use KDE Bluetooth instead
     services.accounts-daemon.enable = true;

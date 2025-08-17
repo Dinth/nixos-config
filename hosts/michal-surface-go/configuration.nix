@@ -34,6 +34,18 @@
   printers.enable = true;
   weechat.enable = true;
   docker.enable = false;
+
+  services.touchegg.enable = true;
+  services.iptsd = {
+    enable = true;
+    config = {
+      Config = {
+        BlockOnPalm = true;
+        TouchThreshold = 20;
+        StabilityThreshold = 0.1;
+      };
+    };
+  };
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
