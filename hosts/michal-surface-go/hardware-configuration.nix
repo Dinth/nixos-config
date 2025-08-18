@@ -51,6 +51,7 @@
       libvdpau-va-gl
     ];
   };
+
   hardware.sensor.iio.enable = true;
   services.power-profiles-daemon.enable = false;  # Disable conflicting service
   services.tlp = {
