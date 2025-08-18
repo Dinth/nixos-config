@@ -41,17 +41,17 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
-  hardware.opengl = {
-    enable = true;
-    driSupport = true;
+  hardware.graphics = {
+    enable = true;         # replaces hardware.opengl.enable
+    enable32Bit = true;    # replaces hardware.opengl.driSupport32Bit (if present)
     extraPackages = with pkgs; [
       intel-media-driver
       vaapiIntel
       vaapiVdpau
       libvdpau-va-gl
     ];
+    # Use enableHybridCodec, extraPackages32Bit, or other new options as needed
   };
-
   hardware.sensor.iio.enable = true;
   services.power-profiles-daemon.enable = false;  # Disable conflicting service
   services.tlp = {
