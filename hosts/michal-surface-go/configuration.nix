@@ -41,6 +41,7 @@
     config = {
       Config = {
         BlockOnPalm = true;
+        BlockOnPen = true;
         TouchThreshold = 20;
         StabilityThreshold = 0.1;
       };

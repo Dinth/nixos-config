@@ -52,7 +52,7 @@
     ];
   };
   hardware.sensor.iio.enable = true;
-  power-profiles-daemon.enable = false;  # Disable conflicting service
+  services.power-profiles-daemon.enable = false;  # Disable conflicting service
   tlp = {
     enable = true;
     settings = {
