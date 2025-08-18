@@ -53,7 +53,7 @@
   };
   hardware.sensor.iio.enable = true;
   services.power-profiles-daemon.enable = false;  # Disable conflicting service
-  serives.tlp = {
+  services.tlp = {
     enable = true;
     settings = {
       CPU_BOOST_ON_AC = 1;
