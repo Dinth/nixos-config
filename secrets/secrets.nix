@@ -12,5 +12,4 @@ in
   "chrome-enrolment.age".publicKeys = systems;
   "wifi-password.age".publicKeys = systems;
   "wifi-iot-password.age".publicKeys = users ++ systems;
-  "api-key.age".publicKeys = users ++ systems;
 }
