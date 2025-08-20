@@ -11,7 +11,32 @@
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
   networking.modemmanager.enable = true; # Enable modemmanager
-
+  networking.networkmanager.ensureProfiles = {
+    profiles = {
+      "cracovia-wifi" = {
+        connection = {
+          id = "cracovia-wifi";
+          type = "wifi";
+          autoconnect = true;
+        };
+        wifi = {
+          mode = "infrastructure";
+          ssid = "CracoviaPany";
+        };
+        wifi-security = {
+          auth-alg = "open";
+          key-mgmt = "wpa-psk";
+          psk = config.age.secrets.wifi-password.path;
+        };
+        ipv4 = {
+          method = "auto";
+        };
+        ipv6 = {
+          method = "ignore";
+        };
+      };
+    };
+  };
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
