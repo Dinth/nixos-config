@@ -38,8 +38,7 @@
     secrets.entries = [
       {
         matchId = "CracoviaPany";
-        key = "psk";
-        matchSetting = "wifi-security";
+        key = "802-11-wireless-security.psk";
         file = config.age.secrets.wifi-password.path;
       }
     ];
