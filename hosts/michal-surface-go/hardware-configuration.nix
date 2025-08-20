@@ -29,7 +29,7 @@
   };
   swapDevices = [
     {
-      device = "/dev/disk/by-uuid/14a6a5bc-5971-4f26-8346-adc9da6d5006";
+      device = "/dev/disk/by-uuid/14a6a5bc-5971-4f26-8346-adc9fa6d5006";
     }
   ];
   systemd.tpm2.enable = true;
