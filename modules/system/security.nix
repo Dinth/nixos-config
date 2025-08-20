@@ -49,7 +49,7 @@
     extraRules = [
       {
         users = ["michal"];
-        # persist = true;
+        persist = true;
         # noPass = true;
         keepEnv = true;
         # cmd = "ALL";
