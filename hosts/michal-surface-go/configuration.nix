@@ -26,7 +26,6 @@
         wifi-security = {
           auth-alg = "open";
           key-mgmt = "wpa-psk";
-          psk = config.age.secrets.wifi-password.path;
         };
         ipv4 = {
           method = "auto";
@@ -36,6 +35,14 @@
         };
       };
     };
+    secrets.entries = [
+      {
+        matchId = "CracoviaPany";
+        properties = {
+          "wifi-security.psk" = config.age.secrets.wifi-password.value;
+        };
+      }
+    ];
   };
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
