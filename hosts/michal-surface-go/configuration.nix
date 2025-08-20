@@ -41,7 +41,7 @@
         key = "psk";
         matchSetting = "wifi-security";
         file = config.age.secrets.wifi-password.path;
-      };
+      }
     ];
   };
   boot.loader.systemd-boot.enable = true;
