@@ -13,9 +13,9 @@
   networking.modemmanager.enable = true; # Enable modemmanager
   networking.networkmanager.ensureProfiles = {
     profiles = {
-      "cracovia-wifi" = {
+      "CracoviaPany" = {
         connection = {
-          id = "cracovia-wifi";
+          id = "CracoviaPany";
           type = "wifi";
           autoconnect = true;
         };
