@@ -38,10 +38,10 @@
     secrets.entries = [
       {
         matchId = "CracoviaPany";
-        properties = {
-          "wifi-security.psk" = config.age.secrets.wifi-password.value;
-        };
-      }
+        key = "psk";
+        matchSetting = "wifi-security";
+        file = config.age.secrets.wifi-password.path;
+      };
     ];
   };
   boot.loader.systemd-boot.enable = true;
