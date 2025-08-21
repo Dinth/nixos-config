@@ -49,6 +49,8 @@ in
       wakeonlan
       netcat
       xxd
+      lsusb
+      lspci
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
