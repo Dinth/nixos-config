@@ -56,6 +56,7 @@ in
     security.rtkit.enable = true;
     services.colord.enable = true;
     security.polkit.enable = true;
+    services.libinput.touchpad.naturalScrolling = "true";
 
     home-manager.users.${primaryUsername}.xdg = {
       enable = true;

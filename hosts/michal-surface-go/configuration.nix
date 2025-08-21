@@ -18,6 +18,7 @@
           id = "CracoviaPany";
           type = "wifi";
           autoconnect = true;
+          interface-name = "wlp1s0";
         };
         wifi = {
           mode = "infrastructure";
