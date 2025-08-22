@@ -46,7 +46,7 @@
     pulse.enable = true;
     wireplumber = {
       enable = true;
-      extraconfig = ''
+      extraConfig = ''
         context.modules = [
           { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
           { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
