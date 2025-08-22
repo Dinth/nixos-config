@@ -52,6 +52,8 @@
     ];
     # Use enableHybridCodec, extraPackages32Bit, or other new options as needed
   };
+  hardware.enableRedistributableFirmware = true;
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.sensor.iio.enable = true;
   services.power-profiles-daemon.enable = false;  # Disable conflicting service
   services.tlp = {
@@ -70,7 +72,5 @@
   services.thermald.enable = true;
   environment.systemPackages = with pkgs; [
     libcamera
-    linux-firmware
-    intel-ucode
   ];
 }
