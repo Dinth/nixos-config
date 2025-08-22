@@ -4,7 +4,6 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
   hardware.microsoft-surface.kernelVersion = "stable";
-  hardware.microsoft-surface.firmware.surface-go-ath10k.replace = true;
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ "xhci_pci" "nvme" "usbhid" "i915" ];
 
