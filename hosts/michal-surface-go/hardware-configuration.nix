@@ -5,8 +5,16 @@
     ];
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel "];
+  boot.initrd.kernelModules = [ "xhci_pci" "nvme" "usbhid" "i915" ];
+  boot.initrd.kernelParams = [
+    "quiet"
+    "splash"
+    "usbcore.autosuspend=-1"
+  ];
+  boot.kernelModules = [ "kvm-intel" "ipu3-imgu" "ipu3-cio2" ];
+  boot.extraModprobeConfig = ''
+    options ipu3-imgu load_firmware=1
+  '';
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
     "mem_sleep_default=deep"  # Proper suspend
@@ -41,6 +49,14 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+  services.wireplumber = {
+    enable = true;
+    extraconfig = ''
+      context.modules = [
+        { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
+        { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
+        { name = libwireplumberModule "libspa-libcamera" }
+    '';
   hardware.graphics = {
     enable = true;         # replaces hardware.opengl.enable
     enable32Bit = true;    # replaces hardware.opengl.driSupport32Bit (if present)

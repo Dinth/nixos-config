@@ -8,7 +8,7 @@
       ../../secrets/deployment.nix
     ];
 
-  networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
+  networking.hostName = "michal-surface-go"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
   networking.modemmanager.enable = true; # Enable modemmanager
   networking.networkmanager.ensureProfiles = {
