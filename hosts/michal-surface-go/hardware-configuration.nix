@@ -14,7 +14,9 @@
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
     "mem_sleep_default=deep"  # Proper suspend
+    "i915.fastboot=1"
     "i915.enable_fbc=1"       # Frame buffer compression
+    "i915.enable_psr=1"
   ];
   boot.kernel.sysctl = {
     "vm.dirty_writeback_centisecs" = 1500;
@@ -45,14 +47,14 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     wireplumber = {
-      enable = true;
-      extraConfig = ''
-        context.modules = [
-          { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
-          { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
-          { name = libwireplumberModule "libspa-libcamera" }
-        ];
-      '';
+      enable = false;
+#      extraConfig = ''
+#        context.modules = [
+#          { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
+#          { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
+#          { name = libwireplumberModule "libspa-libcamera" }
+#        ];
+#      '';
     };
   };
   hardware.graphics = {
@@ -84,6 +86,10 @@
 #     };
 #   };
   services.thermald.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
   environment.systemPackages = with pkgs; [
     libcamera
   ];
