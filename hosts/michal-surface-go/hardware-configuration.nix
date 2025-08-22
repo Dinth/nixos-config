@@ -51,6 +51,7 @@
           { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
           { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
           { name = libwireplumberModule "libspa-libcamera" }
+        ];
       '';
     };
   };
