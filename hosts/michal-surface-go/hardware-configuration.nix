@@ -44,15 +44,15 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-  };
-  services.wireplumber = {
-    enable = true;
-    extraconfig = ''
-      context.modules = [
-        { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
-        { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
-        { name = libwireplumberModule "libspa-libcamera" }
-    '';
+    wireplumber = {
+      enable = true;
+      extraconfig = ''
+        context.modules = [
+          { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
+          { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
+          { name = libwireplumberModule "libspa-libcamera" }
+      '';
+    };
   };
   hardware.graphics = {
     enable = true;         # replaces hardware.opengl.enable
