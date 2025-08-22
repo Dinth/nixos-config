@@ -6,11 +6,7 @@
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ "xhci_pci" "nvme" "usbhid" "i915" ];
-  boot.initrd.kernelParams = [
-    "quiet"
-    "splash"
-    "usbcore.autosuspend=-1"
-  ];
+
   boot.kernelModules = [ "kvm-intel" "ipu3-imgu" "ipu3-cio2" ];
   boot.extraModprobeConfig = ''
     options ipu3-imgu load_firmware=1
