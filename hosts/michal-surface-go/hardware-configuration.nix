@@ -57,6 +57,7 @@
         { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
         { name = libwireplumberModule "libspa-libcamera" }
     '';
+  };
   hardware.graphics = {
     enable = true;         # replaces hardware.opengl.enable
     enable32Bit = true;    # replaces hardware.opengl.driSupport32Bit (if present)
