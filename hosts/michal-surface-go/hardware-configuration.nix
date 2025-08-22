@@ -70,5 +70,7 @@
   services.thermald.enable = true;
   environment.systemPackages = with pkgs; [
     libcamera
+    linux-firmware
+    intel-ucode
   ];
 }
