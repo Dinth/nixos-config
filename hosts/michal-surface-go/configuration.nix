@@ -67,18 +67,6 @@
   weechat.enable = true;
   docker.enable = false;
 
-  services.touchegg.enable = true;
-  services.iptsd = {
-    enable = true;
-    config = {
-      Config = {
-        BlockOnPalm = true;
-        BlockOnPen = true;
-        TouchThreshold = 20;
-        StabilityThreshold = 0.1;
-      };
-    };
-  };
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";

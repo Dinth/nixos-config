@@ -3,20 +3,21 @@
   imports =
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
-  hardware.microsoft-surface.kernelVersion = "stable";
+#  hardware.microsoft-surface.kernelVersion = "stable";
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ "xhci_pci" "nvme" "usbhid" "i915" ];
 
   boot.kernelModules = [ "kvm-intel" "ipu3-imgu" "ipu3-cio2" ];
-  boot.extraModprobeConfig = ''
-    options ipu3-imgu load_firmware=1
-  '';
+#  boot.extraModprobeConfig = ''
+#    options ipu3-imgu load_firmware=1
+#  '';
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
     "mem_sleep_default=deep"  # Proper suspend
-    "i915.fastboot=1"
-    "i915.enable_fbc=1"       # Frame buffer compression
-    "i915.enable_psr=1"
+#    "i915.fastboot=1"
+#    "i915.enable_fbc=1"       # Frame buffer compression
+#    "i915.enable_psr=1"
+    "i915.modeset=0"
   ];
   boot.kernel.sysctl = {
     "vm.dirty_writeback_centisecs" = 1500;
@@ -46,8 +47,8 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    wireplumber = {
-      enable = false;
+#    wireplumber = {
+#      enable = false;
 #      extraConfig = ''
 #        context.modules = [
 #          { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
@@ -73,11 +74,13 @@
     config = {
       Config = {
         BlockOnPalm = true;
+        BlockOnPen = true;
         TouchThreshold = 20;
         StabilityThreshold = 0.1;
       };
     };
   };
+  services.touchegg.enable = true;
   hardware.enableRedistributableFirmware = true;
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.sensor.iio.enable = true;
@@ -95,7 +98,7 @@
 #       RUNTIME_PM_ON_BAT = "auto";
 #     };
 #   };
-  services.thermald.enable = true;
+#  services.thermald.enable = true;
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
