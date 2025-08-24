@@ -7,13 +7,13 @@
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ "xhci_pci" "nvme" "usbhid" "i915" ];
 
-  boot.kernelModules = [ "kvm-intel" "ipu3-imgu" "ipu3-cio2" ];
+  boot.kernelModules = [ "kvm-intel" ];
 #  boot.extraModprobeConfig = ''
 #    options ipu3-imgu load_firmware=1
 #  '';
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
-    "mem_sleep_default=deep"  # Proper suspend
+#    "mem_sleep_default=deep"  # Proper suspend
 #    "i915.fastboot=1"
 #    "i915.enable_fbc=1"       # Frame buffer compression
 #    "i915.enable_psr=1"
@@ -104,7 +104,6 @@
     powerOnBoot = true;
   };
   environment.systemPackages = with pkgs; [
-    libcamera
     iptsd
     surface-control
   ];
