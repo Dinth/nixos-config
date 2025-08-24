@@ -1,6 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, machineType ? "", ... }:
 {
-  security.protectKernelImage = true;
+  security.protectKernelImage = lib.mkIf (machineType != "tablet") true;
   boot.blacklistedKernelModules = [
     # Obscure network protocols
     "ax25"
