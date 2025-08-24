@@ -110,4 +110,19 @@
     iptsd
     surface-control
   ];
+  {
+  powerManagement.powertop.enable = true;
+  # Hibernation after 30m of sleep
+  systemd.sleep.extraConfig = ''
+    HibernateDelaySec=30m
+    SuspendState=mem
+  '';
+
+  # Configure automatic behavior
+  services.logind.extraConfig = ''
+    IdleAction=suspend-then-hibernate
+    IdleActionSec=5min
+    HandleLidSwitch=suspend-then-hibernate
+  '';
+}
 }
