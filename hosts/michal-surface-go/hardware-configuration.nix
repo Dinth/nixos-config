@@ -11,6 +11,7 @@
 #  boot.extraModprobeConfig = ''
 #    options ipu3-imgu load_firmware=1
 #  '';
+  boot.resumeDevice = [ "/dev/nvme0n1p3" ];
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
 #    "mem_sleep_default=deep"  # Proper suspend
