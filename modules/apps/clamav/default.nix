@@ -50,13 +50,17 @@ in
         enable = true;
         settings = {
           LogFile = "/var/log/clamav/clamav.log";
+          DataBaseDirectory = "/var/lib/clamav";
           ExtendedDetectionInfo = "yes";
           OnAccessIncludePath = cfg.accessScanning.directories;
           OnAccessPrevention = true;
           OnAccessExtraScanning = true;
           OnAccessExcludeUname = "clamav";
-          MaxFileSize = "4000M";
+          MaxFileSize = "250M";
+          MaxScanSize = "4000M";
           MaxScanTime = "60000";
+          MaxRecursion = 3;
+          MaxFiles = 5000;
           StreamMaxLength = "100M";
           OnAccessMaxFileSize = "100M";
           BytecodeTimeout = "60000";
@@ -69,7 +73,9 @@ in
           ScanOLE2 = true;
           ScanPDF = true;
           ScanSWF = true;
+          OnAccessMaxThreads = 2;
           MaxThreads = 4;
+          MaxQueue = 100;
           CrossFilesystems = false;
         };
       };
@@ -120,7 +126,11 @@ in
       };
     };
     systemd.tmpfiles.rules = [
-      "d /var/log/clamav 0750 clamav clamav - -"
+      "d /var/log/clamav 0755 clamav clamav - -"
+      "d /var/quarantine 0755 root root - -"
     ];
+    environment.variables = {
+      CLAMAV_ONACCESS_FLAGS = "--fanotify";  # Avoid legacy inotify
+    };
   };
 }
