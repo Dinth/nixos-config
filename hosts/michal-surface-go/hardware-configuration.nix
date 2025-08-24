@@ -56,7 +56,7 @@
 #          { name = libwireplumberModule "libspa-libcamera" }
 #        ];
 #      '';
-    };
+#    };
   };
   hardware.graphics = {
     enable = true;         # replaces hardware.opengl.enable
