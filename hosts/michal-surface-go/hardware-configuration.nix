@@ -110,7 +110,6 @@
     iptsd
     surface-control
   ];
-  {
   powerManagement.powertop.enable = true;
   # Hibernation after 30m of sleep
   systemd.sleep.extraConfig = ''
