@@ -50,7 +50,7 @@ in
         enable = true;
         settings = {
           LogFile = "/var/log/clamav/clamav.log";
-          DataBaseDirectory = "/var/lib/clamav";
+          DatabaseDirectory = "/var/lib/clamav";
           ExtendedDetectionInfo = "yes";
           OnAccessIncludePath = cfg.accessScanning.directories;
           OnAccessPrevention = true;
