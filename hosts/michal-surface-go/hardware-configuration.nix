@@ -121,4 +121,4 @@
     HandleLidSwitch=suspend-then-hibernate
   '';
 }
-}
+
