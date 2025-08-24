@@ -69,9 +69,6 @@
     ];
     # Use enableHybridCodec, extraPackages32Bit, or other new options as needed
   };
-  systemd.sleep.extraConfig = ''
-    HibernateDelaySec=1h
-  '';
   services.iptsd = {
     enable = true;
     config = {
