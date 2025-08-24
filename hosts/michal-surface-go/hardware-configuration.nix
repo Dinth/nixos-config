@@ -18,7 +18,6 @@
 #    "i915.fastboot=1"
 #    "i915.enable_fbc=1"       # Frame buffer compression
 #    "i915.enable_psr=1"
-    "i915.modeset=0"
   ];
   boot.kernel.sysctl = {
     "vm.dirty_writeback_centisecs" = 1500;
@@ -70,6 +69,9 @@
     ];
     # Use enableHybridCodec, extraPackages32Bit, or other new options as needed
   };
+  systemd.sleep.extraConfig = ''
+    HibernateDelaySec=1h
+  '';
   services.iptsd = {
     enable = true;
     config = {
