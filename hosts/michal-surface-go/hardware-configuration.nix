@@ -112,6 +112,7 @@
   systemd.sleep.extraConfig = ''
     HibernateDelaySec=30m
     SuspendState=mem
+    HibernateOnACPower=no
   '';
 
   # Configure automatic behavior

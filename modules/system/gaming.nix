@@ -17,5 +17,8 @@ in
   };
   config = mkIf cfg.enable {
     programs.gamemode.enable = true;
+    environment.systemPackages = [
+      pkgs.lutris
+    ];
   };
 }
