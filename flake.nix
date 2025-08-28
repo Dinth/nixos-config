@@ -6,7 +6,7 @@
     nixos-hardware.url = "github:nixos/nixos-hardware/master"; # Hardware Specific Configurations
     catppuccin.url = "github:catppuccin/nix";
     home-manager = {
-      url = "github:nix-community/home-manager/35e1f5a7c29f2b05e8f53177f6b5c71108c5f4c3";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     plasma-manager = {

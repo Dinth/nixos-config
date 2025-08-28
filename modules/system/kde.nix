@@ -52,7 +52,7 @@ in
     programs.kdeconnect.enable = true;
     qt = {
       enable = true;
-      platformTheme = "kde6";
+      platformTheme = "kde";
       style = "breeze";
     };
 #    security.wrappers = {
