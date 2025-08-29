@@ -54,7 +54,7 @@ in
           ExtendedDetectionInfo = "yes";
           OnAccessIncludePath = cfg.accessScanning.directories;
           OnAccessPrevention = true;
-          OnAccessExtraScanning = true;
+          OnAccessExtraScanning = false;
           OnAccessExcludeUname = "clamav";
           MaxFileSize = "250M";
           MaxScanSize = "4000M";
@@ -73,9 +73,9 @@ in
           ScanOLE2 = true;
           ScanPDF = true;
           ScanSWF = true;
-          OnAccessMaxThreads = 2;
-          MaxThreads = 4;
-          MaxQueue = 100;
+          OnAccessMaxThreads = 8;
+          MaxThreads = 12;
+          MaxQueue = 200;
           CrossFilesystems = false;
         };
       };

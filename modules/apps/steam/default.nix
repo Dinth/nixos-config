@@ -12,6 +12,6 @@ in
     environment.systemPackages = with pkgs; [
       mangohud
     ];
-
+    systemd.settings.Manager.DefaultLimitNOFILE = 1048576;
   };
 }
