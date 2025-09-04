@@ -73,8 +73,8 @@ in
           ScanOLE2 = true;
           ScanPDF = true;
           ScanSWF = true;
-          OnAccessMaxThreads = 8;
-          MaxThreads = 12;
+          OnAccessMaxThreads = 12;
+          MaxThreads = 16;
           MaxQueue = 200;
           CrossFilesystems = false;
         };

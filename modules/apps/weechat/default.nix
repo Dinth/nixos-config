@@ -25,13 +25,20 @@ in
             plugins = with availablePlugins; [ python ];
             scripts = with super.weechatScripts; [
               wee-slack
+              weechat-autosort
+              weechat-notify-send
+              colorize_nicks
+              buffer_autoset
             ];
             init = ''
+              /mouse enable
               /set irc.look.server_buffer independent
               /set plugins.var.python.slack.files_download_location "~/Downloads/weeslack"
               /set plugins.var.python.slack.auto_open_threads true
               /set plugins.var.python.slack.never_away true
               /set plugins.var.python.slack.render_emoji_as_string true
+              /set plugins.var.python.slack.channel_name_typing_indicator true
+              /set plugins.var.python.slack.slack_timeout 20000
             '';
           };
         };
