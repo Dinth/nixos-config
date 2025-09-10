@@ -51,6 +51,7 @@ in
       xxd
       pciutils
       usbutils
+      nmap
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
