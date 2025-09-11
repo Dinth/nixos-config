@@ -2,6 +2,7 @@
 {
   imports = [
     ./amd_gpu
+    ./eizo
     ./logitech
     ./printers
   ];
