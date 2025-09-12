@@ -26,11 +26,11 @@
   gaming.enable = true;
   virtualisation.enable = true;
   logitech.enable = true;
-  amd_gpu.enable = true;
+
   printers.enable = true;
   weechat.enable = true;
   docker.enable = false;
-
+  yubikey.enable = true;
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";

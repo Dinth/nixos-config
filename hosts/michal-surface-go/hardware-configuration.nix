@@ -121,5 +121,7 @@
     IdleActionSec=5min
     HandleLidSwitch=suspend-then-hibernate
   '';
+  amd_gpu.enable = false;
+
 }
 

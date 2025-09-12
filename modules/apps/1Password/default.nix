@@ -22,18 +22,12 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
       programs._1password.enable = true;
-      services.pcscd.enable = true;
-      environment.systemPackages = with pkgs; [
-        libfido2 # FIDO2 library (for Yubikeys)
-        yubikey-manager # Yubikey manager
-      ];
+#      environment.systemPackages = with pkgs; [
+#      ];
     })
     (mkIf (cfg.enable && cfg.gui) {
       programs._1password-gui.enable = true;
       programs._1password-gui.polkitPolicyOwners = [ "${config.primaryUser.name}" ];
-      environment.systemPackages = with pkgs; [
-        yubioath-flutter
-      ];
     })
   ];
 }

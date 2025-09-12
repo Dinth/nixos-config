@@ -5,5 +5,6 @@
     ./eizo
     ./logitech
     ./printers
+    ./yubikey
   ];
 }
