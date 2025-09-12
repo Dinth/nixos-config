@@ -12,11 +12,6 @@ in
         default = false;
         description = "Enable 1Password CLI";
       };
-      gui = mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = "Enable 1Password GUI";
-      };
     };
   };
   config = mkMerge [
@@ -25,7 +20,7 @@ in
 #      environment.systemPackages = with pkgs; [
 #      ];
     })
-    (mkIf (cfg.enable && cfg.gui) {
+    (mkIf (cfg.enable && config.graphical.enable) {
       programs._1password-gui.enable = true;
       programs._1password-gui.polkitPolicyOwners = [ "${config.primaryUser.name}" ];
     })
