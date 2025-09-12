@@ -1,7 +1,6 @@
 { config, pkgs, lib,...}:
 let
-  inherit (lib) mkIf;
-  inherit (lib) mkOption;
+  inherit (lib) mkIf mkOption mkMerge;
   cfg = config.yubikey;
   primaryUsername = config.primaryUser.name;
 in
@@ -23,7 +22,7 @@ in
         yubikey-manager # Yubikey manager
       ];
     })
-    (mkIf (cfg.enable && cfg.gui) {
+    (mkIf (cfg.enable && config.graphical.enable) {
       environment.systemPackages = with pkgs; [
         yubioath-flutter
       ];
