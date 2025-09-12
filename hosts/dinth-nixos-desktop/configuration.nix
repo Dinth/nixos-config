@@ -22,11 +22,9 @@
   graphical.enable = true;
   kde.enable = true;
   _1password.enable = true;
-  _1password.gui = true;
   gaming.enable = true;
   virtualisation.enable = true;
   logitech.enable = true;
-
   printers.enable = true;
   weechat.enable = true;
   docker.enable = false;
