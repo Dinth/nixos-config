@@ -64,7 +64,6 @@
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
     lynis # vulnerability scanner
-    chkrootkit # rootkit scanner
     clamav # AV scanner
     vulnix # Nix derivations vulnerability scanner
 #    aide
