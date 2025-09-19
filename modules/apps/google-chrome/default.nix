@@ -7,6 +7,7 @@ in
 {
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
+      vdhcoapp
       google-chrome
     ] ++ lib.optionals (machineType == "tablet") [
       (google-chrome.override {
