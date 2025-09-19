@@ -72,7 +72,6 @@
     enable = true;
       systemCronJobs = [
         "0 12 * * 3 root ${lib.getExe pkgs.vulnix} --system > /var/log/vulnix.log"
-        "0 12 * * 1 root ${lib.getExe' pkgs.chkrootkit "chkroot"} | grep --extended-regexp \"INFECTED|Warning\" | logger -t chkrootkit"
         "0 12 * * 2 root ${lib.getExe pkgs.lynis} audit system --cronjob --report-file /var/log/lynis/lynis-report.dat > /dev/null 2>&1"
       ];
   };
