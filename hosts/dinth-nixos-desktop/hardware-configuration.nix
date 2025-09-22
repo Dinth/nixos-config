@@ -11,7 +11,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
   boot.initrd.systemd.enable = true;
-  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sr_mod", "hid_generic" ];
+  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sr_mod" "hid_generic" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" "k10temp" "it87" "usb_hid" "hid_generic"];
   boot.extraModulePackages = [ config.boot.kernelPackages.r8125 ];
