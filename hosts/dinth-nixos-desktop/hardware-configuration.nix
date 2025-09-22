@@ -11,9 +11,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
   boot.initrd.systemd.enable = true;
-  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sr_mod" ];
+  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sr_mod", "hid_generic" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" "k10temp" "it87"];
+  boot.kernelModules = [ "kvm-amd" "k10temp" "it87" "usb_hid" "hid_generic"];
   boot.extraModulePackages = [ config.boot.kernelPackages.r8125 ];
   boot.blacklistedKernelModules = [
     "gigabyte-wmi"
@@ -110,9 +110,6 @@
     powerOnBoot = true;
   };
 #  services.thermald.enable = true;
-  services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="usb", TEST=="power/autosuspend_delay_ms", ATTR{power/autosuspend_delay_ms}="0"
-  '';
   networking.modemmanager.enable = false;
   services.hardware.bolt.enable = true;
   hardware.enableRedistributableFirmware = true;
@@ -129,17 +126,6 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-# messes up sound
-#    extraConfig.pipewire =  {
-#      "92-low-latency" = {
-#        "context.properties" = {
-#          "default.clock.rate" = 48000;
-#          "default.clock.quantum" = 32;
-#          "default.clock.min-quantum" = 32;
-#          "default.clock.max-quantum" = 32;
-#        };
-#      };
-#   };
   };
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
