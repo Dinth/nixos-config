@@ -53,7 +53,7 @@ in
           DatabaseDirectory = "/var/lib/clamav";
           ExtendedDetectionInfo = "yes";
           OnAccessIncludePath = cfg.accessScanning.directories;
-          OnAccessPrevention = true;
+          OnAccessPrevention = false;
           OnAccessExtraScanning = false;
           OnAccessExcludeUname = "clamav";
           MaxFileSize = "250M";

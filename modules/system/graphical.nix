@@ -16,7 +16,6 @@ in
     };
   };
   config = mkIf cfg.enable {
-
     services.xserver.enable = true;
 
     environment.sessionVariables.NIXOS_OZONE_WL = "1";
@@ -52,7 +51,7 @@ in
       hinting.style = "full";
       allowBitmaps = false;
     };
-
+    orcaslicer.enable = true;
     security.rtkit.enable = true;
     services.colord.enable = true;
     security.polkit.enable = true;
