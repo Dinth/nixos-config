@@ -15,13 +15,15 @@ in
     };
   };
   config = mkIf cfg.enable {
-    home-manager.users.${primaryUsername}.home.packages = with pkgs; [
-      orca-slicer # Slicer for 3d projects
-    ];
-    home-manager.users.${primaryUsername}.xdg.mimeApps.defaultApplications = {
-      "x-scheme-handler/orcaslicer" = "OrcaSlicer.desktop";
-      "x-scheme-handler/bambustudio" = "OrcaSlicer.desktop"; # makerworld
-      "x-scheme-handler/prusaslicer" = "OrcaSlicer.desktop"; # printables
+    home-manager.users.${primaryUsername} = {
+      home.packages = with pkgs; [
+        orca-slicer # Slicer for 3d projects
+      ];
+      xdg.mimeApps.defaultApplications = {
+        "x-scheme-handler/orcaslicer" = "OrcaSlicer.desktop";
+        "x-scheme-handler/bambustudio" = "OrcaSlicer.desktop"; # makerworld
+        "x-scheme-handler/prusaslicer" = "OrcaSlicer.desktop"; # printables
+      };
     };
   };
 }
