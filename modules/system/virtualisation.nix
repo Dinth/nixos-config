@@ -28,7 +28,6 @@ in
       virtualisation.libvirtd.enable = true;
       virtualisation.libvirtd.qemu = {
         swtpm.enable = true;
-        ovmf.enable = true;
       };
       virtualisation.spiceUSBRedirection.enable = true;
       home-manager.users.${primaryUsername}.dconf.settings = {
