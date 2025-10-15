@@ -17,19 +17,25 @@ in
 
   config = mkMerge [
     (mkIf cfg.enable {
-      virtualisation.virtualbox.host.enable = true;
-      virtualisation.virtualbox.host.enableExtensionPack = true;
-      virtualisation.virtualbox.host.enableKvm = true;
-      virtualisation.virtualbox.host.addNetworkInterface = false;
+      virtualisation.virtualbox.host = {
+        enable = true;
+        enableExtensionPack = true;
+        enableKvm = true;
+        addNetworkInterface = false;
+      };
     })
     (mkIf (pkgs.stdenv.isLinux && cfg.enable) {
       users.groups.libvirtd.members = [ primaryUsername ];
       programs.virt-manager.enable = true;
-      virtualisation.libvirtd.enable = true;
-      virtualisation.libvirtd.qemu = {
-        swtpm.enable = true;
+      virtualisation = {
+        libvirtd = {
+          enable = true;
+          qemu = {
+            swtpm.enable = true;
+          };
+        };
+        spiceUSBRedirection.enable = true;
       };
-      virtualisation.spiceUSBRedirection.enable = true;
       home-manager.users.${primaryUsername}.dconf.settings = {
         "org/virt-manager/virt-manager/connections" = {
           autoconnect = ["qemu:///system"];
