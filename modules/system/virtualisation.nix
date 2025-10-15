@@ -42,6 +42,24 @@ in
           uris = ["qemu:///system"];
         };
       };
+      networking = {
+        firewall.allowedTCPPorts = [ 8095 ];
+        firewall.allowedUDPPorts = [ 8095 ];
+        nat = {
+          enable = true;
+          internalInterfaces = [ "virbr0" ];
+          externalInterface = "enp7s0";
+          forwardPorts = [ {
+            sourcePort = 8095;        # Port on the host
+            proto = "tcp";            # Protocol (tcp/udp)
+            destination = "192.168.122.132:8095"; # VM IP and port
+          } {
+            sourcePort = 8095;        # Port on the host
+            proto = "udp";            # Protocol (tcp/udp)
+            destination = "192.168.122.132:8095"; # VM IP and port
+          } ];
+        };
+      };
       systemd.user.services.virtualbox-suspend-inhibitor = {
         description = "Suspend Inhibitor for VirtualBox";
         after = [ "graphical-session.target" ];
