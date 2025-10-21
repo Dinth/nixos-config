@@ -45,6 +45,7 @@ in
       networking = {
         firewall.allowedTCPPorts = [ 8095 ];
         firewall.allowedUDPPorts = [ 8095 ];
+        firewall.trustedInterfaces = [ "virbr0" ];
         nat = {
           enable = true;
           internalInterfaces = [ "virbr0" ];

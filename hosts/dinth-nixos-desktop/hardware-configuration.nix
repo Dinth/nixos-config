@@ -117,15 +117,26 @@
   hardware.keyboard.qmk.enable = true;
   hardware.flipperzero.enable = true;
   systemd.tpm2.enable = true;
-  # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
   services.fwupd.enable = true;
   services.fstrim.enable = true;
+  services.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+  # Configure sample rates to match your DAC's capabilities
+    extraConfig.pipewire."92-low-latency" = {
+      context.properties = {
+        default.clock.allowed-rates = [ 44100 48000 88200 96000 176400 192000 ];
+      };
+    };
+  # Set highest quality resampling when needed
+    extraConfig.pipewire-pulse."92-low-latency" = {
+      stream.properties = {
+        resample.quality = 10;
+      };
+    };
   };
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
