@@ -137,6 +137,20 @@
         resample.quality = 10;
       };
     };
+    wireplumber.extraConfig."51-starship-matisse-profile" = {
+      "monitor.alsa.rules" = [
+        {
+          matches = [
+            { "device.product.name" = "Starship/Matisse HD Audio Controller"; }
+          ];
+          actions = {
+            update-props = {
+              "device.profile" = "iec958-stereo";
+            };
+          };
+        }
+      ];
+    };
   };
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
