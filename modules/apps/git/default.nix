@@ -8,9 +8,9 @@ in
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername}.programs.git = {
       enable = true;
-      userName  = "Michal Gawronski-Kot";
-      userEmail = "michal@gawronskikot.com";
-      extraConfig = {
+      settings.user.name  = "Michal Gawronski-Kot";
+      settings.user.email = "michal@gawronskikot.com";
+      settings = {
 #        url = {
 #          "ssh://git@github.com" = {
 #            insteadOf = [ "https://github.com" "gh" ];
