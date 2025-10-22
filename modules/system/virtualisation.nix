@@ -42,6 +42,9 @@ in
           uris = ["qemu:///system"];
         };
       };
+      environment.systemPackages = with pkgs; [
+        libguestfs
+      ];
       networking = {
         firewall.allowedTCPPorts = [ 8095 ];
         firewall.allowedUDPPorts = [ 8095 ];
