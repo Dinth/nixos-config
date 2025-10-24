@@ -73,15 +73,15 @@
     nixos-anywhere
   ];
 
-  fileSystems."/mnt/share" = {
-    device = "//<IP_OR_HOST>/<share>";
+  fileSystems."/mnt/VM" = {
+    device = "//10.10.1.19/VM";
     fsType = "cifs";
     options = [
-      "credentials=/etc/nixos/smb-secrets"
+      "credentials=/run/secrets/nas-vm-creds"
       "rw"
       "uid=1000"
-      "gid=1000"
-      "vers=3.0"  # Adjust SMB version accordingly
+      "gid=100"
+      "vers=3.0"
       "x-systemd.automount"
       "x-systemd.requires=network-online.target"
       "x-systemd.after=network-online.target"
