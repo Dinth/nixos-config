@@ -73,6 +73,23 @@
     nixos-anywhere
   ];
 
+  fileSystems."/mnt/share" = {
+    device = "//<IP_OR_HOST>/<share>";
+    fsType = "cifs";
+    options = [
+      "credentials=/etc/nixos/smb-secrets"
+      "rw"
+      "uid=1000"
+      "gid=1000"
+      "vers=3.0"  # Adjust SMB version accordingly
+      "x-systemd.automount"
+      "x-systemd.requires=network-online.target"
+      "x-systemd.after=network-online.target"
+      "x-systemd.idle-timeout=60"
+      "x-systemd.device-timeout=5s"
+      "x-systemd.mount-timeout=5s"
+    ];
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

@@ -28,5 +28,11 @@
       group = "users";
       mode = "0400";
     };
+    nas-vm-creds = {
+      file = ./nas-vm-creds.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
   };
 }

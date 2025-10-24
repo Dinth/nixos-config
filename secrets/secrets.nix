@@ -12,4 +12,5 @@ in
   "chrome-enrolment.age".publicKeys = systems;
   "wifi-password.age".publicKeys = systems;
   "wifi-iot-password.age".publicKeys = users ++ systems;
+  "nas-vm-creds.age".publicKeys = users ++ systems;
 }
