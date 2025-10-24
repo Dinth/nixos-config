@@ -49,6 +49,14 @@ in
         firewall.allowedTCPPorts = [ 8095 ];
         firewall.allowedUDPPorts = [ 8095 ];
         firewall.trustedInterfaces = [ "virbr0" ];
+        firewall.extraCommands = ''
+          # PREROUTING: Redirect incoming traffic to the VM
+          iptables -t nat -A PREROUTING -i enp7s0 -p tcp --dport 8095 -j DNAT --to-destination 192.168.122.132:8095
+          iptables -t nat -A PREROUTING -i enp7s0 -p udp --dport 8095 -j DNAT --to-destination 192.168.122.132:8095
+
+          # POSTROUTING: Masquerade outgoing traffic from the VM network
+          iptables -t nat -A POSTROUTING -s 192.168.122.0/24 -o enp7s0 -j MASQUERADE
+        '';
         nat = {
           enable = true;
           internalInterfaces = [ "virbr0" ];

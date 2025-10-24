@@ -77,8 +77,13 @@
     device = "//10.10.1.19/VM";
     fsType = "cifs";
     options = [
-      "credentials=/run/secrets/nas-vm-creds"
+      "credentials=/run/agenix/nas-vm-creds"
       "rw"
+      "noserverino"
+      "actimeo=1"
+      "noperm"
+      "cache=none"
+      "echo_interval=10"
       "uid=1000"
       "gid=100"
       "vers=3.0"
