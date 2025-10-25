@@ -33,6 +33,7 @@ in
           qemu = {
             swtpm.enable = true;
           };
+          hooks.qemu."qemu-hook-pf" = ./qemu-hook-pf.sh;
         };
         spiceUSBRedirection.enable = true;
       };
@@ -45,6 +46,7 @@ in
       environment.systemPackages = with pkgs; [
         libguestfs
       ];
+
       networking = {
         firewall.allowedTCPPorts = [ 8095 ];
         firewall.allowedUDPPorts = [ 8095 ];
