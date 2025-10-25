@@ -49,27 +49,29 @@ in
         firewall.allowedTCPPorts = [ 8095 ];
         firewall.allowedUDPPorts = [ 8095 ];
         firewall.trustedInterfaces = [ "virbr0" ];
-        firewall.extraCommands = ''
-          # PREROUTING: Redirect incoming traffic to the VM
-          iptables -t nat -A PREROUTING -i enp7s0 -p tcp --dport 8095 -j DNAT --to-destination 192.168.122.132:8095
-          iptables -t nat -A PREROUTING -i enp7s0 -p udp --dport 8095 -j DNAT --to-destination 192.168.122.132:8095
+#        firewall.extraCommands = ''
+#          # PREROUTING: Redirect incoming traffic to the VM
+#          iptables -t nat -A PREROUTING -i enp5s0 -p tcp --dport 8095 -j DNAT --to-destination 192.168.122.132:8095
+#          iptables -t nat -A PREROUTING -i enp5s0 -p udp --dport 8095 -j DNAT --to-destination 192.168.122.132:8095
 
           # POSTROUTING: Masquerade outgoing traffic from the VM network
-          iptables -t nat -A POSTROUTING -s 192.168.122.0/24 -o enp7s0 -j MASQUERADE
-        '';
+#          iptables -t nat -A POSTROUTING -s 192.168.122.0/24 -o enp5s0 -j MASQUERADE
+#          iptables -t nat -A POSTROUTING -d 192.168.122.132 -p tcp --dport 8095 -j SNAT --to-source 10.10.10.10
+#          iptables -t nat -A POSTROUTING -d 192.168.132 -p udp --dport 8095 -j SNAT --to-source 10.10.10.10
+#        '';
         nat = {
           enable = true;
           internalInterfaces = [ "virbr0" ];
-          externalInterface = "enp7s0";
-          forwardPorts = [ {
-            sourcePort = 8095;        # Port on the host
-            proto = "tcp";            # Protocol (tcp/udp)
-            destination = "192.168.122.132:8095"; # VM IP and port
-          } {
-            sourcePort = 8095;        # Port on the host
-            proto = "udp";            # Protocol (tcp/udp)
-            destination = "192.168.122.132:8095"; # VM IP and port
-          } ];
+          externalInterface = "enp5s0";
+#          forwardPorts = [ {
+#            sourcePort = 8095;        # Port on the host
+#            proto = "tcp";            # Protocol (tcp/udp)
+#            destination = "192.168.122.132:8095"; # VM IP and port
+#          } {
+#            sourcePort = 8095;        # Port on the host
+#            proto = "udp";            # Protocol (tcp/udp)
+#            destination = "192.168.122.132:8095"; # VM IP and port
+#          } ];
         };
       };
       systemd.user.services.virtualbox-suspend-inhibitor = {

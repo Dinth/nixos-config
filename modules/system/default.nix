@@ -11,6 +11,6 @@
     ./networking.nix
     ./nix.nix
     ./security.nix
-    ./virtualisation.nix
+    ./virtualisation
   ];
 }
