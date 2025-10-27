@@ -17,17 +17,18 @@ set -u
 iptables='/run/current-system/sw/sbin/iptables'
 
 # Ideally, rewrite as ERB template and fetch this from Puppet
-external_ifs='em1 virbr0'
-external_ip='132.230.177.10'
+external_ifs='enp5s0 virbr0'
+external_ip='10.10.10.10'
 
 # List the machines here
-machines=( 'jenkins' )
+machines=( 'linuxmint' )
 
 # Machine definition block
-jenkins_hostname='jenkins.qa.nest-initiative.org'
-jenkins_ip='192.168.122.101'
-jenkins_sport=( '80' '443' )
-jenkins_dport=( '80' '8443' )
+linuxmint_hostname='LinuxMint'
+linuxmint_ip='192.168.122.50'
+linuxmint_sport=( '8095' '8095' )
+linuxmint_dport=( '8095' '8095' )
+linuxmint_protocol=( 'tcp' 'udp' )
 
 rules_update() {
 
@@ -44,14 +45,17 @@ rules_update() {
 
             eval host_sport=( \${${host}_sport[@]} )
             eval host_dport=( \${${host}_dport[@]} )
+            eval host_protocol=( \${${host}_protocol[@]} )
 
             length=$(( ${#host_sport[@]} - 1 ))
 
             for i in `seq 0 $length`; do
 
+                protocol="${host_protocol[$i]}"
+
                 for external_if in ${external_ifs}; do
 
-                    PREROUTING="$iptables -t nat $action PREROUTING -d ${external_ip} -i ${external_if} -p tcp -m tcp --dport ${host_sport[$i]} -j DNAT --to-destination ${host_ip}:${host_dport[$i]}"
+                    PREROUTING="$iptables -t nat $action PREROUTING -d ${external_ip} -i ${external_if} -p ${protocol} -m ${protocol} --dport ${host_sport[$i]} -j DNAT --to-destination ${host_ip}:${host_dport[$i]}"
 
                     if [ -z "${DEBUG_RULES:-}" ]; then
                         `$PREROUTING`
@@ -61,7 +65,7 @@ rules_update() {
 
                 done
 
-                FORWARD="$iptables $action FORWARD -d ${host_ip} -p tcp -m state --state NEW -m tcp --dport ${host_dport[$i]} -j ACCEPT"
+                FORWARD="$iptables $action FORWARD -d ${host_ip} -p ${protocol} -m state --state NEW -m ${protocol} --dport ${host_dport[$i]} -j ACCEPT"
 
                 if [ -z "${DEBUG_RULES:-}" ]; then
                     `$FORWARD`

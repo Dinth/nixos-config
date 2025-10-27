@@ -52,6 +52,7 @@ in
       pciutils
       usbutils
       nmap
+      dig # DNS query client
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
