@@ -1,3 +1,4 @@
+{ config, lib, pkgs,...}:
 let
   inherit (lib) mkIf;
   cfg = config.graphical;
@@ -5,8 +6,11 @@ let
 in
 {
   config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      nextcloud-client
-    ];
+    home-manager.users.${primaryUsername} = {
+      services.nextcloud-client = {
+        enable = true;
+        startInBackground = true;
+      };
+    };
   };
 }
