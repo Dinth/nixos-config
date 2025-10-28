@@ -13,6 +13,7 @@
     ./konsole
     ./mc
     ./neovim
+    ./nextcloud-client
     ./OrcaSlicer
     ./sddm
     ./ssh
