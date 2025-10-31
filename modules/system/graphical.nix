@@ -37,11 +37,10 @@ in
       noto-fonts-cjk-sans
       noto-fonts-cjk-serif
       noto-fonts-lgc-plus
-      noto-fonts-extra
       corefonts
       vista-fonts
       nerd-fonts.fira-code
-      ubuntu_font_family
+      ubuntu-classic
     ];
     fonts.fontconfig = {
       enable = true;
