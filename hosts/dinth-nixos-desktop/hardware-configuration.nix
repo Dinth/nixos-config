@@ -146,6 +146,7 @@
           actions = {
             update-props = {
               "device.profile" = "iec958-stereo";
+              "session.suspend-timeout-seconds" = 0;  # Disable optical audio suspension
             };
           };
         }
