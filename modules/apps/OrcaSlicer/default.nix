@@ -3,8 +3,7 @@ let
   inherit (lib) mkIf mkOption;
   cfg = config.orcaslicer;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     orcaslicer = {
       enable = mkOption {
@@ -19,6 +18,10 @@ in
       home.packages = with pkgs; [
         orca-slicer # Slicer for 3d projects
       ];
+      xdg.configFile."OrcaSlicer/user/default/filament" = {
+        source = ./filament-profiles;
+        recursive = true;
+      };
       xdg.mimeApps.defaultApplications = {
         "x-scheme-handler/orcaslicer" = "OrcaSlicer.desktop";
         "x-scheme-handler/bambustudio" = "OrcaSlicer.desktop"; # makerworld
