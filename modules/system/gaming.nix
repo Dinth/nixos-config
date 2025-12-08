@@ -19,6 +19,7 @@ in
     programs.gamemode.enable = true;
     environment.systemPackages = [
       pkgs.lutris
+      pkgs.openttd-jgrpp
     ];
   };
 }

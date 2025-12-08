@@ -18,7 +18,7 @@ in {
       home.packages = with pkgs; [
         orca-slicer # Slicer for 3d projects
       ];
-      xdg.configFile."OrcaSlicer/user/default/filament" = {
+      xdg.configFile."OrcaSlicer/user/3210423684/filament" = {
         source = ./filament-profiles;
         recursive = true;
       };
