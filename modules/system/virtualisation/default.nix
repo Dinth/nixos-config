@@ -16,7 +16,8 @@ in
   };
 
   config = mkMerge [
-    (mkIf cfg.enable {
+    # macOS-only: VirtualBox
+    (mkIf (pkgs.stdenv.isDarwin && cfg.enable) {
       virtualisation.virtualbox.host = {
         enable = true;
         enableExtensionPack = true;
@@ -24,6 +25,8 @@ in
         addNetworkInterface = false;
       };
     })
+
+    # Linux-only: libvirt/QEMU/virt-manager
     (mkIf (pkgs.stdenv.isLinux && cfg.enable) {
       users.groups.libvirtd.members = [ primaryUsername ];
       programs.virt-manager.enable = true;
@@ -47,6 +50,7 @@ in
         libguestfs
       ];
 
+      # Networking configuration for libvirt
       networking = {
         firewall.allowedTCPPorts = [ 8095 ];
         firewall.allowedUDPPorts = [ 8095 ];
@@ -76,33 +80,35 @@ in
 #          } ];
         };
       };
-      systemd.user.services.virtualbox-suspend-inhibitor = {
-        description = "Suspend Inhibitor for VirtualBox";
-        after = [ "graphical-session.target" ];
-        wantedBy = [ "graphical-session.target" ];
-        serviceConfig = {
-          ExecStart = ''
-            ${lib.getExe pkgs.bash} -c " \
-              while true; do \
-                # Wait until a VM is running \
-                while ! ${lib.getExe' pkgs.virtualbox "VBoxManage"} list runningvms | ${lib.getExe pkgs.gnugrep} -q '.'; do \
-                  sleep 30; \
-                done; \
-                \
-                echo 'VM detected. Acquiring suspend lock.'; \
-                \
-                # Inhibit suspend while VMs are active. The lock is held for the duration of this command. \
-                ${lib.getExe' pkgs.systemd "systemd-inhibit"} --what=sleep --who='VirtualBox' --why='A Virtual Machine is running' \
-                ${lib.getExe pkgs.bash} -c 'while ${lib.getExe' pkgs.virtualbox "VBoxManage"} list runningvms | ${lib.getExe pkgs.gnugrep} -q \".\"; do sleep 30; done'; \
-                \
-                echo 'Last VM shut down. Releasing suspend lock.'; \
-              done \
-            "
-          '';
-          Restart = "always";
-          RestartSec = "10";
-        };
-      };
+
+# NOT USING VIRTUALBOX ON LINUX ANYMORE, LEAVING THE CODE FOR OTHERS
+#       systemd.user.services.virtualbox-suspend-inhibitor = {
+#         description = "Suspend Inhibitor for VirtualBox";
+#         after = [ "graphical-session.target" ];
+#         wantedBy = [ "graphical-session.target" ];
+#         serviceConfig = {
+#           ExecStart = ''
+#             ${lib.getExe pkgs.bash} -c " \
+#               while true; do \
+#                 # Wait until a VM is running \
+#                 while ! ${lib.getExe' pkgs.virtualbox "VBoxManage"} list runningvms | ${lib.getExe pkgs.gnugrep} -q '.'; do \
+#                   sleep 30; \
+#                 done; \
+#                 \
+#                 echo 'VM detected. Acquiring suspend lock.'; \
+#                 \
+#                 # Inhibit suspend while VMs are active. The lock is held for the duration of this command. \
+#                 ${lib.getExe' pkgs.systemd "systemd-inhibit"} --what=sleep --who='VirtualBox' --why='A Virtual Machine is running' \
+#                 ${lib.getExe pkgs.bash} -c 'while ${lib.getExe' pkgs.virtualbox "VBoxManage"} list runningvms | ${lib.getExe pkgs.gnugrep} -q \".\"; do sleep 30; done'; \
+#                 \
+#                 echo 'Last VM shut down. Releasing suspend lock.'; \
+#               done \
+#             "
+#           '';
+#           Restart = "always";
+#           RestartSec = "10";
+#         };
+#       };
     })
   ];
 }

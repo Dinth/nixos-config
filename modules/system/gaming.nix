@@ -20,6 +20,7 @@ in
     environment.systemPackages = [
       pkgs.lutris
       pkgs.openttd-jgrpp
+      pkgs.heroic
     ];
   };
 }
