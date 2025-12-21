@@ -78,8 +78,8 @@ in
 #            proto = "udp";            # Protocol (tcp/udp)
 #            destination = "192.168.122.132:8095"; # VM IP and port
 #          } ];
-        };
-      };
+#         };
+#       };
 
 # NOT USING VIRTUALBOX ON LINUX ANYMORE, LEAVING THE CODE FOR OTHERS
 #       systemd.user.services.virtualbox-suspend-inhibitor = {
