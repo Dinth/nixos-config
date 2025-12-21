@@ -65,10 +65,10 @@ in
 #          iptables -t nat -A POSTROUTING -d 192.168.122.132 -p tcp --dport 8095 -j SNAT --to-source 10.10.10.10
 #          iptables -t nat -A POSTROUTING -d 192.168.132 -p udp --dport 8095 -j SNAT --to-source 10.10.10.10
 #        '';
-        nat = {
-          enable = true;
-          internalInterfaces = [ "virbr0" ];
-          externalInterface = "enp5s0";
+#         nat = {
+#           enable = true;
+#           internalInterfaces = [ "virbr0" ];
+#           externalInterface = "enp5s0";
 #          forwardPorts = [ {
 #            sourcePort = 8095;        # Port on the host
 #            proto = "tcp";            # Protocol (tcp/udp)
