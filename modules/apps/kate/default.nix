@@ -94,7 +94,6 @@ in
                   ruff.enabled = true;
                   pycodestyle.enabled = false;
                   autopep8.enabled = true;
-                  black.enabled = true;
                 };
               };
             };
