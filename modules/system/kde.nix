@@ -49,7 +49,7 @@ in
       maliit-framework
     ];
     xdg.portal = {
-      extraPortals = [ pkgs.xdg-desktop-portal-kde ];
+      extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
       config.common.default = "kde";
     };
     services.blueman.enable = false; # Use KDE Bluetooth instead
