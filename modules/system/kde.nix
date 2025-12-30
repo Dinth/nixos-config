@@ -37,6 +37,9 @@ in
       kdePackages.kimageformats
       kdePackages.qtimageformats
       kdePackages.ffmpegthumbs
+      kdePackages.filelight # disk usage visualiser
+      kdePackages.kcalc # calculator
+      kdePackages.gwenview # image viewer
       haruna # KDE video player based on mpv
       kdePackages.ksystemlog
       libreoffice-qt
@@ -45,6 +48,10 @@ in
       maliit-keyboard
       maliit-framework
     ];
+    xdg.portal = {
+      extraPortals = [ pkgs.xdg-desktop-portal-kde ];
+      config.common.default = "kde";
+    };
     services.blueman.enable = false; # Use KDE Bluetooth instead
     services.accounts-daemon.enable = true;
     programs.partition-manager.enable = true;
