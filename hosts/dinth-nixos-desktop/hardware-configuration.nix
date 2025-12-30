@@ -129,6 +129,10 @@
     extraConfig.pipewire."92-low-latency" = {
       context.properties = {
         default.clock.allowed-rates = [ 44100 48000 88200 96000 176400 192000 ];
+        default.clock.rate = 48000;
+        default.clock.quantum = 512;  # Lower from 1024 for less delay
+        default.clock.min-quantum = 32;
+        default.clock.max-quantum = 2048;
       };
     };
   # Set highest quality resampling when needed
@@ -146,7 +150,8 @@
           actions = {
             update-props = {
               "device.profile" = "iec958-stereo";
-              "session.suspend-timeout-seconds" = 0;  # Disable optical audio suspension
+              "session.suspend-timeout-seconds" = 0;
+              "node.pause-on-idle" = false;
             };
           };
         }
