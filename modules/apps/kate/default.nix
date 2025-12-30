@@ -54,17 +54,6 @@ in
           "application/x-plist" = "kate.desktop"; # mac plist files
           "text/x-applescript" = "kate.desktop"; # applescript
         };
-        desktopEntries.kate = {
-          name = "Kate";
-          exec = "kate %U";
-          type = "Application";
-          mimeType = [
-            "text/plain"
-            "text/x-applescript"
-            "application/x-plist"
-            "x-scheme-handler/applescript"
-          ];
-        };
       };
       home.file.".config/kate/lspclient/settings.json".text =
       builtins.toJSON {
