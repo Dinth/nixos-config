@@ -25,6 +25,12 @@ in
             width = 2;
           };
           tabWidth = 2;
+          showWordCount = true;
+          showLineCount = true;
+          dynamicWordWrap.enable = true;
+          lineNumbers = true;
+          bracketMatching = true;
+          showIndentationLines = true;
         };
       };
       xdg = {
