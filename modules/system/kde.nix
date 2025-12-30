@@ -292,11 +292,13 @@ in
           };
         };
         "ktrashrc" = {
-          "\\/home\\/michal\\/.local\\/share\\/Trash"."Days" = 7;
-          "\\/home\\/michal\\/.local\\/share\\/Trash"."LimitReachedAction" = 0;
-          "\\/home\\/michal\\/.local\\/share\\/Trash"."Percent" = 10;
-          "\\/home\\/michal\\/.local\\/share\\/Trash"."UseSizeLimit" = true;
-          "\\/home\\/michal\\/.local\\/share\\/Trash"."UseTimeLimit" = false;
+          "/home/${config.primaryUser.name}/.local/share/Trash" = {
+            "Days" = 7;
+            "LimitReachedAction" = 0;
+            "Percent" = 10;
+            "UseSizeLimit" = true;
+            "UseTimeLimit" = false;
+          };
         };
         "krunnerrc"."General"."FreeFloating" = true;
         "kscreenlockerrc" = {

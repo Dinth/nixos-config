@@ -45,9 +45,14 @@ in
     ];
     fonts.fontconfig = {
       enable = true;
+      antialias = true;
       subpixel.rgba = "rgb";
-      subpixel.lcdfilter = "light";
-      hinting.style = "full";
+      subpixel.lcdfilter = "default";
+      hinting = {
+        enable = true;
+        style = "full";
+        autohint = true;
+      };
       allowBitmaps = false;
     };
     orcaslicer.enable = true;
