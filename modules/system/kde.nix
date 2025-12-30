@@ -80,7 +80,9 @@ in
       XDG_SESSION_TYPE = "wayland";
       XDG_CURRENT_DESKTOP = "KDE";
 
-      QT_QPA_PLATFORM = "wayland;xcb"; # Fallback to X11 if needed
+      NIXOS_OZONE_WL = "1"; # Electron apps Wayland support
+
+      QT_QPA_PLATFORM = "wayland";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
       # KDE Wayland session
