@@ -14,7 +14,6 @@ in
         (python3.withPackages (ps: [
             ps.python-lsp-server
             ps.python-lsp-ruff
-            ps.autopep8
           ]
           )
         )
@@ -69,7 +68,7 @@ in
             command = [ "nil" ];
             url = "https://github.com/oxalica/nil";
             highlightingModeRegex = "^Nix$";
-            root = ".";
+            rootIndicationFileNames = [ "flake.nix" "flake.lock" "default.nix" ];
           };
           yaml = {
             command = [ "yaml-language-server" "--stdio" ];
@@ -93,7 +92,6 @@ in
                 plugins = {
                   ruff.enabled = true;
                   pycodestyle.enabled = false;
-                  autopep8.enabled = true;
                 };
               };
             };
@@ -108,6 +106,7 @@ in
             command = [ "vscode-json-languageserver" "--stdio" ];
             url = "https://github.com/microsoft/vscode/tree/main/extensions/json-language-features/server";
             highlightingModeRegex = "^JSON$";
+            root = ".";
           };
         };
       };
