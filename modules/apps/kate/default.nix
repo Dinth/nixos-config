@@ -19,6 +19,7 @@ in
           )
         )
         vscode-json-languageserver
+        lemminx
       ];
       programs.kate = {
         enable = true;
@@ -97,6 +98,12 @@ in
                 };
               };
             };
+          };
+          xml = {
+            command = [ "lemminx" ];
+            url = "https://github.com/redhat-developer/vscode-xml";
+            highlightingModeRegex = "^XML$";
+            root = ".";
           };
           json = {
             command = [ "vscode-json-languageserver" "--stdio" ];
