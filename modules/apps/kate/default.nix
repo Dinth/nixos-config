@@ -10,6 +10,7 @@ in
       nil
       yaml-language-server
       bash-language-server
+      python313Packages.python-lsp-server
     ];
     home-manager.users.${primaryUsername} = {
       programs.kate = {
@@ -48,22 +49,21 @@ in
           '';
         };
         mimeApps.defaultApplications = {
-          "x-scheme-handler/applescript" = "Kate.desktop"; # applescript:// urls
-          "application/x-plist" = "Kate.desktop"; # mac plist files
-          "text/x-applescript" = "Kate.desktop"; # applescript
+          "x-scheme-handler/applescript" = "kate.desktop"; # applescript:// urls
+          "application/x-plist" = "kate.desktop"; # mac plist files
+          "text/x-applescript" = "kate.desktop"; # applescript
         };
       };
-      home.file.".config/kate/lspclient/settings.json".text = ''
-        {
-          "servers": {
-            "nix": {
-              "command": ["nil"],
-              "url": "https://github.com/oxalica/nil",
-              "highlightingModeRegex": "^Nix$"
-            }
-          }
-        }
-      '';
+      home.file.".config/kate/lspclient/settings.json".text =
+      builtins.toJSON {
+        servers = {
+          nix = {
+            command = [ "nil" ];
+            url = "https://github.com/oxalica/nil";
+            highlightingModeRegex = "^Nix$";
+          };
+        };
+      };
     };
   };
 }
