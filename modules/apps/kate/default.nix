@@ -25,12 +25,6 @@ in
             width = 2;
           };
           tabWidth = 2;
-          showWordCount = true;
-          showLineCount = true;
-          dynamicWordWrap.enable = true;
-          lineNumbers = true;
-          bracketMatching = true;
-          showIndentationLines = true;
         };
       };
       xdg = {
@@ -59,6 +53,17 @@ in
           "application/x-plist" = "kate.desktop"; # mac plist files
           "text/x-applescript" = "kate.desktop"; # applescript
         };
+        desktopEntries.kate = {
+          name = "Kate";
+          exec = "kate %U";
+          type = "Application";
+          mimeType = [
+            "text/plain"
+            "text/x-applescript"
+            "application/x-plist"
+            "x-scheme-handler/applescript"
+          ];
+        };
       };
       home.file.".config/kate/lspclient/settings.json".text =
       builtins.toJSON {
@@ -67,6 +72,21 @@ in
             command = [ "nil" ];
             url = "https://github.com/oxalica/nil";
             highlightingModeRegex = "^Nix$";
+          };
+          yaml = {
+            command = [ "yaml-language-server" "--stdio" ];
+            url = "https://github.com/redhat-developer/yaml-language-server";
+            highlightingModeRegex = "^YAML$";
+          };
+          bash = {
+            command = [ "bash-language-server" "start" ];
+            url = "https://github.com/bash-lsp/bash-language-server";
+            highlightingModeRegex = "^Bash$";
+          };
+          python = {
+            command = [ "pylsp" "--check-parent-process" ];
+            url = "https://github.com/python-lsp/python-lsp-server";
+            highlightingModeRegex = "^Python$";
           };
         };
       };
