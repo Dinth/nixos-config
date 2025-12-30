@@ -6,14 +6,14 @@ let
 in
 {
   config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      nil
-      yaml-language-server
-      bash-language-server
-      python313Packages.python-lsp-server
-      vscode-json-languageserver
-    ];
     home-manager.users.${primaryUsername} = {
+      home.packages = with pkgs; [
+        nil
+        yaml-language-server
+        bash-language-server
+        (python3.withPackages (ps: [ ps.python-lsp-server ]))
+        vscode-json-languageserver
+      ];
       programs.kate = {
         enable = true;
         editor = {
@@ -55,7 +55,7 @@ in
           "text/x-applescript" = "kate.desktop"; # applescript
         };
       };
-      home.file.".config/kate/lspclient/settings.json".text =
+      xdg.configFile."kate/lspclient/settings.json".text =
       builtins.toJSON {
         servers = {
           nix = {

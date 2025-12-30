@@ -63,6 +63,7 @@ in
     xdg.portal = {
       enable = true;
     };
+    xdg.mime.enable = true;
     home-manager.users.${primaryUsername}.xdg = {
       enable = true;
       mimeApps.enable = true;
