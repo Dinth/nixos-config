@@ -11,6 +11,7 @@ in
       yaml-language-server
       bash-language-server
       python313Packages.python-lsp-server
+      vscode-json-languageserver
     ];
     home-manager.users.${primaryUsername} = {
       programs.kate = {
@@ -87,6 +88,11 @@ in
             command = [ "pylsp" "--check-parent-process" ];
             url = "https://github.com/python-lsp/python-lsp-server";
             highlightingModeRegex = "^Python$";
+          };
+          json = {
+            command = [ "vscode-json-languageserver" "--stdio" ];
+            url = "https://github.com/microsoft/vscode/tree/main/extensions/json-language-features/server";
+            highlightingModeRegex = "^JSON$";
           };
         };
       };
