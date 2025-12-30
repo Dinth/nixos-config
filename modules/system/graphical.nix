@@ -60,7 +60,9 @@ in
     services.colord.enable = true;
     security.polkit.enable = true;
     services.libinput.touchpad.naturalScrolling = true;
-
+    xdg.portal = {
+      enable = true;
+    };
     home-manager.users.${primaryUsername}.xdg = {
       enable = true;
       mimeApps.enable = true;
