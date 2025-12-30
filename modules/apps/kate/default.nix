@@ -11,7 +11,13 @@ in
         nil
         yaml-language-server
         bash-language-server
-        (python3.withPackages (ps: [ ps.python-lsp-server ]))
+        (python3.withPackages (ps: [
+            ps.python-lsp-server
+            ps.python-lsp-ruff
+            ps.autopep8
+          ]
+          )
+        )
         vscode-json-languageserver
       ];
       programs.kate = {
@@ -62,21 +68,35 @@ in
             command = [ "nil" ];
             url = "https://github.com/oxalica/nil";
             highlightingModeRegex = "^Nix$";
+            root = ".";
           };
           yaml = {
             command = [ "yaml-language-server" "--stdio" ];
             url = "https://github.com/redhat-developer/yaml-language-server";
             highlightingModeRegex = "^YAML$";
+            root = ".";
           };
           bash = {
             command = [ "bash-language-server" "start" ];
             url = "https://github.com/bash-lsp/bash-language-server";
             highlightingModeRegex = "^Bash$";
+            root = ".";
           };
           python = {
             command = [ "pylsp" "--check-parent-process" ];
             url = "https://github.com/python-lsp/python-lsp-server";
             highlightingModeRegex = "^Python$";
+            root = ".";
+            settings = {
+              pylsp = {
+                plugins = {
+                  ruff.enabled = true;
+                  pycodestyle.enabled = false;
+                  autopep8.enabled = true;
+                  black.enabled = true;
+                };
+              };
+            };
           };
           json = {
             command = [ "vscode-json-languageserver" "--stdio" ];
