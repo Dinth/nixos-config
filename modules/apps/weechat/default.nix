@@ -82,10 +82,12 @@ in
   };
 
   config = mkIf cfg.enable {
+    environment.systemPackages = lib.optionals graphical.enable [
+      pkgs.libnotify
+    ];
     home-manager.users.${primaryUsername} = {
       home.packages = [
         weechatCustom
-        pkgs.libnotify
       ];
 
       xdg.configFile."autostart/weechat.desktop".source = "${weechatDesktop}/share/applications/weechat.desktop";
