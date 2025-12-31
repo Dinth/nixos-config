@@ -1,4 +1,4 @@
- { config, lib, pkgs,...}:
+{ config, lib, pkgs,...}:
 let
   inherit (lib) mkIf;
   cfg = config.cli;
@@ -66,8 +66,7 @@ in
         ) +
       ''
         export LS_COLORS="$(${lib.getExe pkgs.vivid} generate catppuccin-mocha)"
-      '';
-      initExtra = ''
+
         # Manual Konsole semantic shell integration
         if [[ -n "$KONSOLE_DBUS_SESSION" ]]; then
           # Add semantic zone markers to prompt

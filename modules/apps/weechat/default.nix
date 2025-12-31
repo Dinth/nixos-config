@@ -16,15 +16,16 @@ let
         colorize_nicks
         buffer_autoset
         multiline
-        grep
-        weechat-vimode
-        go
+        weechat-grep
+        weechat-go
         url_hint
+        # to add vimode in the future
       ] ++ optionals graphical.enable [
         weechat-notify-send
       ];
       init = ''
         /mouse enable
+        /set weechat.look.mouse on
         /set irc.look.server_buffer independent
         /set plugins.var.python.slack.short_buffer_names true
         /set plugins.var.python.slack.show_reaction_nicks true
@@ -37,8 +38,8 @@ let
         /set plugins.var.python.slack.never_away true
         /set plugins.var.python.slack.render_emoji_as_string true
         /set plugins.var.python.slack.channel_name_typing_indicator true
-        /set plugins.var.python.slack.slack_timeout 20000
-        /set plugins.var.python.slack.history_fetch_count 200
+        /set plugins.var.python.slack.slack_timeout 50000
+        /set plugins.var.python.slack.history_fetch_count 50
         /set plugins.var.python.slack.background_load_all_history true
         /set plugins.var.python.slack.send_typing_notice true
         /set plugins.var.python.slack.thread_messages_in_channel false
