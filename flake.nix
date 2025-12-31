@@ -17,7 +17,6 @@
     agenix = {
       url = "github:yaxitech/ragenix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
     };
 
 #     nix-darwin = {
@@ -44,7 +43,7 @@
               #home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default];
+              home-manager.sharedModules = [ plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
               home-manager.users.michal = {
                 imports = [
                   catppuccin.homeModules.catppuccin
