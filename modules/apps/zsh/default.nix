@@ -5,11 +5,15 @@ let
   primaryUsername = config.primaryUser.name;
 in {
   config = mkIf cfg.enable {
-    # System level: minimal
     programs.zsh.enable = true;
 
-    # Home-manager: all user config here
     home-manager.users.${primaryUsername} = { config, ... }: {
+      home.sessionVariables.LS_COLORS =
+        lib.removeSuffix "\n" (builtins.readFile (
+          pkgs.runCommand "generate-ls-colors" {} ''
+            ${getExe pkgs.vivid} generate catppuccin-mocha > $out
+          ''
+        ));
       programs.zsh = {
         enable = true;
         enableCompletion = true;
@@ -21,11 +25,8 @@ in {
           save = 100000;
           path = "${config.xdg.dataHome}/zsh/history";
           extended = true;
-          expireDuplicatesFirst = true;
           ignoreDups = true;
           ignoreSpace = true;
-          ignoreAllDups = true;
-          saveNoDups = true;
         };
 
         shellAliases = {
@@ -35,19 +36,112 @@ in {
           top = "${getExe pkgs.btop}";
         };
 
-        # Use initExtra (appends) instead of initContent (replaces)
         initContent = ''
           setopt EXTENDED_HISTORY HIST_SAVE_NO_DUPS INC_APPEND_HISTORY
-          unsetopt SHARE_HISTORY
 
-          export LS_COLORS="$(${getExe pkgs.vivid} generate catppuccin-mocha)"
+          # Enable completion caching
+          zstyle ':completion:*' use-cache on
+          zstyle ':completion:*' cache-path "${config.xdg.cacheHome}/zsh/completions"
+
+          # Reduce max errors to speed up completion
+          zstyle ':completion:*' max-errors 1
+
+          # Color completions using LS_COLORS
+          zstyle ':completion:*' list-colors ''${(s.:.)LS_COLORS}
+
+          # Enhanced completion styling
+          zstyle ':completion:*' menu select
+          zstyle ':completion:*' group-name '''
+          zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+          zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
+          zstyle ':completion:*:default' list-prompt '%S%M matches%s'
+
+          # Case-insensitive path completion
+          zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|=*' 'l:|=* r:|=*'
+
+          # Partial completion suggestions
+          zstyle ':completion:*' list-suffixes
+          zstyle ':completion:*' expand prefix suffix
+
+          autoload -Uz compinit
+
+          local zcompdump="${config.xdg.cacheHome}/zsh/completions/.zcompdump"
+          local zcompdump_zwc="$zcompdump.zwc"
+
+          # Portable timestamp check - works on Linux and macOS
+          if [[ ! -f "$zcompdump" ]]; then
+            # Cache doesn't exist, rebuild
+            compinit -d "$zcompdump"
+          else
+            # Cache exists - check if older than 24 hours using portable method
+            local cache_mtime
+            if command -v stat &>/dev/null; then
+              # Try Linux stat first (more common in NixOS)
+              cache_mtime=$(stat -c %Y "$zcompdump" 2>/dev/null) || \
+              # Fall back to macOS stat
+              cache_mtime=$(stat -f %m "$zcompdump" 2>/dev/null) || \
+              # If stat fails entirely, assume cache is stale
+              cache_mtime=0
+            else
+              cache_mtime=0
+            fi
+
+            local current_time=$(date +%s)
+            local age=$((current_time - cache_mtime))
+
+            if [[ $age -gt 86400 ]]; then
+              # Older than 24 hours, rebuild
+              compinit -d "$zcompdump"
+            else
+              # Fresh cache, use it
+              compinit -C -d "$zcompdump"
+            fi
+          fi
+
+          # Only compile if .zcompdump is newer than .zcompdump.zwc
+          if [[ "$zcompdump" -nt "$zcompdump_zwc" ]] 2>/dev/null; then
+            zcompile "$zcompdump" 2>/dev/null
+          fi
+
+          autoload -Uz add-zsh-hook
+
+          DIRSTACKSIZE=20
+          DIRSTACKFILE="${config.xdg.cacheHome}/zsh/dirstack"
+
+          setopt AUTO_PUSHD PUSHD_SILENT PUSHD_TO_HOME PUSHD_IGNORE_DUPS PUSHD_MINUS
+
+          # Load on startup only
+          if [[ -f "$DIRSTACKFILE" ]] && (( ''${#dirstack} == 0 )); then
+            dirstack=(''${(f)"$(<"$DIRSTACKFILE")"}')
+          fi
+
+          # Use atomic write with temp file
+          chpwd_dirstack() {
+            local tmpfile="$DIRSTACKFILE.$$"
+            local dirstack_content
+
+            # Build content safely
+            printf -v dirstack_content '%s\n' "$PWD" "''${(u)dirstack[@]}"
+
+            # Atomic write with validation
+            if printf '%s' "$dirstack_content" > "$tmpfile"; then
+              mv -f "$tmpfile" "$DIRSTACKFILE" || rm -f "$tmpfile"
+            else
+              rm -f "$tmpfile"
+            fi
+          }
+
+          add-zsh-hook -Uz chpwd chpwd_dirstack
 
           function lscontent() {
-            ${getExe pkgs.tree} -I 'node_modules|.git' "''${@:-.}"
+            local target="''${@:-.}"
+            [[ ! -d "$target" ]] && { echo "lscontent: not a directory: $target" >&2; return 1; }
+
+            ${getExe pkgs.tree} -I 'node_modules|.git' "$target"
             echo ""
             echo "--- FILE CONTENTS ---"
             echo ""
-            ${getExe pkgs.findutils} "''${@:-.}" -type f \
+            ${getExe pkgs.findutils} "$target" -type f \
               -not -path '*/.git/*' \
               -not -path '*/node_modules/*' \
               -not -path '*/flake.lock' \
@@ -67,11 +161,11 @@ in {
             }
           ''}
 
-          ${lib.optionalString (lib.hasAttr "plasma-workspace" pkgs.kdePackages) ''
+          ${lib.optionalString (lib.hasAttr "qttools" pkgs.kdePackages) ''
             function pbcopy() {
               ${getExe' pkgs.kdePackages.qttools "qdbus"} \
                 org.kde.klipper /klipper setClipboardContents \
-                "$(cat "$@")"
+                "$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
             }
           ''}
 
@@ -82,22 +176,35 @@ in {
         '';
       };
 
-      programs.starship = {
+      programs.starship.settings = {
+        add_newline = false;
+        format = "$directory$git_branch$git_status$shell$character ";
+
+        nix_shell = {
+          disabled = false;
+          impure_msg = "[impure](bold red)";
+          format = "[$symbol$state]($style) ";
+        };
+
+        shell = {
+          disabled = false;
+          style = "blue bold";
+          symbol = " ";
+          format = "[$symbol]($style) ";
+        };
+      };
+      programs.fzf = {
         enable = true;
         enableZshIntegration = true;
-        settings = {
-          add_newline = false;
-          format = "$directory$git_branch$git_status$character ";
-          character = {
-            success_symbol = "[❯](bold green)";
-            error_symbol = "[❯](bold red)";
-          };
-          nix_shell = {
-            disabled = false;
-            impure_msg = "[impure](bold red)";
-            format = "[$symbol$state]($style) ";
-          };
-        };
+        defaultCommand = "${getExe pkgs.fd} --type f --hidden -E .git -E node_modules -E __pycache__ -E .venv -E .env -E dist -E build -E .next -E .nuxt";
+        defaultOptions = [
+          "--height 40%"
+          "--border"
+          "--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8"
+          "--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc"
+          "--multi"
+          "--bind=ctrl-a:select-all,ctrl-d:deselect-all"
+        ];
       };
     };
   };
