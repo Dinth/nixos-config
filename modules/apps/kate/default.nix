@@ -8,7 +8,7 @@ in
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
-        nil
+        nixd
         yaml-language-server
         bash-language-server
         (python3.withPackages (ps: [
@@ -19,6 +19,13 @@ in
         )
         vscode-json-languageserver
         lemminx
+        nix-doc
+        nixfmt-rfc-style
+        statix
+        nix-diff
+        nix-tree
+        manix
+        deadnix
       ];
       programs.kate = {
         enable = true;
@@ -55,10 +62,18 @@ in
             </mime-info>
           '';
         };
-        mimeApps.defaultApplications = {
-          "x-scheme-handler/applescript" = "kate.desktop";
-          "application/x-plist" = "kate.desktop";
-          "text/x-applescript" = "kate.desktop";
+        mimeApps = {
+          enable = true;
+          defaultApplications = {
+            "x-scheme-handler/applescript" = "kate.desktop";
+            "application/x-plist" = "kate.desktop";
+            "text/x-applescript" = "kate.desktop";
+            "text/x-nix" = "kate.desktop";
+            "application/x-nix" = "kate.desktop";
+            "text/plain" = "kate.desktop";
+            "text/x-shellscript" = "kate.desktop";
+            "text/x-yaml" = "kate.desktop";
+          };
         };
       };
 
@@ -118,6 +133,7 @@ in
           "kategoritblameplugin" = true;
           "lspclientplugin" = true;
           "katekonsoleplugin" = true;
+          "kateformatterplugin" = true;
         };
         "KTextEditor Document" = {
           "Allow End of Line Detection" = true;
@@ -245,51 +261,57 @@ in
           "viewShade" = "81,49,95";
         };
         "lspclient" = {
-          "AllowedServerCommandLines" = "/run/current-system/sw/bin/nil";
+          "AllowedServerCommandLines" = "/run/current-system/sw/bin/nixd";
           "AutoHover" = true;
-          "AutoImport" = true;
+          "AutoImport" = true;  # From lspclientrc: AutoImportCompletion
           "BlockedServerCommandLines" = "";
-          "CompletionDocumentation" = true;
+          "CompletionDocumentation" = true;  # From lspclientrc
           "CompletionParens" = true;
-          "Diagnostics" = true;
-          "FormatOnSave" = false;
+          "Diagnostics" = true;  # From lspclientrc
+          "FormatOnSave" = true;  # CRITICAL FIX: was false
           "HighlightGoto" = true;
-          "IncrementalSync" = false;
-          "InlayHints" = false;
+          "IncrementalSync" = true;  # CRITICAL FIX: was false
+          "InlayHints" = true;
           "Messages" = true;
           "ReferencesDeclaration" = true;
           "SemanticHighlighting" = true;
           "ServerConfiguration" = "";
           "ShowCompletions" = true;
           "SignatureHelp" = true;
-          "SymbolDetails" = false;
+          "SymbolDetails" = true;
           "SymbolExpand" = true;
-          "SymbolSort" = false;
+          "SymbolSort" = true;
           "SymbolTree" = true;
-          "TypeFormatting" = false;
+          "TypeFormatting" = true;
         };
       };
-
-      xdg.configFile."kate/lspclientrc".text = ''
-        [General]
-        ShowNotifications=false
-        AutoImportCompletion=true
-
-        [LSP]
-        AutoStart=true
-        CompletionDocumentation=true
-        Diagnostics=true
-        IncrementalSync=true
-      '';
-
       xdg.configFile."kate/lspclient/settings.json".text =
         builtins.toJSON {
           servers = {
             nix = {
-              command = [ "nil" ];
-              url = "https://github.com/oxalica/nil";
+              command = [ "nixd" ];
+              url = "https://github.com/nix-community/nixd";
               highlightingModeRegex = "^Nix$";
               rootIndicationFileNames = [ "flake.nix" "flake.lock" "default.nix" ];
+              settings = {
+                nixd = {
+                  nixpkgs = {
+                    expr = ''import (builtins.getFlake (builtins.toString ./.)).inputs.nixpkgs { }'';
+                  };
+                  formatting = {
+                    command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
+                  };
+                  options = {
+                    nixos = {
+                      # Uses config.networking.hostName dynamically
+                      expr = ''(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.${config.networking.hostName}.options'';
+                    };
+                    home_manager = {
+                      expr = ''(builtins.getFlake (builtins.toString ./.)).homeConfigurations."${primaryUsername}@${config.networking.hostName}".options'';
+                    };
+                  };
+                };
+              };
             };
             yaml = {
               command = [ "yaml-language-server" "--stdio" ];

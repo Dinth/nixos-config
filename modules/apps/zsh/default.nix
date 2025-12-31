@@ -137,7 +137,7 @@ in {
             local target="''${@:-.}"
             [[ ! -d "$target" ]] && { echo "lscontent: not a directory: $target" >&2; return 1; }
 
-            ${getExe pkgs.tree} -I 'node_modules|.git' "$target"
+            ${getExe pkgs.tree} -I "node_modules|.git" "$target"
             echo ""
             echo "--- FILE CONTENTS ---"
             echo ""
