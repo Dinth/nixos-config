@@ -67,6 +67,11 @@ in
             ScrollBarPosition = 2;
             ScrollFullPage = false;
           };
+          "TabBar" = {
+            TabBarPosition = 0;  # 0=Bottom, 1=Top
+            CloseTabOnMiddleMouseButton = true;
+            TabBarVisibility = 2;  # 0=AlwaysHideTabBar, 1=AlwaysShowTabBar, 2=ShowTabBarWhenNeeded
+          };
         };
       };
     };
