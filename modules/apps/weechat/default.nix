@@ -1,10 +1,9 @@
-{ config, pkgs, lib,...}:
+{ config, pkgs, lib, ... }:
 let
   inherit (lib) mkIf mkOption types optionals;
   cfg = config.weechat;
   graphical = config.graphical;
   primaryUsername = config.primaryUser.name;
-
   weechatCustom = pkgs.weechat.override {
     configure = { availablePlugins, ... }: {
       plugins = with availablePlugins; [
@@ -19,7 +18,6 @@ let
         weechat-grep
         weechat-go
         url_hint
-        # to add vimode in the future
       ] ++ optionals graphical.enable [
         weechat-notify-send
       ];
@@ -61,6 +59,16 @@ let
       '';
     };
   };
+
+  weechatDesktop = pkgs.makeDesktopItem {
+    name = "weechat";
+    desktopName = "WeeChat";
+    genericName = "IRC Client";
+    exec = "weechat";
+    terminal = true;
+    categories = [ "Network" "IRCClient" ];
+    icon = "weechat";
+  };
 in
 {
   options = {
@@ -72,14 +80,21 @@ in
       };
     };
   };
+
   config = mkIf cfg.enable {
-    home-manager.users.${primaryUsername}.home = {
-      file."Downloads/weeslack/.keep".text = "";
-      file.".weechat/weemoji.json".source = pkgs.fetchurl {
+    home-manager.users.${primaryUsername} = {
+      home.packages = [
+        weechatCustom
+        pkgs.libnotify
+      ];
+
+      xdg.configFile."autostart/weechat.desktop".source = "${weechatDesktop}/share/applications/weechat.desktop";
+
+      home.file."Downloads/weeslack/.keep".text = "";
+      home.file.".weechat/weemoji.json".source = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/wee-slack/wee-slack/master/weemoji.json";
         sha256 = "sha256-dQkHlLLGtxUv7WSv/HxJza6CNBIjLt5FxO+iTOSH6oA=";
       };
-      packages = [ weechatCustom ];
     };
   };
 }
