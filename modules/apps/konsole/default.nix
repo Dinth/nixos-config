@@ -30,6 +30,9 @@ in
       profiles.Default = {
         name = "Default";
         colorScheme = "catppuccinMocha";
+        CursorShape = 0;  # 0=Block, 1=I-Beam, 2=Underline
+        UseFontBracketing = true;
+        UseFontLineCharacters = true;
         font = {
           name = "FiraCode Nerd Font Med";
           size = 11;
@@ -61,6 +64,8 @@ in
           "Scrolling" = {
             HistoryMode = 1;
             HistorySize = 40000;
+            ScrollBarPosition = 2;
+            ScrollFullPage = false;
           };
         };
       };
