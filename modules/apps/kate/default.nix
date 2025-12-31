@@ -61,6 +61,17 @@ in
           "text/x-applescript" = "kate.desktop"; # applescript
         };
       };
+      xdg.configFile."kate/lspclientrc".text = ''
+          [General]
+          ShowNotifications=false
+          AutoImportCompletion=true
+
+          [LSP]
+          AutoStart=true
+          CompletionDocumentation=true
+          Diagnostics=true
+          IncrementalSync=true
+        '';
       xdg.configFile."kate/lspclient/settings.json".text =
       builtins.toJSON {
         servers = {
