@@ -37,7 +37,7 @@ in {
         };
 
         initContent = ''
-          setopt EXTENDED_HISTORY HIST_SAVE_NO_DUPS INC_APPEND_HISTORY
+          setopt EXTENDED_HISTORY HIST_SAVE_NO_DUPS INC_APPEND_HISTORY CORRECT HIST_REDUCE_BLANKS HIST_VERIFY INTERACTIVE_COMMENTS
 
           # Enable completion caching
           zstyle ':completion:*' use-cache on

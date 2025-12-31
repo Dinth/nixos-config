@@ -541,13 +541,6 @@ in
             "Word Completion Minimal Word Length" = 3;
             "Word Completion Remove Tail" = true;
           };
-          "Konsole" = {
-            "RemoveExtension" = false;
-            "RunPrefix" = "";
-            "SetEditor" = false;
-            "KonsoleEscKeyBehaviour" = true;
-            "KonsoleEscKeyExceptions" = "vi,vim,nvim,git";
-          };
           "filetree" = {
             "editShade" = "31,81,106";
             "listMode" = false;

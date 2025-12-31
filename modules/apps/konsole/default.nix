@@ -23,6 +23,13 @@ in
       };
       defaultProfile = "Default";
       extraConfig = {
+        "Konsole" = {
+          RemoveExtension = false;
+          RunPrefix = "";
+          SetEditor = false;
+          KonsoleEscKeyBehaviour = true;
+          KonsoleEscKeyExceptions = "vi,vim,nvim,git";
+        };
         KonsoleWindow = {
           RememberWindowSize = false;
         };
@@ -38,8 +45,8 @@ in
         extraConfig = {
           Appearance = {
             LineSpacing = 0;
-            BoldIntense = true; # otherwise, nothing seems to even happen with bold fonts!
-            CursorShape = 0;  # 0=Block, 1=I-Beam, 2=Underline
+            BoldIntense = true;
+            CursorShape = 0;
             UseFontBracketing = true;
             UseFontLineCharacters = true;
             AntiAliasFonts = true;
@@ -65,8 +72,8 @@ in
             SilenceSeconds = 20;
           };
           "TabBar" = {
-            NewTabBehavior = 0;  # 0=After current tab, 1=At end
-            ExpandTabWidth = false;  # Keep tabs compact
+            NewTabBehavior = 0;
+            ExpandTabWidth = false;
           };
           "Interaction Options" = {
             AllowEscapedLinks = false;
@@ -78,37 +85,37 @@ in
             TrimLeadingSpacesInSelectedText = true;
             TrimTrailingSpacesInSelectedText = true;
             UnderlineFilesEnabled = true;
-            WordCharacters = ":@-./_~?&=%+#";  # Characters considered part of words for double-click selection
-            TripleClickMode = 0;  # 0=SelectWholeLine, 1=SelectForwardsFromCursor
-            MiddleClickPasteMode = 0; # 0=paste from clipboard, 1=paste from X selection
+            WordCharacters = ":@-./_~?&=%+#";
+            TripleClickMode = 0;
+            MiddleClickPasteMode = 0;
           };
           "Scrolling" = {
             HistoryMode = 1;
             HistorySize = 40000;
             ScrollBarPosition = 2;
             ScrollFullPage = false;
-            ReflowLines = true;  # Reflow lines when terminal is resized
+            ReflowLines = true;
             HighlightScrolledLines = true;
           };
           "TabBar" = {
-            TabBarPosition = 0;  # 0=Bottom, 1=Top
+            TabBarPosition = 0;
             CloseTabOnMiddleMouseButton = true;
-            TabBarVisibility = 2;  # 0=AlwaysHideTabBar, 1=AlwaysShowTabBar, 2=ShowTabBarWhenNeeded
+            TabBarVisibility = 2;
           };
           "Terminal Features" = {
-            BellMode = 1;  # 0=None, 1=Visual, 2=System, 3=Both
+            BellMode = 1;
             BlinkingCursorEnabled = true;
             FlowControlEnabled = false;
-            UrlHintsModifiers = 67108864;  # Ctrl key modifier
+            UrlHintsModifiers = 67108864;
             BidiRenderingEnabled = true;
-            LineNumbers = 0;  # 0=Disabled, 1=Left, 2=Right
+            LineNumbers = 0;
           };
         };
       };
-            profiles.SSH = {
+      profiles.SSH = {
         name = "SSH - 10.10.1.13";
         command = "${pkgs.openssh}/bin/ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 root@10.10.1.13";
-        colorScheme = "catppuccinFrappe";  # Different color scheme to distinguish SSH sessions
+        colorScheme = "catppuccinFrappe";
         font = {
           name = "FiraCode Nerd Font Med";
           size = 11;
@@ -133,8 +140,8 @@ in
             TerminalRows = 40;
             Environment = "TERM=xterm-256color,COLORTERM=truecolor";
             LocalTabTitleFormat = "%d : %n";
-            RemoteTabTitleFormat = "[SSH] %h : %u";  # Prefix with [SSH] for clarity
-            StartInCurrentSessionDir = false;  # Not applicable for SSH
+            RemoteTabTitleFormat = "[SSH] %h : %u";
+            StartInCurrentSessionDir = false;
             ShowTerminalSizeHint = true;
           };
           Monitor = {

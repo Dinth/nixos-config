@@ -61,16 +61,19 @@ in
           "text/x-applescript" = "kate.desktop"; # applescript
         };
       };
-      xdg.configFile."katerc".text = ''
-        [Kate Plugins]
-        kateprojectplugin=true
-        kategitblameplugin=true
-        lspclientplugin=true
-        katekonsoleplugin=true
+      home.file.".config/katerc" = {
+        text = ''
+          [Kate Plugins]
+          kateprojectplugin=true
+          kategoritblameplugin=true
+          lspclientplugin=true
+          katekonsoleplugin=true
 
-        [General]
-        ShowMetaInformation=true
-      '';
+          [General]
+          ShowMetaInformation=true
+        '';
+        force = true;  # Allow overwriting if it exists
+      };
       xdg.configFile."kate/lspclientrc".text = ''
           [General]
           ShowNotifications=false
