@@ -67,6 +67,21 @@ in
       ''
         export LS_COLORS="$(${lib.getExe pkgs.vivid} generate catppuccin-mocha)"
       '';
+      initExtra = ''
+        # Manual Konsole semantic shell integration
+        if [[ -n "$KONSOLE_DBUS_SESSION" ]]; then
+          # Add semantic zone markers to prompt
+          # These escape sequences mark prompt, input, and output regions
+
+          precmd() {
+            print -n $'\e]133;A\e\\' # Mark prompt start
+          }
+
+          preexec() {
+            print -n $'\e]133;C\e\\' # Mark command start
+          }
+        fi
+      '';
     };
   };
 }
