@@ -60,6 +60,8 @@ in
             TrimLeadingSpacesInSelectedText = true;
             TrimTrailingSpacesInSelectedText = true;
             UnderlineFilesEnabled = true;
+            WordCharacters = ":@-./_~?&=%+#";  # Characters considered part of words for double-click selection
+            TripleClickMode = 0;  # 0=SelectWholeLine, 1=SelectForwardsFromCursor
           };
           "Scrolling" = {
             HistoryMode = 1;
@@ -71,6 +73,12 @@ in
             TabBarPosition = 0;  # 0=Bottom, 1=Top
             CloseTabOnMiddleMouseButton = true;
             TabBarVisibility = 2;  # 0=AlwaysHideTabBar, 1=AlwaysShowTabBar, 2=ShowTabBarWhenNeeded
+          };
+          "Terminal Features" = {
+            BellMode = 1;  # 0=None, 1=Visual, 2=System, 3=Both
+            BlinkingCursorEnabled = true;
+            FlowControlEnabled = true;
+            UrlHintsModifiers = 67108864;  # Ctrl key modifier
           };
         };
       };
