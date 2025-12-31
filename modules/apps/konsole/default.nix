@@ -29,6 +29,7 @@ in
       };
       profiles.Default = {
         name = "Default";
+        command = "${pkgs.zsh}/bin/zsh";
         colorScheme = "catppuccinMocha";
         font = {
           name = "FiraCode Nerd Font Med";
@@ -41,6 +42,8 @@ in
             CursorShape = 0;  # 0=Block, 1=I-Beam, 2=Underline
             UseFontBracketing = true;
             UseFontLineCharacters = true;
+            AntiAliasFonts = true;
+            BidiTableDirOverride = true;
           };
           General = {
             DimWhenInactive = false;
@@ -50,9 +53,24 @@ in
             TerminalCenter = true;
             TerminalColumns = 160;
             TerminalRows = 40;
+            Environment = "TERM=xterm-256color,COLORTERM=truecolor";
+            LocalTabTitleFormat = "%d : %n";
+            RemoteTabTitleFormat = "%h : %u";
+            StartInCurrentSessionDir = true;
+            ShowTerminalSizeHint = true;
+          };
+          Monitor = {
+            ActivityMode = 1;
+            SilenceMode = 1;
+            SilenceSeconds = 20;
+          };
+          "TabBar" = {
+            NewTabBehavior = 0;  # 0=After current tab, 1=At end
+            ExpandTabWidth = false;  # Keep tabs compact
           };
           "Interaction Options" = {
             AllowEscapedLinks = false;
+            UnderlineLinksEnabled = true;
             AutoCopySelectedText = false;
             CopyTextAsHTML = false;
             OpenLinksByDirectClickEnabled = false;
@@ -62,12 +80,15 @@ in
             UnderlineFilesEnabled = true;
             WordCharacters = ":@-./_~?&=%+#";  # Characters considered part of words for double-click selection
             TripleClickMode = 0;  # 0=SelectWholeLine, 1=SelectForwardsFromCursor
+            MiddleClickPasteMode = 0; # 0=paste from clipboard, 1=paste from X selection
           };
           "Scrolling" = {
             HistoryMode = 1;
             HistorySize = 40000;
             ScrollBarPosition = 2;
             ScrollFullPage = false;
+            ReflowLines = true;  # Reflow lines when terminal is resized
+            HighlightScrolledLines = true;
           };
           "TabBar" = {
             TabBarPosition = 0;  # 0=Bottom, 1=Top
@@ -77,8 +98,10 @@ in
           "Terminal Features" = {
             BellMode = 1;  # 0=None, 1=Visual, 2=System, 3=Both
             BlinkingCursorEnabled = true;
-            FlowControlEnabled = true;
+            FlowControlEnabled = false;
             UrlHintsModifiers = 67108864;  # Ctrl key modifier
+            BidiRenderingEnabled = true;
+            LineNumbers = 0;  # 0=Disabled, 1=Left, 2=Right
           };
         };
       };
