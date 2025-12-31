@@ -27,7 +27,7 @@ in
           RememberWindowSize = false;
         };
       };
-      profiles.default = {
+      profiles.Default = {
         name = "Default";
         colorScheme = "catppuccinMocha";
         font = {
