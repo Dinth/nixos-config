@@ -8,79 +8,97 @@ in
   config = mkIf cfg.enable {
     programs.zsh = {
       enable = true;
-      enableCompletion = true;
-      autosuggestions.enable = true;
-      syntaxHighlighting.enable = true;
     };
-    home-manager.users.${primaryUsername}.programs.zsh = {
-      enable = true;
-      enableCompletion = true;
-      autosuggestion.enable = true;
-      syntaxHighlighting.enable = true;
-      history = {
-        save = 100000;
-        size = 100000;
-        expireDuplicatesFirst = true;
-        ignoreDups = true;
-        ignoreSpace = true;
-        ignorePatterns = ["rm *" "pkill *" "kill *" "killall *"];
-      };
-      shellAliases = {
-        cat = "${lib.getExe pkgs.bat}";
-        ls = "${lib.getExe pkgs.eza} -l";
-        tree = "${lib.getExe pkgs.eza} --tree --all";
-        top = "${lib.getExe pkgs.btop}";
-      };
-
-      initContent = ''
-        function lscontent {
-          ${lib.getExe pkgs.tree} -I 'node_modules|.git'
-          ${lib.getExe' pkgs.coreutils "printf"} "\n--- FILE CONTENTS ---\n\n"
-          ${lib.getExe pkgs.findutils} . -type f \
-          -not -path '*/.git/*' \
-          -not -path '*/node_modules/*' \
-          -not -path '*/flake.lock' \
-          -exec ${lib.getExe' pkgs.bash "sh"} -c '
-          # For each file found by find, do the following:
-            ${lib.getExe' pkgs.coreutils "echo"} "--- FILE: {} ---"
-            ${lib.getExe' pkgs.coreutils "cat"} "{}"
-            ${lib.getExe' pkgs.coreutils "echo"}
-          ' \;
-        }
-      '' +
-        ( lib.optionalString (pkgs.zoxide != null) ''
-            function cd {
-              if [[ -n "$MC_SID" ]]; then
-                builtin cd "$@"
-              else
-                z "$@"
-              fi
-            }
-          ''
-        ) +
-        ( lib.optionalString (pkgs.kdePackages.plasma-workspace != null) ''
-            function pbcopy {
-              ${lib.getExe' pkgs.kdePackages.qttools "qdbus"} org.kde.klipper /klipper setClipboardContents "$(${lib.getExe' pkgs.coreutils "cat"} "$@")"
-            }
-          ''
-        ) +
-      ''
-        export LS_COLORS="$(${lib.getExe pkgs.vivid} generate catppuccin-mocha)"
-
-        # Manual Konsole semantic shell integration
-        if [[ -n "$KONSOLE_DBUS_SESSION" ]]; then
-          # Add semantic zone markers to prompt
-          # These escape sequences mark prompt, input, and output regions
-
-          precmd() {
-            print -n $'\e]133;A\e\\' # Mark prompt start
+    home-manager.users.${primaryUsername} = {
+      programs.zsh = {
+        enable = true;
+        enableCompletion = true;
+        autosuggestion.enable = true;
+        syntaxHighlighting.enable = true;
+        history = {
+          size = 100000;
+          save = 100000;
+          path = "${config.xdg.dataHome}/zsh/history";
+          extended = true;
+          expireDuplicatesFirst = true;
+          ignoreDups = true;
+          ignoreSpace = true;
+          ignoreAllDups = true;
+          saveNoDups = true;
+        };
+        shellAliases = {
+          cat = "${lib.getExe pkgs.bat}";
+          ls = "${lib.getExe pkgs.eza} -l";
+          tree = "${lib.getExe pkgs.eza} --tree --all";
+          top = "${lib.getExe pkgs.btop}";
+        };
+        initContent = ''
+          function lscontent {
+            ${lib.getExe pkgs.tree} -I 'node_modules|.git'
+            ${lib.getExe' pkgs.coreutils "printf"} "\n--- FILE CONTENTS ---\n\n"
+            ${lib.getExe pkgs.findutils} . -type f \
+            -not -path '*/.git/*' \
+            -not -path '*/node_modules/*' \
+            -not -path '*/flake.lock' \
+            -exec ${lib.getExe' pkgs.bash "sh"} -c '
+            # For each file found by find, do the following:
+              ${lib.getExe' pkgs.coreutils "echo"} "--- FILE: {} ---"
+              ${lib.getExe' pkgs.coreutils "cat"} "{}"
+              ${lib.getExe' pkgs.coreutils "echo"}
+            ' \;
           }
+        '' +
+          ( lib.optionalString (pkgs.zoxide != null) ''
+              function cd {
+                if [[ -n "$MC_SID" ]]; then
+                  builtin cd "$@"
+                else
+                  z "$@"
+                fi
+              }
+            ''
+          ) +
+          ( lib.optionalString (pkgs.kdePackages.plasma-workspace != null) ''
+              function pbcopy {
+                ${lib.getExe' pkgs.kdePackages.qttools "qdbus"} org.kde.klipper /klipper setClipboardContents "$(${lib.getExe' pkgs.coreutils "cat"} "$@")"
+              }
+            ''
+          ) +
+        ''
+          export LS_COLORS="$(${lib.getExe pkgs.vivid} generate catppuccin-mocha)"
 
-          preexec() {
-            print -n $'\e]133;C\e\\' # Mark command start
-          }
-        fi
-      '';
+          # Manual Konsole semantic shell integration
+          if [[ -n "$KONSOLE_DBUS_SESSION" ]]; then
+            # Add semantic zone markers to prompt
+            # These escape sequences mark prompt, input, and output regions
+
+            precmd() {
+              print -n $'\e]133;A\e\\' # Mark prompt start
+            }
+
+            preexec() {
+              print -n $'\e]133;C\e\\' # Mark command start
+            }
+          fi
+        '';
+      };
+      programs.starship = {
+        enable = true;
+        enableZshIntegration = true;
+        settings = {
+          add_newline = false;
+          format = "$directory$git_branch$git_status$character ";
+          character = {
+            success_symbol = "[❯](bold green)";
+            error_symbol = "[❯](bold red)";
+          };
+          nix_shell = {
+            disabled = false;
+            impure_msg = "[impure](bold red)";
+            format = "[$symbol$state]($style) ";
+          };
+        };
+      };
     };
   };
 }
