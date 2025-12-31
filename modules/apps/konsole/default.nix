@@ -30,9 +30,6 @@ in
       profiles.Default = {
         name = "Default";
         colorScheme = "catppuccinMocha";
-        CursorShape = 0;  # 0=Block, 1=I-Beam, 2=Underline
-        UseFontBracketing = true;
-        UseFontLineCharacters = true;
         font = {
           name = "FiraCode Nerd Font Med";
           size = 11;
@@ -41,6 +38,9 @@ in
           Appearance = {
             LineSpacing = 0;
             BoldIntense = true; # otherwise, nothing seems to even happen with bold fonts!
+            CursorShape = 0;  # 0=Block, 1=I-Beam, 2=Underline
+            UseFontBracketing = true;
+            UseFontLineCharacters = true;
           };
           General = {
             DimWhenInactive = false;
