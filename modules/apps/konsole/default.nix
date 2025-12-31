@@ -105,6 +105,82 @@ in
           };
         };
       };
+            profiles.SSH = {
+        name = "SSH - 10.10.1.13";
+        command = "${pkgs.openssh}/bin/ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 root@10.10.1.13";
+        colorScheme = "catppuccinFrappe";  # Different color scheme to distinguish SSH sessions
+        font = {
+          name = "FiraCode Nerd Font Med";
+          size = 11;
+        };
+        extraConfig = {
+          Appearance = {
+            LineSpacing = 0;
+            BoldIntense = true;
+            CursorShape = 0;
+            UseFontBracketing = true;
+            UseFontLineCharacters = true;
+            AntiAliasFonts = true;
+            BidiTableDirOverride = true;
+          };
+          General = {
+            DimWhenInactive = false;
+            InvertSelectionColors = true;
+            SemanticInputClick = true;
+            SemanticUpDown = true;
+            TerminalCenter = true;
+            TerminalColumns = 160;
+            TerminalRows = 40;
+            Environment = "TERM=xterm-256color,COLORTERM=truecolor";
+            LocalTabTitleFormat = "%d : %n";
+            RemoteTabTitleFormat = "[SSH] %h : %u";  # Prefix with [SSH] for clarity
+            StartInCurrentSessionDir = false;  # Not applicable for SSH
+            ShowTerminalSizeHint = true;
+          };
+          Monitor = {
+            ActivityMode = 1;
+            SilenceMode = 1;
+            SilenceSeconds = 20;
+          };
+          "Interaction Options" = {
+            AllowEscapedLinks = false;
+            UnderlineLinksEnabled = true;
+            AutoCopySelectedText = false;
+            CopyTextAsHTML = false;
+            OpenLinksByDirectClickEnabled = false;
+            TextEditorCmd = 0;
+            TrimLeadingSpacesInSelectedText = true;
+            TrimTrailingSpacesInSelectedText = true;
+            UnderlineFilesEnabled = true;
+            WordCharacters = ":@-./_~?&=%+#";
+            TripleClickMode = 0;
+            MiddleClickPasteMode = 0;
+          };
+          "Scrolling" = {
+            HistoryMode = 1;
+            HistorySize = 40000;
+            ScrollBarPosition = 2;
+            ScrollFullPage = false;
+            ReflowLines = true;
+            HighlightScrolledLines = true;
+          };
+          "TabBar" = {
+            NewTabBehavior = 0;
+            ExpandTabWidth = false;
+            TabBarPosition = 0;
+            CloseTabOnMiddleMouseButton = true;
+            TabBarVisibility = 2;
+          };
+          "Terminal Features" = {
+            BellMode = 1;
+            BlinkingCursorEnabled = true;
+            FlowControlEnabled = false;
+            UrlHintsModifiers = 67108864;
+            BidiRenderingEnabled = true;
+            LineNumbers = 0;
+          };
+        };
+      };
     };
   };
 }
