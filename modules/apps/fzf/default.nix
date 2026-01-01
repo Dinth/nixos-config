@@ -6,7 +6,7 @@ let
 in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername} = { config, ... }: {
-		catppuccin.fzf = {
+      catppuccin.fzf = {
         enable = true;
         flavor = "mocha";
         accent = "mauve";
@@ -22,5 +22,6 @@ in {
           "--bind=ctrl-a:select-all,ctrl-d:deselect-all"
         ];
       };
-	};
+    };
+  };
 }
