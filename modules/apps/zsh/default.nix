@@ -166,23 +166,27 @@ in {
                 "$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
             }
           ''}
-
-          if [[ -n "$KONSOLE_DBUS_SESSION" ]]; then
-            precmd() { print -n $'\e]133;A\e\\'; }
-            preexec() { print -n $'\e]133;C\e\\'; }
-          fi
         '';
       };
 
+      catppuccin.zsh-syntax-highlighting = {
+        enable = true;
+        flavor = "mocha";
+      };
       programs.starship = {
         enable = true;
         settings = lib.mkMerge [
           (builtins.fromTOML
             (builtins.readFile "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
           {
-            palette = lib.mkForce "catppuccin_macchiato";
+            palette = lib.mkForce "catppuccin_mocha";
           }
         ];
+      };
+      catppuccin.fzf = {
+        enable = true;
+        flavor = "mocha";
+        accent = "mauve";
       };
       programs.fzf = {
         enable = true;
@@ -191,8 +195,6 @@ in {
         defaultOptions = [
           "--height 40%"
           "--border"
-          "--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8"
-          "--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc"
           "--multi"
           "--bind=ctrl-a:select-all,ctrl-d:deselect-all"
         ];
