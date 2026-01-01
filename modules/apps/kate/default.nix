@@ -3,6 +3,53 @@ let
   inherit (lib) mkIf;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
+    customServers = {
+    nix = {
+      command = [ "${pkgs.nixd}/bin/nixd" ];
+      url = "https://github.com/nix-community/nixd";
+      highlightingModeRegex = "^Nix$";
+      rootIndicationFileNames = [ "flake.nix" "flake.lock" "default.nix" ];
+      settings = {
+        nixd = {
+          formatting = { command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ]; };
+          options = {
+            nixos = {
+              expr = ''(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.${config.networking.hostName}.options'';
+            };
+            home_manager = {
+              expr = ''(builtins.getFlake (builtins.toString ./.)).homeConfigurations."${primaryUsername}@${config.networking.hostName}".options'';
+            };
+          };
+        };
+      };
+    };
+    yaml = {
+      command = [ "${pkgs.yaml-language-server}/bin/yaml-language-server" "--stdio" ];
+      url = "https://github.com/redhat-developer/yaml-language-server";
+      highlightingModeRegex = "^YAML$";
+    };
+    bash = {
+      command = [ "${pkgs.bash-language-server}/bin/bash-language-server" "start" ];
+      url = "https://github.com/bash-lsp/bash-language-server";
+      highlightingModeRegex = "^Bash$";
+    };
+    python = {
+      command = [ "${pkgs.python3.withPackages (ps: [ ps.python-lsp-server ps.python-lsp-ruff ])}/bin/pylsp" "--check-parent-process" ];
+      url = "https://github.com/python-lsp/python-lsp-server";
+      highlightingModeRegex = "^Python$";
+      settings = { pylsp = { plugins = { ruff = { enabled = true; }; pycodestyle = { enabled = false; }; }; }; };
+    };
+    xml = {
+      command = [ "${pkgs.lemminx}/bin/lemminx" ];
+      url = "https://github.com/redhat-developer/vscode-xml";
+      highlightingModeRegex = "^XML$";
+    };
+    json = {
+      command = [ "${pkgs.vscode-json-languageserver}/bin/vscode-json-languageserver" "--stdio" ];
+      url = "https://github.com/microsoft/vscode";
+      highlightingModeRegex = "^JSON$";
+    };
+  };
 in
 {
   config = mkIf cfg.enable {
@@ -271,7 +318,10 @@ in
           "viewShade" = "81,49,95";
         };
         "lspclient" = {
-          "AllowedServerCommandLines" = "${pkgs.nixd}/bin/nixd;${pkgs.yaml-language-server}/bin/yaml-language-server;${pkgs.bash-language-server}/bin/bash-language-server;${pkgs.vscode-json-languageserver}/bin/vscode-json-languageserver;${pkgs.lemminx}/bin/lemminx";
+          "AllowedServerCommandLines" = lib.strings.concatStringsSep ";" (
+            map (s: baseNameOf (builtins.elemAt s.command 0))
+            (lib.attrValues customServers)
+          );
           "AutoHover" = true;
           "AutoImport" = true;
           "BlockedServerCommandLines" = "";
