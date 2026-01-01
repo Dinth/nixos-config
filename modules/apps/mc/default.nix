@@ -18,7 +18,12 @@ in
 {
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-      mc
+      p7zip unrar unzip zip
+      ripgrep
+      fd
+      jq
+      atool
+      mediainfo
     ];
     home-manager.users.${primaryUsername} = {
       home.file."/.local/share/mc/skins/catppuccin.ini" = {

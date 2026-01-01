@@ -17,6 +17,7 @@
     ./OrcaSlicer
     ./sddm
     ./ssh
+    ./starship
     ./steam
     ./weechat
     ./zoxide
