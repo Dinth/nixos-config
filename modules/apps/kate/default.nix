@@ -75,6 +75,16 @@ in
             "text/x-yaml" = "kate.desktop";
           };
         };
+        configFile."kate/lspclient/settings.json" = {
+          force = true;
+          text = builtins.toJSON {
+            servers = {
+              nix = {
+                command = [ "${pkgs.nixd}/bin/nixd" ];
+              };
+            };
+          };
+        };
       };
 
       # Use plasma-manager for Kate configuration
@@ -285,74 +295,6 @@ in
           "TypeFormatting" = true;
         };
       };
-      xdg.configFile."kate/lspclient/settings.json".text =
-        builtins.toJSON {
-          servers = {
-            nix = {
-              command = [ "${pkgs.nixd}/bin/nixd" ];
-              url = "https://github.com/nix-community/nixd";
-              highlightingModeRegex = "^Nix$";
-              rootIndicationFileNames = [ "flake.nix" "flake.lock" "default.nix" ];
-              settings = {
-                nixd = {
-                  nixpkgs = {
-                    expr = ''import (builtins.getFlake (builtins.toString ./.)).inputs.nixpkgs { }'';
-                  };
-                  formatting = {
-                    command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
-                  };
-                  options = {
-                    nixos = {
-                      # Uses config.networking.hostName dynamically
-                      expr = ''(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.${config.networking.hostName}.options'';
-                    };
-                    home_manager = {
-                      expr = ''(builtins.getFlake (builtins.toString ./.)).homeConfigurations."${primaryUsername}@${config.networking.hostName}".options'';
-                    };
-                  };
-                };
-              };
-            };
-            yaml = {
-              command = [ "yaml-language-server" "--stdio" ];
-              url = "https://github.com/redhat-developer/yaml-language-server";
-              highlightingModeRegex = "^YAML$";
-              root = ".";
-            };
-            bash = {
-              command = [ "bash-language-server" "start" ];
-              url = "https://github.com/bash-lsp/bash-language-server";
-              highlightingModeRegex = "^Bash$";
-              root = ".";
-            };
-            python = {
-              command = [ "pylsp" "--check-parent-process" ];
-              url = "https://github.com/python-lsp/python-lsp-server";
-              highlightingModeRegex = "^Python$";
-              root = ".";
-              settings = {
-                pylsp = {
-                  plugins = {
-                    ruff.enabled = true;
-                    pycodestyle.enabled = false;
-                  };
-                };
-              };
-            };
-            xml = {
-              command = [ "lemminx" ];
-              url = "https://github.com/redhat-developer/vscode-xml";
-              highlightingModeRegex = "^XML$";
-              root = ".";
-            };
-            json = {
-              command = [ "vscode-json-languageserver" "--stdio" ];
-              url = "https://github.com/microsoft/vscode/tree/main/extensions/json-language-features/server";
-              highlightingModeRegex = "^JSON$";
-              root = ".";
-            };
-          };
-        };
     };
   };
 }
