@@ -112,7 +112,7 @@ in {
 
           # Load on startup only
           if [[ -f "$DIRSTACKFILE" ]] && (( ''${#dirstack} == 0 )); then
-            dirstack=(''${(f)"$(<"$DIRSTACKFILE")"}')
+            dirstack=(''${(f)"$(<"$DIRSTACKFILE")"})
           fi
 
           # Use atomic write with temp file
@@ -145,11 +145,9 @@ in {
               -not -path '*/.git/*' \
               -not -path '*/node_modules/*' \
               -not -path '*/flake.lock' \
-              -exec sh -c '
-                echo "--- FILE: {} ---"
-                ${getExe pkgs.bat} --plain "{}" 2>/dev/null || cat "{}"
-              ' \;
+              -exec sh -c "echo '--- FILE: {} ---'; ${getExe pkgs.bat} --plain '{}' 2>/dev/null || cat '{}'" sh \;
           }
+
 
           ${lib.optionalString (lib.hasAttr "zoxide" pkgs) ''
             function cd() {
@@ -176,22 +174,15 @@ in {
         '';
       };
 
-      programs.starship.settings = {
-        add_newline = false;
-        format = "$directory$git_branch$git_status$shell$character ";
-
-        nix_shell = {
-          disabled = false;
-          impure_msg = "[impure](bold red)";
-          format = "[$symbol$state]($style) ";
-        };
-
-        shell = {
-          disabled = false;
-          style = "blue bold";
-          symbol = " ";
-          format = "[$symbol]($style) ";
-        };
+      programs.starship = {
+        enable = true;
+        settings = lib.mkMerge [
+          (builtins.fromTOML
+            (builtins.readFile "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
+          {
+            palette = lib.mkForce "catppuccin_macchiato";
+          }
+        ];
       };
       programs.fzf = {
         enable = true;
