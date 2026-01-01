@@ -6,16 +6,15 @@ let
 in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername} = { config, ... }: {
-	  programs.starship = {
-	  enable = true;
-	  settings = lib.mkMerge [
-	  	(builtins.fromTOML
-	  	(builtins.readFile "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
-		{
-		palette = lib.mkForce "catppuccin_mocha";
-		}
-		];
-	  };
+      programs.starship = {
+        enable = true;
+        settings = lib.mkMerge [
+          (builtins.fromTOML
+          (builtins.readFile "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml")) {
+            palette = lib.mkForce "catppuccin_mocha";
+          }
+        ];
+	    };
     };
   };
 }
