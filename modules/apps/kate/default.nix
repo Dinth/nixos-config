@@ -261,21 +261,21 @@ in
           "viewShade" = "81,49,95";
         };
         "lspclient" = {
-          "AllowedServerCommandLines" = "/run/current-system/sw/bin/nixd";
+          "AllowedServerCommandLines" = "${pkgs.nixd}/bin/nixd;${pkgs.yaml-language-server}/bin/yaml-language-server;${pkgs.bash-language-server}/bin/bash-language-server;${pkgs.vscode-json-languageserver}/bin/vscode-json-languageserver;${pkgs.lemminx}/bin/lemminx";
           "AutoHover" = true;
-          "AutoImport" = true;  # From lspclientrc: AutoImportCompletion
+          "AutoImport" = true;
           "BlockedServerCommandLines" = "";
-          "CompletionDocumentation" = true;  # From lspclientrc
+          "CompletionDocumentation" = true;
           "CompletionParens" = true;
-          "Diagnostics" = true;  # From lspclientrc
-          "FormatOnSave" = true;  # CRITICAL FIX: was false
+          "Diagnostics" = true;
+          "FormatOnSave" = true;
           "HighlightGoto" = true;
-          "IncrementalSync" = true;  # CRITICAL FIX: was false
+          "IncrementalSync" = true;
           "InlayHints" = true;
           "Messages" = true;
           "ReferencesDeclaration" = true;
           "SemanticHighlighting" = true;
-          "ServerConfiguration" = "";
+          "ServerConfiguration" = "${config.users.users.${primaryUsername}.home}/.config/kate/lspclient/settings.json";
           "ShowCompletions" = true;
           "SignatureHelp" = true;
           "SymbolDetails" = true;
@@ -289,7 +289,7 @@ in
         builtins.toJSON {
           servers = {
             nix = {
-              command = [ "nixd" ];
+              command = [ "${pkgs.nixd}/bin/nixd" ];
               url = "https://github.com/nix-community/nixd";
               highlightingModeRegex = "^Nix$";
               rootIndicationFileNames = [ "flake.nix" "flake.lock" "default.nix" ];
