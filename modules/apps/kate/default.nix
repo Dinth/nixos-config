@@ -3,7 +3,7 @@ let
   inherit (lib) mkIf;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
-    customLSPServers = {
+  customLSPServers = {
     nix = {
       command = [ "${pkgs.nixd}/bin/nixd" ];
       url = "https://github.com/nix-community/nixd";
@@ -87,6 +87,9 @@ in
           };
           tabWidth = 2;
         };
+        lsp = {
+          customServers = customLSPServers;
+        };
       };
       xdg = {
         dataFile = {
@@ -120,12 +123,6 @@ in
             "text/plain" = "kate.desktop";
             "text/x-shellscript" = "kate.desktop";
             "text/x-yaml" = "kate.desktop";
-          };
-        };
-        configFile."kate/lspclient/settings.json" = {
-          force = true;
-          text = builtins.toJSON {
-            servers = customLSPServers;
           };
         };
       };
@@ -314,8 +311,8 @@ in
           "viewShade" = "81,49,95";
         };
         "lspclient" = {
-          "AllowedServerCommandLines" = lib.strings.concatStringsSep ";" (
-            map (s: baseNameOf (builtins.elemAt s.command 0))
+          "AllowedServerCommandLines" = lib.strings.concatStringsSep "," (
+            map (s: lib.strings.concatStringsSep " " s.command)
             (lib.attrValues customLSPServers)
           );
           "AutoHover" = true;
