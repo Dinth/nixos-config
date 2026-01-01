@@ -1,4 +1,9 @@
-{ config, pkgs, lib,...}:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   inherit (lib) mkIf;
   cfg = config.kde;
@@ -70,10 +75,6 @@ in
             ActivityMode = 1;
             SilenceMode = 1;
             SilenceSeconds = 20;
-          };
-          "TabBar" = {
-            NewTabBehavior = 0;
-            ExpandTabWidth = false;
           };
           "Interaction Options" = {
             AllowEscapedLinks = false;
