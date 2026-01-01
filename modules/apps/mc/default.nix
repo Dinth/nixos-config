@@ -24,6 +24,20 @@ in
       home.file."/.local/share/mc/skins/catppuccin.ini" = {
         source = "${mc_catppuccin}/catppuccin.ini";
       };
+      home.file.".local/share/mc/.zshrc" = {
+        text = ''
+          # MC subshell - source main zsh config but disable starship
+
+          # Source your full main zshrc
+          [[ -f ~/.zshrc ]] && source ~/.zshrc
+
+          # Disable starship for MC
+          export STARSHIP_CONFIG="/dev/null"
+
+          PS1="%n@%m:%~%# "
+        '';
+      };
+
       programs.mc = {
         enable = true;
         settings = {
