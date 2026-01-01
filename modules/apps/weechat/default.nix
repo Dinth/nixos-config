@@ -59,16 +59,6 @@ let
       '';
     };
   };
-
-  weechatDesktop = pkgs.makeDesktopItem {
-    name = "weechat";
-    desktopName = "WeeChat";
-    genericName = "IRC Client";
-    exec = "weechat";
-    terminal = true;
-    categories = [ "Network" "IRCClient" ];
-    icon = "weechat";
-  };
 in
 {
   options = {
@@ -90,9 +80,21 @@ in
         weechatCustom
       ];
 
-      xdg.configFile."autostart/weechat.desktop".source = "${weechatDesktop}/share/applications/weechat.desktop";
+    xdg.configFile."autostart/weechat.desktop".text = ''
+      [Desktop Entry]
+      Type=Application
+      Version=1.0
+      Name=WeeChat
+      GenericName=IRC Client
+      Comment=Fast, light and extensible chat client
+      Exec=${pkgs.kdePackages.konsole}/bin/konsole -e ${weechatCustom}/bin/weechat
+      Terminal=false
+      Categories=Network;IRCClient;
+      Icon=weechat
+      StartupNotify=false
+      X-KDE-autostart-phase=1
+    '';
 
-      home.file."Downloads/weeslack/.keep".text = "";
       home.file.".weechat/weemoji.json".source = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/wee-slack/wee-slack/master/weemoji.json";
         sha256 = "sha256-dQkHlLLGtxUv7WSv/HxJza6CNBIjLt5FxO+iTOSH6oA=";
