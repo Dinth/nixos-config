@@ -36,7 +36,6 @@
     "hid_generic"
     "amdgpu"
     "amd_pstate"
-    "amd_pstate_ut"
   ];
   boot.extraModulePackages = [ config.boot.kernelPackages.r8125 config.boot.kernelPackages.it87 ];
   boot.blacklistedKernelModules = [
@@ -104,6 +103,8 @@
     "iommu=pt"
     "thermal.crt=105" # Fix a bug with acpitz reporting overheat on resume from suspend
     "plymouth.use-simpledrm"
+    "acpi_enforce_resource=lax"
+    "amdgpu.sched_jobs=64"
   ];
   boot.extraModprobeConfig = ''
     options it87 ignore_resource_conflict=1
@@ -117,8 +118,6 @@
       "vm.dirty_background_ratio" = 15;
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
-      "acpi_enforce_resource" = "lax";
-      "dev.drm.drm_sched_jobs" = "64";
     };
   };
   fileSystems."/boot" = {
@@ -178,7 +177,7 @@
     # Set highest quality resampling when needed
     extraConfig.pipewire-pulse."92-low-latency" = {
       pulse.properties = {
-        pulse.min.req = "64/48000";
+        pulse.min.req = "256/48000";
         pulse.default.req = "64/48000";
         pulse.max.req = "128/48000";
         pulse.min.quantum = "64/48000";
