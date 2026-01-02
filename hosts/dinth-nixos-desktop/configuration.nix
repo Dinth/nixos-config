@@ -57,6 +57,8 @@
         mqtt-explorer
         discord
         signal-desktop
+        caido
+        milkytracker
       ];
     };
     catppuccin.flavor = "mocha";

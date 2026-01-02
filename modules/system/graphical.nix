@@ -30,8 +30,6 @@ in
       vulkan-validation-layers
       mpv
       wl-clipboard
-      caido
-      milkytracker
     ];
     fonts.packages = with pkgs; [
       noto-fonts
