@@ -24,6 +24,8 @@ in
       jq
       atool
       mediainfo
+    ] ++ lib.optionals config.graphical.enable [
+      wl-clipboard
     ];
     home-manager.users.${primaryUsername} = {
       home.file."/.local/share/mc/skins/catppuccin.ini" = {
@@ -140,8 +142,12 @@ in
             ftpfs_password = "anonymous@";
             display_codepage = "UTF-8";
             autodetect_codeset = null;
-            clipboard_store = null;
-            clipboard_paste = null;
+            clipboard_store = if config.graphical.enable
+              then "${pkgs.wl-clipboard}/bin/wl-copy"
+              else null;
+            clipboard_paste = if config.graphical.enable
+              then "${pkgs.wl-clipboard}/bin/wl-paste"
+              else null;
           };
           Colors = {
             base_color = null;
