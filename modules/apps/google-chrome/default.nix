@@ -3,11 +3,28 @@ let
   inherit (lib) mkIf;
   cfg = config.graphical;
   primaryUsername = config.primaryUser.name;
+  baseFlags = [
+    "--ozone-platform=wayland"
+    "--enable-wayland-ime"
+  ];
+  tabletFlags = baseFlags ++ [
+    "--enable-features=TouchpadOverscrollHistoryNavigation,SmoothScrolling"
+    "--touch-events=enabled"
+    "--force-device-scale-factor=1.25"
+  ];
+  desktopFlags = baseFlags ++ [
+    "--enable-gpu-rasterization"
+    "--enable-zero-copy"
+    "--ignore-gpu-blocklist" # Unlocks advanced GPU features on Linux drivers
+    # Modern 2026 Video Acceleration (GL backend + Hardware Encode for calls)
+    "--enable-features=AcceleratedVideoDecodeLinuxGL,VaapiVideoEncoder,Vulkan,CanvasOopRasterization"
+    "--use-gl=egl" # Prevents refresh rate locking on mixed-monitor setups
+  ];
+  chromeFlags =
+    if machineType == "tablet" then builtins.concatStringsSep " " tabletFlags
+    else if machineType == "desktop" then builtins.concatStringsSep " " desktopFlags
+    else "";
 
-  chromeFlags = if machineType == "tablet" then
-    "--enable-features=TouchpadOverscrollHistoryNavigation,VaapiVideoDecoder,ScollableTabStrip,ParallelDownloading,GpuRasterization,ZeroCopy,SmoothScrolling,HardwareOverlays --ozone-platform=wayland --enable-wayland-ime --touch-events=enabled --force-device-scale-factor=1.25"
-  else
-    "";
   chromePackage = (pkgs.google-chrome.override {
       commandLineArgs = chromeFlags;
     }).overrideAttrs (old: {
