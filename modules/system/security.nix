@@ -62,6 +62,10 @@
     enable = true;
     packages = with pkgs; [ apparmor-utils ];
   };
+  programs.firejail = {
+    enable = true;
+    # TBD: Add jails
+  };
   security.sudo.enable = false;
   security.doas = {
     enable = true;
