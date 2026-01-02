@@ -13,7 +13,7 @@ let
   openCmd = if pkgs.stdenv.isDarwin then
     "open %d/%p"
   else
-    "${lib.getExe pkgs.detach} ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
+    "${lib.getExe' pkgs.util-linux "setsid"} -f ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
 in
 {
   config = mkIf cfg.enable {
