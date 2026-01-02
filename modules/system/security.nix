@@ -31,7 +31,6 @@
     "sysv"
     "ufs"
     "ksmbd"
-    "uvcvideo"
     "tipc"
     "sctp"
     "dccp"
