@@ -31,6 +31,7 @@ in
       mpv
       wl-clipboard
       caido
+      milkytracker
     ];
     fonts.packages = with pkgs; [
       noto-fonts
