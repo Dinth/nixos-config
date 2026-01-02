@@ -26,15 +26,13 @@ in
       home-manager.users.${primaryUsername} = {
         xdg.configFile."autostart/1password.desktop".text = ''
           [Desktop Entry]
-          Name=1Password (Silent)
-          GenericName=Password Manager
-          Comment=1Password (Silent startup)
-          Icon=${pkgs._1password-gui}/share/icons/hicolor/256x256/apps/1password.png
-          Exec=${pkgs._1password-gui}/bin/1password --silent
-          Terminal=false
-          Categories=Utility;
-          X-GNOME-Autostart-enabled=true
           Type=Application
+          Name=1Password
+          # The --silent flag is key here; it starts 1Password minimized to the tray
+          Exec=${pkgs._1password-gui}/bin/1password --silent
+          Icon=1password
+          Terminal=false
+          StartupNotify=false
         '';
       };
     })
