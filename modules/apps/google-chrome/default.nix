@@ -4,13 +4,20 @@ let
   cfg = config.graphical;
   primaryUsername = config.primaryUser.name;
 
-  chromePackage =
-  if machineType == "tablet" then
-    pkgs.google-chrome.override {
-      commandLineArgs = "--enable-features=TouchpadOverscrollHistoryNavigation --enable-features=VaapiVideoDecoder --ozone-platform=wayland --enable-wayland-ime --enable-features=ScollableTabStrip --enable-features=ParallelDownloading --enable-gpu-rasterization --enable-zero-copy --touch-events=enabled --force-device-scale-factor=1.25 --enable-smooth-scrolling --enable-gpu-rasterization --enable-hardware-overlays --enable-zero-copy";
-    }
+  chromeFlags = if machineType == "tablet" then
+    "--enable-features=TouchpadOverscrollHistoryNavigation,VaapiVideoDecoder,ScollableTabStrip,ParallelDownloading,GpuRasterization,ZeroCopy,SmoothScrolling,HardwareOverlays --ozone-platform=wayland --enable-wayland-ime --touch-events=enabled --force-device-scale-factor=1.25"
   else
-    pkgs.google-chrome;
+    "";
+  chromePackage = (pkgs.google-chrome.override {
+      commandLineArgs = chromeFlags;
+    }).overrideAttrs (old: {
+      # Run this after the standard install to fix the desktop file
+      postInstall = (old.postInstall or "") + ''
+        if ! grep -q "StartupWMClass=" $out/share/applications/google-chrome.desktop; then
+          echo "StartupWMClass=google-chrome" >> $out/share/applications/google-chrome.desktop
+        fi
+      '';
+    });
 in
 {
   config = mkIf cfg.enable {
