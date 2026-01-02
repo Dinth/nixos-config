@@ -24,6 +24,10 @@ let
       init = ''
         /mouse enable
         /set weechat.look.mouse on
+        /key bindctxt mouse @chat(python.*):button2 hsignal:slack_mouse
+        /key bindctxt cursor @chat(python.*):R hsignal:slack_cursor_reply
+        /key bindctxt cursor @chat(python.*):T hsignal:slack_cursor_thread
+        /set logger.file.mask "$plugin.$name.weechatlog"
         /set irc.look.server_buffer independent
         /set plugins.var.python.slack.short_buffer_names true
         /set plugins.var.python.slack.show_reaction_nicks true
@@ -50,6 +54,8 @@ let
         /autosort rules add ''${info:autosort_order,''${type},server,*,channel,private}
         /set weechat.bar.buflist.size_max 30
         /set weechat.completion.default_template "%(nicks)|%(irc_channels)|%(emoji)"
+        /set spell.check.enabled on
+        /set weechat.look.paste_max_lines -1
         /set plugins.var.perl.multiline.send_empty_lines off
         /set plugins.var.perl.multiline.magic_paste_only on
         ${lib.optionalString graphical.enable ''
