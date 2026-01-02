@@ -100,7 +100,6 @@
     "amd_pstate=active" # AMD Active Pstates instead of cpufreq
     "tsc=reliable" # Trust AMD builtin clock for better latency
     "clocksource=tsc" # Trust AMD builtin clock for better latency
-    "rcu_nocbs=2,4,6,8,10,12,14" # Offload RCU calls from every second core for latency
     "thermal.acpi_disabled=1"
     "iommu=pt"
     "thermal.crt=105" # Fix a bug with acpitz reporting overheat on resume from suspend

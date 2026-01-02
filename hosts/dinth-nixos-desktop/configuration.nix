@@ -84,8 +84,8 @@
       "noperm"
       "cache=none"
       "echo_interval=10"
-      "uid=1000"
-      "gid=100"
+      "uid=${toString config.users.users.${config.primaryUser.name}.uid}"
+      "gid=${toString config.users.groups.users.gid}"
       "_netdev"  # marks as network filesystem
       "nofail"   # don't block boot if mount fails
       "vers=3.0"
