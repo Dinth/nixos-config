@@ -34,6 +34,30 @@
   boot.tmp.useTmpfs = true;
   security.audit.enable = true;
   security.auditd.enable = true;
+  # Allow wheel group to read audit logs
+  systemd.tmpfiles.rules = [
+    "d /var/log/audit 0750 root wheel - -"
+    "f /var/log/audit/audit.log 0640 root wheel - -"
+  ];
+  systemd.user.services.apparmor-notify = {
+    description = "AppArmor Desktop Notifications";
+    enable = true;
+
+    after = [ "graphical-session.target" ];
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+
+    unitConfig.ConditionPathExists = "/var/log/audit/audit.log";
+
+    serviceConfig = {
+      # -p: poll mode
+      # -s 1: show summary
+      # -w 5: wait 5 seconds (to group bursts of notifications)
+      ExecStart = "${pkgs.apparmor-utils}/bin/aa-notify -p -s 1 -w 5 -f /var/log/audit/audit.log";
+      Restart = "on-failure";
+      RestartSec = "10s";
+    };
+  };
   security.apparmor = {
     enable = true;
     packages = with pkgs; [ apparmor-utils ];
