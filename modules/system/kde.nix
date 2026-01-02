@@ -173,7 +173,7 @@ in
       desktop.widgets = [
         # --- Applet 1014: IO ---
         {
-          name = "org.kde.plasma.systemmonitor.diskactivity";
+          name = "org.kde.plasma.systemmonitor";
           position = { horizontal = 1696; vertical = 656; };
           size = { width = 352; height = 224; };
           config = {
@@ -195,7 +195,7 @@ in
 
         # --- Applet 1016: Memory ---
         {
-          name = "org.kde.plasma.systemmonitor.memory";
+          name = "org.kde.plasma.systemmonitor";
           position = { horizontal = 1696; vertical = 224; };
           size = { width = 352; height = 224; };
           config = {
@@ -215,7 +215,7 @@ in
         }
         # --- Applet 1017: GPU ---
         {
-          name = "org.kde.plasma.systemmonitor.gpu";
+          name = "org.kde.plasma.systemmonitor";
           position = { horizontal = 1696; vertical = 448; };
           size = { width = 352; height = 208; };
           config = {
@@ -241,7 +241,7 @@ in
         }
         # --- Applet 1018: Network ---
         {
-          name = "org.kde.plasma.systemmonitor.network";
+          name = "org.kde.plasma.systemmonitor";
           position = { horizontal = 1696; vertical = 880; };
           size = { width = 352; height = 224; };
           config = {
@@ -260,7 +260,7 @@ in
         }
         # --- Applet 1020: CPU ---
         {
-          name = "org.kde.plasma.systemmonitor.cpu";
+          name = "org.kde.plasma.systemmonitor";
           position = { horizontal = 1696; vertical = 0; };
           size = { width = 352; height = 224; };
           config = {
