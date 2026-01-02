@@ -10,25 +10,6 @@
     # Network/Other
     "ksmbd" "tipc" "sctp" "dccp" "rds"
   ];
-  services.journald.extraConfig = ''
-    SystemMaxFileSize=200M
-    SystemMaxUse=2G
-    MaxFileSec=1day
-    MaxRetentionSec=7day
-  '';
-  security.sudo.enable = false;
-  security.doas = {
-    enable = true;
-    extraRules = [
-      {
-        users = ["michal"];
-        persist = true;
-        # noPass = true;
-        keepEnv = true;
-        # cmd = "ALL";
-      }
-    ];
-  };
   boot.kernel.sysctl = {
     "kernel.kptr_restrict" = 2;
     "kernel.dmesg_restrict" = 1;
@@ -44,6 +25,28 @@
     vulnix # Nix derivations vulnerability scanner
 #    aide
   ];
+  services.journald.extraConfig = ''
+    SystemMaxFileSize=200M
+    SystemMaxUse=2G
+    MaxFileSec=1day
+    MaxRetentionSec=7day
+  '';
+  boot.tmp.useTmpfs = true;
+  security.sudo.enable = false;
+  security.doas = {
+    enable = true;
+    extraRules = [
+      {
+        users = ["michal"];
+        persist = true;
+        # noPass = true;
+        keepEnv = true;
+        # cmd = "ALL";
+      }
+    ];
+  };
+  security.audit.enable = true;
+  security.auditd.enable = true;
   services.cron = {
     enable = true;
       systemCronJobs = [
