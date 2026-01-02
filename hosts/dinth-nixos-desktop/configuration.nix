@@ -86,6 +86,8 @@
       "echo_interval=10"
       "uid=1000"
       "gid=100"
+      "_netdev"  # marks as network filesystem
+      "nofail"   # don't block boot if mount fails
       "vers=3.0"
       "x-systemd.automount"
       "x-systemd.requires=network-online.target"
