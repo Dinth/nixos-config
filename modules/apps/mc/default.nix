@@ -22,7 +22,6 @@ in
       ripgrep
       fd
       jq
-      atool
       mediainfo
     ] ++ lib.optionals config.graphical.enable [
       wl-clipboard
