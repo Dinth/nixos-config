@@ -34,6 +34,10 @@
   boot.tmp.useTmpfs = true;
   security.audit.enable = true;
   security.auditd.enable = true;
+  security.apparmor = {
+    enable = true;
+    packages = with pkgs; [ apparmor-utils ];
+  };
   security.sudo.enable = false;
   security.doas = {
     enable = true;
