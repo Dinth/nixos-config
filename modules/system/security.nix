@@ -17,7 +17,7 @@
     "net.ipv4.conf.all.log_martians" = 1;
     "net.ipv4.icmp_echo_ignore_broadcasts" = 1;
   };
-
+  boot.kernelParams = [ "ipv6.disable=1" ];
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
     lynis # vulnerability scanner
@@ -32,6 +32,8 @@
     MaxRetentionSec=7day
   '';
   boot.tmp.useTmpfs = true;
+  security.audit.enable = true;
+  security.auditd.enable = true;
   security.sudo.enable = false;
   security.doas = {
     enable = true;
@@ -45,13 +47,35 @@
       }
     ];
   };
-  security.audit.enable = true;
-  security.auditd.enable = true;
-  services.cron = {
-    enable = true;
-      systemCronJobs = [
-        "0 12 * * 3 root ${lib.getExe pkgs.vulnix} --system > /var/log/vulnix.log"
-        "0 12 * * 2 root ${lib.getExe pkgs.lynis} audit system --cronjob --report-file /var/log/lynis/lynis-report.dat > /dev/null 2>&1"
-      ];
+  # Run vulnix daily
+  systemd.services.vulnix-scan = {
+    script = "${lib.getExe pkgs.vulnix} --system > /var/log/vulnix.log";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+    };
+  };
+  systemd.timers.vulnix-scan = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
+
+  # Run lynis weekly
+  systemd.services.lynis-scan = {
+    script = "${lib.getExe pkgs.lynis} audit system --report-file /var/log/lynis/lynis-report.dat > /dev/null 2>&1";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+    };
+  };
+  systemd.timers.lynis-scan = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "Weekly";
+      Persistent = true;
+    };
   };
 }
