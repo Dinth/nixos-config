@@ -14,6 +14,13 @@ in {
     };
   };
   config = mkIf cfg.enable {
+      networking.firewall = {
+        allowedUDPPorts = [
+          2021 # Bambu Printer Discovery
+          1900 # SSDP
+          5353 # mDNS / Avahi
+        ];
+      };
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
         orca-slicer # Slicer for 3d projects
@@ -22,10 +29,24 @@ in {
         source = ./filament-profiles;
         recursive = true;
       };
-      xdg.mimeApps.defaultApplications = {
-        "x-scheme-handler/orcaslicer" = "OrcaSlicer.desktop";
-        "x-scheme-handler/bambustudio" = "OrcaSlicer.desktop"; # makerworld
-        "x-scheme-handler/prusaslicer" = "OrcaSlicer.desktop"; # printables
+      xdg.mimeApps = {
+        defaultApplications = {
+          # 1. 3D Model Formats
+          "model/stl" = "OrcaSlicer.desktop";
+          "model/3mf" = "OrcaSlicer.desktop";
+          "application/vnd.ms-package.3dmanufacturing-3dmodel+xml" = "OrcaSlicer.desktop"; # Official 3MF mime
+          "model/step" = "OrcaSlicer.desktop";
+          "application/step" = "OrcaSlicer.desktop";
+          "model/obj" = "OrcaSlicer.desktop";
+
+          # 2. Machine Code
+          "text/x-gcode" = "OrcaSlicer.desktop";
+
+          # 3. URL Schemes
+          "x-scheme-handler/orcaslicer" = "OrcaSlicer.desktop";
+          "x-scheme-handler/bambustudio" = "OrcaSlicer.desktop"; # MakerWorld
+          "x-scheme-handler/prusaslicer" = "OrcaSlicer.desktop"; # Printables
+        };
       };
     };
   };

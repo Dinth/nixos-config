@@ -53,6 +53,7 @@ in
       usbutils
       nmap
       dig # DNS query client
+      doggo # better DNS query client
     ];
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;

@@ -38,7 +38,7 @@
     "amd_pstate"
     "amd_pstate_ut"
   ];
-  boot.extraModulePackages = [ config.boot.kernelPackages.r8125 ];
+  boot.extraModulePackages = [ config.boot.kernelPackages.r8125 config.boot.kernelPackages.it87 ];
   boot.blacklistedKernelModules = [
     "gigabyte-wmi"
   ];
@@ -56,7 +56,7 @@
 
   environment.etc = {
     "sysconfig/lm_sensors".text = ''
-      HWMON_MODULES="nct6775"
+      HWMON_MODULES="it87"
     '';
     "sensors.d/gigabyte-x570.conf".text = ''
       chip "it8688-*"
