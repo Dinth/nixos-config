@@ -17,6 +17,7 @@ in
     };
   };
   config = mkIf cfg.enable {
+    services.displayManager.sddm.wayland.enable = true;
     services.desktopManager.plasma6.enable = true;
     environment.systemPackages = with pkgs; [
       kdePackages.korganizer
