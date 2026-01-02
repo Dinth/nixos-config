@@ -52,6 +52,7 @@ in
       extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
       config.common.default = "kde";
     };
+    services.desktopManager.plasma6.enableQt5Integration = true;
     services.blueman.enable = false; # Use KDE Bluetooth instead
     services.accounts-daemon.enable = true;
     programs.partition-manager.enable = true;
@@ -345,7 +346,7 @@ in
           };
         };
         "kcminputrc"."Keyboard"."NumLock" = 0;
-        "kded5rc" = {
+        "kded6rc" = {
           "Module-browserintegrationreminder"."autoload" = false;
           "Module-device_automounter"."autoload" = false;
         };
