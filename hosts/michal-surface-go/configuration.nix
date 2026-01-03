@@ -53,8 +53,6 @@
   };
   catppuccin.plymouth.enable = true;
   catppuccin.plymouth.flavor = "mocha";
-  boot.tmp.useTmpfs = true;
-  fileSystems."/tmp".options = [ "noexec" "nosuid" "nodev" ];
   cli.enable = true;
   graphical.enable = true;
   kde.enable = true;

@@ -91,7 +91,7 @@ in
   };
   # Run vulnix daily
   systemd.services.vulnix-scan = {
-    script = "${lib.getExe pkgs.vulnix} --system > /var/log/vulnix.log";
+    script = "${lib.getExe pkgs.vulnix} --system --user ${primaryUsername} --verbose > /var/log/vulnix.log";
     serviceConfig = {
       Type = "oneshot";
       User = "root";
