@@ -22,90 +22,130 @@ let
         weechat-notify-send
       ];
       init = ''
-        # ---------------------------------------------------------------------
+       # ---------------------------------------------------------------------
         # Core & Interface
         # ---------------------------------------------------------------------
-        /mouse enable                                                     # Enable mouse support in ncurses
-        /set weechat.look.mouse on                                        # Enable mouse event handling
-        /set weechat.look.paste_max_lines -1                              # Disable built-in paste dialog (let multiline plugin handle it)
-        /set weechat.bar.buflist.size_max 30                              # Limit width of the buffer list to 30 chars
-        /set logger.file.mask "$plugin.$name.weechatlog"                  # Set custom log filename format
+        # Enable mouse support in ncurses
+        /mouse enable
+        # Enable mouse event handling
+        /set weechat.look.mouse on
+        # Disable built-in paste dialog (let multiline plugin handle it)
+        /set weechat.look.paste_max_lines -1
+        # Limit width of the buffer list to 30 chars
+        /set weechat.bar.buflist.size_max 30
+        # Set custom log filename format
+        /set logger.file.mask "$plugin.$name.weechatlog"
 
         # ---------------------------------------------------------------------
         # Spell Check (Aspell)
         # ---------------------------------------------------------------------
-        /set spell.check.enabled on                                       # Enable spell checking
-        /set spell.check.default_dict "en,pl"                             # Set default dictionaries to English and Polish
-        /set spell.check.suggestions 3                                    # Show top 3 suggestions when correcting
+        # Enable spell checking
+        /set spell.check.enabled on
+        # Set default dictionaries to English and Polish
+        /set spell.check.default_dict "en,pl"
+        # Show top 3 suggestions when correcting
+        /set spell.check.suggestions 3
 
         # ---------------------------------------------------------------------
         # IRC Plugin Settings
         # ---------------------------------------------------------------------
-        /set irc.look.server_buffer independent                           # Keep server status messages in a separate buffer
+        # Keep server status messages in a separate buffer
+        /set irc.look.server_buffer independent
 
         # ---------------------------------------------------------------------
         # Completion & Typing
         # ---------------------------------------------------------------------
-        /set weechat.completion.default_template "%(nicks)|%(irc_channels)|%(emoji)"  # Add emoji to default completion tab
+        # Add emoji to default completion tab
+        /set weechat.completion.default_template "%(nicks)|%(irc_channels)|%(emoji)"
 
         # ---------------------------------------------------------------------
         # Plugin: Multiline (Better input/paste)
         # ---------------------------------------------------------------------
-        /set plugins.var.perl.multiline.send_empty_lines off              # Prevent sending messages with only whitespace
-        /set plugins.var.perl.multiline.magic_paste_only on               # Only use multiline magic when pasting text
+        # Prevent sending messages with only whitespace
+        /set plugins.var.perl.multiline.send_empty_lines off
+        # Only use multiline magic when pasting text
+        /set plugins.var.perl.multiline.magic_paste_only on
 
         # ---------------------------------------------------------------------
         # Plugin: Autosort (Buffer organization)
         # ---------------------------------------------------------------------
-        /autosort rules add slack.*.&slack                                # Group all slack buffers together
-        /autosort rules add ''${info:autosort_order,''${type},server,*,channel,private} # Define standard sort order (server > channel > private)
+        # Group all slack buffers together
+        /autosort rules add slack.*.&slack
+        # Define standard sort order (server > channel > private)
+        /autosort rules add ''${info:autosort_order,''${type},server,*,channel,private}
 
         # ---------------------------------------------------------------------
         # Plugin: Wee-Slack (Functionality)
         # ---------------------------------------------------------------------
-        /set plugins.var.python.slack.slack_timeout 50000                 # Increase timeout to 50s for slow connections
-        /set plugins.var.python.slack.never_away true                     # Prevent auto-away status while WeeChat is open
-        /set plugins.var.python.slack.auto_open_threads true              # Automatically open thread buffers when mentioned
-        /set plugins.var.python.slack.thread_messages_in_channel false    # Hide thread replies from main channel buffer
-        /set plugins.var.python.slack.notify_subscribed_threads auto      # Smart notification for threads you follow
-        /set plugins.var.python.slack.background_load_all_history true    # Load history in background to unblock UI
-        /set plugins.var.python.slack.history_fetch_count 50              # Fetch 50 messages at a time
-        /set plugins.var.python.slack.files_download_location "~/Downloads/weeslack" # Set download path for Slack files
+        # Increase timeout to 50s for slow connections
+        /set plugins.var.python.slack.slack_timeout 50000
+        # Prevent auto-away status while WeeChat is open
+        /set plugins.var.python.slack.never_away true
+        # Automatically open thread buffers when mentioned
+        /set plugins.var.python.slack.auto_open_threads true
+        # Hide thread replies from main channel buffer
+        /set plugins.var.python.slack.thread_messages_in_channel false
+        # Smart notification for threads you follow
+        /set plugins.var.python.slack.notify_subscribed_threads auto
+        # Load history in background to unblock UI
+        /set plugins.var.python.slack.background_load_all_history true
+        # Fetch 50 messages at a time
+        /set plugins.var.python.slack.history_fetch_count 50
+        # Set download path for Slack files
+        /set plugins.var.python.slack.files_download_location "~/Downloads/weeslack"
 
         # ---------------------------------------------------------------------
         # Plugin: Wee-Slack (Appearance)
         # ---------------------------------------------------------------------
-        /set plugins.var.python.slack.short_buffer_names true             # Use short names to save buffer list space
-        /set plugins.var.python.slack.use_full_names false                # Use Slack display names instead of real names
-        /set plugins.var.python.slack.show_reaction_nicks true            # Show who reacted to messages
-        /set plugins.var.python.slack.render_emoji_as_string true         # Render emoji as :smile: text (good for terminals)
-        /set plugins.var.python.slack.link_previews true                  # Show previews for links
-        /set plugins.var.python.slack.unfurl_auto_link_display both       # Show both URL and preview content
-        /set plugins.var.python.slack.colorize_private_chats false        # Disable coloring for DM buffers
-        /set plugins.var.python.slack.send_typing_notice true             # Send typing indicators to others
-        /set plugins.var.python.slack.channel_name_typing_indicator true  # Show when others are typing in channel list
+        # Use short names to save buffer list space
+        /set plugins.var.python.slack.short_buffer_names true
+        # Use Slack display names instead of real names
+        /set plugins.var.python.slack.use_full_names false
+        # Show who reacted to messages
+        /set plugins.var.python.slack.show_reaction_nicks true
+        # Render emoji as :smile: text (good for terminals)
+        /set plugins.var.python.slack.render_emoji_as_string true
+        # Show previews for links
+        /set plugins.var.python.slack.link_previews true
+        # Show both URL and preview content
+        /set plugins.var.python.slack.unfurl_auto_link_display both
+        # Disable coloring for DM buffers
+        /set plugins.var.python.slack.colorize_private_chats false
+        # Send typing indicators to others
+        /set plugins.var.python.slack.send_typing_notice true
+        # Show when others are typing in channel list
+        /set plugins.var.python.slack.channel_name_typing_indicator true
 
         # ---------------------------------------------------------------------
         # Plugin: Wee-Slack (Colors & Indicators)
         # ---------------------------------------------------------------------
-        /set plugins.var.python.slack.thread_broadcast_prefix "+ "        # Prefix for thread messages broadcast to channel
-        /set plugins.var.python.slack.color_reaction_suffix 058           # Color for reaction count suffix
-        /set plugins.var.python.slack.color_thread_suffix 013             # Color for thread count suffix
-        /set plugins.var.python.slack.color_edited_suffix 196             # Color for (edited) marker
+        # Prefix for thread messages broadcast to channel
+        /set plugins.var.python.slack.thread_broadcast_prefix "+ "
+        # Color for reaction count suffix
+        /set plugins.var.python.slack.color_reaction_suffix 058
+        # Color for thread count suffix
+        /set plugins.var.python.slack.color_thread_suffix 013
+        # Color for (edited) marker
+        /set plugins.var.python.slack.color_edited_suffix 196
 
         # ---------------------------------------------------------------------
         # Keybindings (Slack Mouse & Cursor)
         # ---------------------------------------------------------------------
-        /key bindctxt mouse @chat(python.*):button2 hsignal:slack_mouse   # Middle-click to trigger Slack actions
-        /key bindctxt cursor @chat(python.*):R hsignal:slack_cursor_reply # 'R' in cursor mode to reply to thread
-        /key bindctxt cursor @chat(python.*):T hsignal:slack_cursor_thread # 'T' in cursor mode to open thread
+        # Middle-click to trigger Slack actions
+        /key bindctxt mouse @chat(python.*):button2 hsignal:slack_mouse
+        # 'R' in cursor mode to reply to thread
+        /key bindctxt cursor @chat(python.*):R hsignal:slack_cursor_reply
+        # 'T' in cursor mode to open thread
+        /key bindctxt cursor @chat(python.*):T hsignal:slack_cursor_thread
 
         ${lib.optionalString graphical.enable ''
           # ---------------------------------------------------------------------
           # Graphical Notifications
           # ---------------------------------------------------------------------
-          /set plugins.var.python.notify_send.notify_on_highlights on     # Send desktop notification on highlights
-          /set plugins.var.python.notify_send.notify_on_privmsgs on       # Send desktop notification on DMs
+          # Send desktop notification on highlights
+          /set plugins.var.python.notify_send.notify_on_highlights on
+          # Send desktop notification on DMs
+          /set plugins.var.python.notify_send.notify_on_privmsgs on
         ''}
       '';
     };

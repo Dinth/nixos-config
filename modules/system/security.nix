@@ -42,8 +42,49 @@ in
     tmpfsSize = "50%";  # optional: limit size
     cleanOnBoot = true;  # optional: clean on boot
   };
-  security.audit.enable = true;
   security.auditd.enable = true;
+  security.audit.rules = [
+    # --- Noise Reduction ---
+    # Exclude systemd service start/stop - must be first
+    "-A exclude,always -F msgtype=SERVICE_START"
+    "-A exclude,always -F msgtype=SERVICE_STOP"
+    # Exclude systemd eBPF usage - must be first
+    "-A exclude,always -F msgtype=BPF"
+
+    # --- AppArmor Profile Protection ---
+    # Monitor changes to AppArmor profiles
+    # -p wa = watch for writes and attribute changes
+    # -k = tag with key for easy log filtering
+    "-w /etc/apparmor/ -p wa -k apparmor_changes"
+    "-w /etc/apparmor.d/ -p wa -k apparmor_changes"
+
+    # --- Kernel Module Loading Detection ---
+    # Log all kernel module insertions
+    # init_module/finit_module = syscalls used by insmod/modprobe
+    # Both 64-bit and 32-bit architectures covered for compatibility
+    "-a exit,always -F arch=b64 -S init_module -S finit_module -k module_insertion"
+    "-a exit,always -F arch=b32 -S init_module -S finit_module -k module_insertion"
+
+    # --- Privilege Escalation Detection ---
+    # Capture when processes execute as root but were started by different user
+    # auid = original login user ID (doesn't change with sudo/doas)
+    # euid = effective user ID (becomes 0 when elevated to root)
+    # This logs all doas/sudo usage and potential exploit attempts
+    # auid!=unset filters out system processes without login sessions
+    "-a exit,always -F arch=b64 -C auid!=euid -F auid!=unset -F euid=0 -S execve -k privesc_execve"
+    "-a exit,always -F arch=b32 -C auid!=euid -F auid!=unset -F euid=0 -S execve -k privesc_execve"
+
+    # --- System Configuration Monitoring ---
+    # Track changes to critical NixOS and identity management files
+    "-w /etc/nixos/ -p wa -k nixos-config"
+    "-w /etc/passwd -p wa -k identity"
+    "-w /etc/group -p wa -k identity"
+    "-w /etc/shadow -p wa -k identity"
+
+    # --- Privileged Command Monitoring ---
+    # Log execution of doas (your privilege escalation tool)
+    "-w /run/wrappers/bin/doas -p x -k privileged"
+  ];
   # Allow wheel group to read audit logs
   systemd.tmpfiles.rules = [
     "d /var/log/audit 0750 root wheel - -"
