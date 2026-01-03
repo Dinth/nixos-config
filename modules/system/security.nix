@@ -16,6 +16,9 @@
     "kernel.yama.ptrace_scope" = 1; # Use 2 for strict 'admin-only' attach
     "net.ipv4.conf.all.log_martians" = 1;
     "net.ipv4.icmp_echo_ignore_broadcasts" = 1;
+    "kernel.unprivileged_userns_clone" = 0;
+    "kernel.unprivileged_bpf_disabled" = 1;
+    "net.core.bpf_jit_harden" = 2;
   };
   boot.kernelParams = [ "ipv6.disable=1" ];
   environment.systemPackages = with pkgs; [
@@ -32,6 +35,7 @@
     MaxRetentionSec=7day
   '';
   boot.tmp.useTmpfs = true;
+  fileSystems."/tmp".options = [ "noexec" "nosuid" "nodev" ];
   security.audit.enable = true;
   security.auditd.enable = true;
   # Allow wheel group to read audit logs
