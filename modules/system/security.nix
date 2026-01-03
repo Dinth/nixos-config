@@ -1,4 +1,7 @@
 { config, lib, pkgs, machineType ? "", ... }:
+let
+  primaryUsername = config.primaryUser.name;
+in
 {
   boot.blacklistedKernelModules = [
     # Obscure network protocols
@@ -34,8 +37,11 @@
     MaxFileSec=1day
     MaxRetentionSec=7day
   '';
-  boot.tmp.useTmpfs = true;
-  fileSystems."/tmp".options = [ "noexec" "nosuid" "nodev" ];
+  boot.tmp = {
+    useTmpfs = true;
+    tmpfsSize = "50%";  # optional: limit size
+    cleanOnBoot = true;  # optional: clean on boot
+  };
   security.audit.enable = true;
   security.auditd.enable = true;
   # Allow wheel group to read audit logs
@@ -89,6 +95,9 @@
     serviceConfig = {
       Type = "oneshot";
       User = "root";
+      Nice = 5;
+      IOSchedulingClass = 2;
+      IOSchedulingPriority = 6;
     };
   };
   systemd.timers.vulnix-scan = {

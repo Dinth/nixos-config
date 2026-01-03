@@ -99,6 +99,8 @@
       "x-systemd.mount-timeout=5s"
     ];
   };
+  boot.tmp.useTmpfs = true;
+  fileSystems."/tmp".options = [ "noexec" "nosuid" "nodev" ];
   services.dbus = {
     enable = true;
     implementation = "broker";
