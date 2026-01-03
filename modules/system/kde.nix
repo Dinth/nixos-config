@@ -93,6 +93,7 @@ in
     home-manager.users.${primaryUsername}.programs.plasma = {
       enable = true;
       overrideConfig = true;
+      session.sessionRestore.restoreOpenApplicationsOnLogin = "startWithEmptySession";
       input.keyboard.numlockOnStartup = "on";
       workspace = {
         clickItemTo = "select";
