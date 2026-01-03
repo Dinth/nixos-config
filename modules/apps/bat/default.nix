@@ -13,8 +13,9 @@ in
         style = "numbers,changes";
       };
     };
-#    catppuccin.bat = mkIf cfg.catppuccin {
-#      enable = true;
-#    };
+    environment.variables = {
+      # Make bat use the theme if enabled
+      BAT_THEME = "Catppuccin Mocha";
+    };
   };
 }

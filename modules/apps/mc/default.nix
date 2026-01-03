@@ -175,6 +175,17 @@ in
             select_flags = 2;
           };
         };
+        keymapSettings = {
+          main = {
+          };
+          panel = {
+            Reread = "ctrl-shift-r";
+          };
+          input = {
+          };
+          listbox = {
+          };
+        };
         extensionSettings = {
           "mc.ext.ini" = {
             "version" = "4.0";
