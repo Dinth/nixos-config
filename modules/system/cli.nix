@@ -76,7 +76,7 @@ in
       grep = "${getExe pkgs.ripgrep}";                                        # Use ripgrep by default
       find = "${getExe pkgs.fd}";                                        # Use fd by default
       diff = "${getExe pkgs.difftastic}";                                     # Use difftastic for diffs
-      ip = "ip --color=auto";                             # Colorize IP output
+      ip = "${lib.getExe' pkgs.iproute2 "ip"} --color=auto";                             # Colorize IP output
     };
     programs.usbtop.enable = true;
     programs.ssh.startAgent = true;
