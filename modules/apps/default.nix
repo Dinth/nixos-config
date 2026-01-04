@@ -6,6 +6,7 @@
     ./btop
     ./clamav
     ./eza
+    ./fzf
     ./git
     ./google-chrome
     ./htop
@@ -14,6 +15,7 @@
     ./mc
     ./neovim
     ./nextcloud-client
+    ./opencode
     ./OrcaSlicer
     ./sddm
     ./ssh
