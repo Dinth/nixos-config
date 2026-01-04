@@ -18,7 +18,6 @@ let
     "--ignore-gpu-blocklist" # Unlocks advanced GPU features on Linux drivers
     # Modern 2026 Video Acceleration (GL backend + Hardware Encode for calls)
     "--enable-features=AcceleratedVideoDecodeLinuxGL,VaapiVideoEncoder,Vulkan,CanvasOopRasterization"
-    "--use-gl=egl" # Prevents refresh rate locking on mixed-monitor setups
   ];
   chromeFlags =
     if machineType == "tablet" then builtins.concatStringsSep " " tabletFlags
