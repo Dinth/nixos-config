@@ -22,6 +22,7 @@ in
     "kernel.unprivileged_userns_clone" = 0;
     "kernel.unprivileged_bpf_disabled" = 1;
     "net.core.bpf_jit_harden" = 2;
+    "kernel.ftrace_enabled" = 0;
   };
   boot.kernelParams = [ "ipv6.disable=1" ];
   environment.systemPackages = with pkgs; [
@@ -42,14 +43,15 @@ in
     tmpfsSize = "50%";  # optional: limit size
     cleanOnBoot = true;  # optional: clean on boot
   };
+  security.audit.enable = true;
   security.auditd.enable = true;
   security.audit.rules = [
     # --- Noise Reduction ---
     # Exclude systemd service start/stop - must be first
-    "-A exclude,always -F msgtype=SERVICE_START"
-    "-A exclude,always -F msgtype=SERVICE_STOP"
+    "-a exclude,always -F msgtype=SERVICE_START"
+    "-a exclude,always -F msgtype=SERVICE_STOP"
     # Exclude systemd eBPF usage - must be first
-    "-A exclude,always -F msgtype=BPF"
+    "-a exclude,always -F msgtype=BPF"
 
     # --- AppArmor Profile Protection ---
     # Monitor changes to AppArmor profiles
