@@ -132,9 +132,8 @@ in {
               fi
             }
             function cdi() {
-              local query=${1:-}
               local dir
-              dir=$(zoxide query -i -- "$query" | fzf --height=20 --border --ansi) && cd "$dir"
+              dir=$(zoxide query -i -- "\''${1:-}" | fzf --height=20 --border --ansi) && cd "$dir"
             }
             function cdq() {
               zoxide query --list -- "$@"
