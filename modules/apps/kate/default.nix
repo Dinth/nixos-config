@@ -49,6 +49,11 @@ let
       url = "https://github.com/microsoft/vscode";
       highlightingModeRegex = "^JSON$";
     };
+    php = {
+      command = [ "${pkgs.nodePackages.intelephense}/bin/intelephense" "--stdio" ];
+      url = "https://intelephense.com/";
+      highlightingModeRegex = "^PHP$";
+    };
   };
 in
 {
@@ -65,6 +70,7 @@ in
           )
         )
         vscode-json-languageserver
+        nodePackages.intelephense
         lemminx
         nix-doc
         nixfmt-rfc-style
