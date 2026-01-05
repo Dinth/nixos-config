@@ -51,7 +51,7 @@ in
     "-a exclude,always -F msgtype=SERVICE_START"
     "-a exclude,always -F msgtype=SERVICE_STOP"
     # Exclude systemd eBPF usage - must be first
-    "-a exclude,always -F msgtype=BPF"
+    "- exclude,always -F msgtype=BPF"
 
     # --- AppArmor Profile Protection ---
     # Monitor changes to AppArmor profiles

@@ -13,4 +13,5 @@ in
   "wifi-password.age".publicKeys = systems;
   "wifi-iot-password.age".publicKeys = users ++ systems;
   "nas-vm-creds.age".publicKeys = users ++ systems;
+  "opencode-gemini.age".publicKeys = users;
 }
