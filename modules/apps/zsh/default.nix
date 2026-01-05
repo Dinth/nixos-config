@@ -105,33 +105,7 @@ in {
 
           autoload -Uz add-zsh-hook
 
-          DIRSTACKSIZE=20
-          DIRSTACKFILE="${config.xdg.cacheHome}/zsh/dirstack"
-
           setopt AUTO_PUSHD PUSHD_SILENT PUSHD_TO_HOME PUSHD_IGNORE_DUPS PUSHD_MINUS
-
-          # Load on startup only
-          if [[ -f "$DIRSTACKFILE" ]] && (( ''${#dirstack} == 0 )); then
-            dirstack=(''${(f)"$(<"$DIRSTACKFILE")"})
-          fi
-
-          # Use atomic write with temp file
-          chpwd_dirstack() {
-            local tmpfile="$DIRSTACKFILE.$$"
-            local dirstack_content
-
-            # Build content safely
-            printf -v dirstack_content '%s\n' "$PWD" "''${(u)dirstack[@]}"
-
-            # Atomic write with validation
-            if printf '%s' "$dirstack_content" > "$tmpfile"; then
-              mv -f "$tmpfile" "$DIRSTACKFILE" || rm -f "$tmpfile"
-            else
-              rm -f "$tmpfile"
-            fi
-          }
-
-          add-zsh-hook -Uz chpwd chpwd_dirstack
 
           function lscontent() {
             local target="''${@:-.}"
@@ -156,6 +130,14 @@ in {
               else
                 z "$@"
               fi
+            }
+            function cdi() {
+              local query=${1:-}
+              local dir
+              dir=$(zoxide query -i -- "$query" | fzf --height=20 --border --ansi) && cd "$dir"
+            }
+            function cdq() {
+              zoxide query --list -- "$@"
             }
           ''}
 
