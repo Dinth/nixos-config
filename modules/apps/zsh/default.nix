@@ -139,6 +139,8 @@ in {
             function cdq() {
               zoxide query --list -- "$@"
             }
+            zle -N cdi
+            bindkey '^Z' cdi
           ''}
 
           ${lib.optionalString (lib.hasAttr "qttools" pkgs.kdePackages) ''
