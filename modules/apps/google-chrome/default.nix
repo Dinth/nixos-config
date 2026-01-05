@@ -15,9 +15,8 @@ let
   desktopFlags = baseFlags ++ [
     "--enable-gpu-rasterization"
     "--enable-zero-copy"
-    "--ignore-gpu-blocklist" # Unlocks advanced GPU features on Linux drivers
-    # Modern 2026 Video Acceleration (GL backend + Hardware Encode for calls)
-    "--enable-features=AcceleratedVideoDecodeLinuxGL,VaapiVideoEncoder,Vulkan,CanvasOopRasterization"
+    "--ignore-gpu-blocklist"
+    "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,AcceleratedVideoEncoder"
   ];
   chromeFlags =
     if machineType == "tablet" then builtins.concatStringsSep " " tabletFlags
