@@ -6,9 +6,12 @@ let
 in
 {
   config = mkIf cfg.enable {
-    home-manager.users.${primaryUsername}.programs.zoxide = {
-      enable = true;
-      enableZshIntegration = true;
+    home-manager.users.${primaryUsername} = {
+      home.sessionVariables.ZO_EXCLUDE_DIRS = ".git:node_modules:.venv:__pycache__:result:/nix/store";
+      programs.zoxide = {
+        enable = true;
+        enableZshIntegration = true;
+      };
     };
   };
 }
