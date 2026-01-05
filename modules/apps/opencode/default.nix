@@ -40,6 +40,11 @@ in
           };
         };
       };
+      age.secrets.opencode-gemini = {
+        file = ./opencode-gemini.age;
+        path = "${config.home.homeDirectory}/.config/secrets/gemini_key";
+        mode = "0400"; #
+      };
       programs.bash.shellAliases = {
         opencode_gemini = "GOOGLE_GENERATIVE_AI_API_KEY=$(cat ~/.config/secrets/gemini_key) opencode";
       };

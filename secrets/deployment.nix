@@ -36,9 +36,9 @@
     };
     opencode-gemini = {
       file = ./opencode-gemini.age;
-      owner = "michal"
-      group = "users"
-      mode = "0400"
+      owner = "michal";
+      group = "users";
+      mode = "0400";
     };
   };
 }
