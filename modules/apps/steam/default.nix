@@ -13,5 +13,12 @@ in
       mangohud
     ];
     systemd.settings.Manager.DefaultLimitNOFILE = 1048576;
+    home-manager.users.${primaryUsername} = {
+      xdg.userDirs.extraConfig.XDG_GAME_DIR = "${hm-config.home.homeDirectory}/Games";
+      xdg.mimeApps = {
+        defaultApplications."x-scheme-handler/steam" = "steam.desktop";
+        associations.added."x-scheme-handler/steam" = "steam.desktop";
+      };
+    };
   };
 }
