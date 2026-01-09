@@ -30,6 +30,7 @@ in
       vulkan-validation-layers
       mpv
       wl-clipboard
+      libvdpau-va-gl
     ];
     fonts.packages = with pkgs; [
       noto-fonts

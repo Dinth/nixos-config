@@ -14,7 +14,7 @@ let
   ];
   desktopFlags = baseFlags ++ [
     "--enable-gpu-rasterization"
-    "--enable-zero-copy"
+#   "--enable-zero-copy"
     "--ignore-gpu-blocklist"
     "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,AcceleratedVideoEncoder"
   ];
