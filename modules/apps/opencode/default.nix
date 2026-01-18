@@ -26,6 +26,7 @@ in
         bash-language-server
         pyright
         lemminx
+        uvx
       ];
       programs.opencode = {
         enable = true;
@@ -50,6 +51,7 @@ in
               };
             };
           };
+          plugin = [ "opencode-gemini-auth@latest" ];
           permission = {
             edit = "ask";
             bash = {
@@ -158,18 +160,23 @@ in
           lsp = {
             yaml = {
               command = [ (lib.getExe pkgs.yaml-language-server) "--stdio" ];
+              extensions = [ ".yaml" ".yml" ];
             };
             php = {
               command = [ (lib.getExe pkgs.phpactor) "language-server" ];
+              extensions = [ ".php" ];
             };
             bash = {
               command = [ (lib.getExe pkgs.bash-language-server) "start" ];
+              extensions = [ ".sh" ".bash" ];
             };
             python = {
               command = [ (lib.getExe pkgs.pyright) "--stdio" ];
+              extensions = [ ".py" ];
             };
             xml = {
               command = [ (lib.getExe pkgs.lemminx) ];
+              extensions = [ ".xml" ];
             };
           };
           formatter = {
