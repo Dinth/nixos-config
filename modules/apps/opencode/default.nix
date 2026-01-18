@@ -181,6 +181,13 @@ in
               extensions = [ ".nix" ];
             };
           };
+          mcp = {
+            grafana = {
+              type = "remote";
+              url = "http://10.10.1.13:5133/mcp";
+              enabled = true;
+            };
+          };
         };
       };
     };
