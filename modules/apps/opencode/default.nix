@@ -26,7 +26,7 @@ in
         bash-language-server
         pyright
         lemminx
-        uvx
+        mcp-nixos
       ];
       programs.opencode = {
         enable = true;

@@ -16,7 +16,7 @@ in
   boot.kernel.sysctl = {
     "kernel.kptr_restrict" = 2;
     "kernel.dmesg_restrict" = 1;
-    "kernel.yama.ptrace_scope" = 1; # Use 2 for strict 'admin-only' attach
+    "kernel.yama.ptrace_scope" = 2;
     "net.ipv4.conf.all.log_martians" = 1;
     "net.ipv4.icmp_echo_ignore_broadcasts" = 1;
     "kernel.unprivileged_userns_clone" = 0;

@@ -15,7 +15,7 @@ in
   };
   config = mkIf cfg.enable {
     services.openssh = {
-      enable = true; # Disabled by default, enable per host
+      enable = true;
       settings = {
         PasswordAuthentication = false;
         PermitRootLogin = "no";
