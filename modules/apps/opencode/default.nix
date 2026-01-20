@@ -34,12 +34,133 @@ in
           model = "ollama/mistral-nemo:latest";
           provider = {
             google = {
-              name = "Google Gemini";
-              npm = "@ai-sdk/google";
-              options = { apiKey = lib.trim (builtins.readFile config.age.secrets.opencode-gemini.path); };
               models = {
-                "gemini-3-flash-preview" = { name = "Gemini 3.0 Flash Preview"; tools = true; };
-                "gemini-2.5-pro" = { name = "Gemini 2.5 Pro"; tools = true; };
+                # Antigravity Gemini 3 Pro
+                "antigravity-gemini-3-pro" = {
+                  name = "Gemini 3 Pro (Antigravity)";
+                  limit = {
+                    context = 1048576;
+                    output = 65535;
+                  };
+                  modalities = {
+                    input = [
+                      "text"
+                      "image"
+                      "pdf"
+                    ];
+                    output = [ "text" ];
+                  };
+                  variants = {
+                    low = {
+                      thinkingLevel = "low";
+                    };
+                    high = {
+                      thinkingLevel = "high";
+                    };
+                  };
+                };
+                # Antigravity Gemini 3 Flash
+                "antigravity-gemini-3-flash" = {
+                  name = "Gemini 3 Flash (Antigravity)";
+                  limit = {
+                    context = 1048576;
+                    output = 65536;
+                  };
+                  modalities = {
+                    input = [
+                      "text"
+                      "image"
+                      "pdf"
+                    ];
+                    output = [ "text" ];
+                  };
+                  variants = {
+                    minimal = {
+                      thinkingLevel = "minimal";
+                    };
+                    low = {
+                      thinkingLevel = "low";
+                    };
+                    medium = {
+                      thinkingLevel = "medium";
+                    };
+                    high = {
+                      thinkingLevel = "high";
+                    };
+                  };
+                };
+                # Antigravity Claude Sonnet 4.5
+                "antigravity-claude-sonnet-4-5" = {
+                  name = "Claude Sonnet 4.5 (Antigravity)";
+                  limit = {
+                    context = 200000;
+                    output = 64000;
+                  };
+                  modalities = {
+                    input = [
+                      "text"
+                      "image"
+                      "pdf"
+                    ];
+                    output = [ "text" ];
+                  };
+                };
+                # Antigravity Claude Sonnet 4.5 Thinking
+                "antigravity-claude-sonnet-4-5-thinking" = {
+                  name = "Claude Sonnet 4.5 Thinking (Antigravity)";
+                  limit = {
+                    context = 200000;
+                    output = 64000;
+                  };
+                  modalities = {
+                    input = [
+                      "text"
+                      "image"
+                      "pdf"
+                    ];
+                    output = [ "text" ];
+                  };
+                  variants = {
+                    low = {
+                      thinkingConfig = {
+                        thinkingBudget = 8192;
+                      };
+                    };
+                    max = {
+                      thinkingConfig = {
+                        thinkingBudget = 32768;
+                      };
+                    };
+                  };
+                };
+                # Antigravity Claude Opus 4.5 Thinking
+                "antigravity-claude-opus-4-5-thinking" = {
+                  name = "Claude Opus 4.5 Thinking (Antigravity)";
+                  limit = {
+                    context = 200000;
+                    output = 64000;
+                  };
+                  modalities = {
+                    input = [
+                      "text"
+                      "image"
+                      "pdf"
+                    ];
+                    output = [ "text" ];
+                  };
+                  variants = {
+                    low = {
+                      thinkingConfig = {
+                        thinkingBudget = 8192;
+                      };
+                    };
+                    max = {
+                      thinkingConfig = {
+                        thinkingBudget = 32768;
+                      };
+                    };
+                  };
+                };
               };
             };
             ollama = {
