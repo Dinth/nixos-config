@@ -52,7 +52,11 @@ in
               };
             };
           };
-          plugin = [ "opencode-gemini-auth@latest" ];
+          plugin = [
+            "opencode-gemini-auth@latest"
+            "opencode-google-antigravity-auth@latest"
+            "opencode-context-monitor@latest"
+          ];
           permission = {
             edit = "ask";
             bash = {
