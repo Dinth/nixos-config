@@ -40,5 +40,11 @@
       group = "users";
       mode = "0400";
     };
+    cloudflare-mdm = {
+      file = ./cloudflare-mdm.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
   };
 }
