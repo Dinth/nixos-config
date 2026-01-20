@@ -53,9 +53,11 @@ in
             };
           };
           plugin = [
-            "opencode-gemini-auth@latest"
+            # "opencode-gemini-auth@latest"
             "opencode-google-antigravity-auth@latest"
             "opencode-context-monitor@latest"
+            "@tarquinen/opencode-dcp@latest"
+            "@mohak34/opencode-notifier@latest"
           ];
           permission = {
             edit = "ask";
