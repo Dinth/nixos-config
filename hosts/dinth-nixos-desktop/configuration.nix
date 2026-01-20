@@ -30,7 +30,7 @@
   docker.enable = false;
   yubikey.enable = true;
   opencode.enable = true;
-  cloudflarewarp = true;
+  cloudflarewarp.enable = true;
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";

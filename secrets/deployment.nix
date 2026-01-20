@@ -44,7 +44,7 @@
       file = ./cloudflare-mdm.age;
       owner = "michal";
       group = "users";
-      mode = "0400";
+      mode = "0644";
     };
   };
 }

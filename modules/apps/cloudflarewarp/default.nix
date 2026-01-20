@@ -16,5 +16,9 @@ in
   };
   config = mkIf cfg.enable {
     services.cloudflare-warp.enable = true;
+    systemd.tmpfiles.rules = [
+      "d /var/lib/cloudflare-warp 0755 root root -"
+      "L /var/lib/cloudflare-warp/mdm.xml - - - - ${config.age.secrets.cloudflare-mdm.path}"
+    ];
   };
-};
+}
