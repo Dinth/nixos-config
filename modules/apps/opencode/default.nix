@@ -31,7 +31,7 @@ in
       programs.opencode = {
         enable = true;
         settings = {
-          model = "ollama/qwen2.5-coder:14b";
+          model = "ollama/mistral-nemo:latest";
           provider = {
             google = {
               name = "Google Gemini";
@@ -47,7 +47,8 @@ in
               npm = "@ai-sdk/openai-compatible";
               options = { baseURL = "http://10.10.1.13:11434/v1"; };
               models = {
-                "qwen2.5-coder:14b" = { name = "Qwen Coder 2.5 14B"; tools = true; };
+                "gpt-oss:20b" = { name = "GPT-OSS 20B"; tools = true; };
+                "mistral-nemo:latest" = { name = "Mistral Nemo"; tools = true; };
               };
             };
           };
@@ -193,6 +194,14 @@ in
               type = "remote";
               url = "http://10.10.1.13:5133/mcp";
               enabled = true;
+            };
+            unifi = {
+              type = "remote";
+              url = "http://10.10.1.13:5134/sse";
+              enabled = true;
+              headers = {
+                Accept = "text/event-stream";
+              };
             };
           };
         };
