@@ -176,7 +176,6 @@ in
           plugin = [
             # "opencode-gemini-auth@latest"
             "opencode-google-antigravity-auth@latest"
-            "opencode-context-monitor@latest"
             "@tarquinen/opencode-dcp@latest"
             "@mohak34/opencode-notifier@latest"
           ];
@@ -329,6 +328,12 @@ in
               headers = {
                 Accept = "text/event-stream";
               };
+            };
+            nixos = {
+              enable = false;
+              type = "stdio";
+              command = "/run/current-system/sw/bin/nix";
+              args = [ "run" "github:utensils/mcp-nixos" "--" ];
             };
           };
         };
