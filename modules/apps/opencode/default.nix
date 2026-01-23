@@ -330,7 +330,7 @@ in
               };
             };
             nixos = {
-              enable = false;
+              enabled = true;
               type = "stdio";
               command = "/run/current-system/sw/bin/nix";
               args = [ "run" "github:utensils/mcp-nixos" "--" ];
