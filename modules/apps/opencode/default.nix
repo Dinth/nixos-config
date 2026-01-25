@@ -331,7 +331,7 @@ in
             };
             nixos = {
               enabled = true;
-              type = "stdio";
+              type = "local";
               command = "/run/current-system/sw/bin/nix";
               args = [ "run" "github:utensils/mcp-nixos" "--" ];
             };
