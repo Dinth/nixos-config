@@ -173,6 +173,13 @@ in
               };
             };
           };
+          watcher.ignore = [
+            ".git/**"
+            ".direnv/**"
+            "node_modules/**"
+            "dist/**"
+            "target/**"
+          ];
           plugin = [
             # "opencode-gemini-auth@latest"
             "opencode-google-antigravity-auth@latest"
@@ -332,8 +339,7 @@ in
             nixos = {
               enabled = true;
               type = "local";
-              command = "/run/current-system/sw/bin/nix";
-              args = [ "run" "github:utensils/mcp-nixos" "--" ];
+              command = [ "/run/current-system/sw/bin/nix" "run" "github:utensils/mcp-nixos" "--" ];
             };
           };
         };
