@@ -45,6 +45,7 @@ in
       kdePackages.ksystemlog
       libreoffice-qt
       kdePackages.isoimagewriter
+      kdePackages.plasma-browser-integration
     ] ++ lib.optionals (machineType == "tablet") [
       maliit-keyboard
       maliit-framework
