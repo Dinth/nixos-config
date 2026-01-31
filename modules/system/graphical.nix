@@ -31,6 +31,7 @@ in
       mpv
       wl-clipboard
       libvdpau-va-gl
+      shared-mime-info
     ];
     fonts.packages = with pkgs; [
       noto-fonts

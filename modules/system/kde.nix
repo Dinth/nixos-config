@@ -34,6 +34,7 @@ in
       kdePackages.phonon-vlc
       kdePackages.ksshaskpass
       kdePackages.ark
+      kdePackages.kservice
       kdePackages.kdegraphics-thumbnailers
       kdePackages.kimageformats
       kdePackages.qtimageformats
