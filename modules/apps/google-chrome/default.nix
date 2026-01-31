@@ -14,15 +14,17 @@ let
   ];
   desktopFlags = baseFlags ++ [
     "--enable-gpu-rasterization"
-#   "--enable-zero-copy"
+    "--enable-zero-copy"
     "--ignore-gpu-blocklist"
-    "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,AcceleratedVideoEncoder"
+    "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,VaapiVideoEncoder,CanvasOopRasterization,WebRTCPipeWireCapturer"
+    "--force-color-profile=srgb"
   ];
   chromeFlags =
     if machineType == "tablet" then builtins.concatStringsSep " " tabletFlags
     else if machineType == "desktop" then builtins.concatStringsSep " " desktopFlags
     else "";
   extensionsPolicy = builtins.toJSON {
+    PolicyListMultipleSourceMergeList = [ "ExtensionInstallForcelist" ];
     ExtensionInstallForcelist = [
       "lkbebcjgcmobigpeffafkodonchffocl;https://gitlab.com/magnolia1234/bypass-paywalls-chrome-clean/-/raw/master/updates.xml"
     ] ++ lib.optionals (config.kde.enable or false) [

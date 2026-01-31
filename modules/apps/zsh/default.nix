@@ -142,13 +142,39 @@ in {
             bindkey '^Z' cdi
           ''}
 
-          ${lib.optionalString (lib.hasAttr "qttools" pkgs.kdePackages) ''
+          ${lib.optionalString (
+            lib.any (tool: lib.hasAttr tool pkgs) ["wl-clipboard" "xclip" "xsel"]
+          ) ''
             function pbcopy() {
-              ${getExe' pkgs.kdePackages.qttools "qdbus"} \
-                org.kde.klipper /klipper setClipboardContents \
-                "$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
+              local content
+              content="$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
+
+              ${lib.optionalString (lib.hasAttr "wl-clipboard" pkgs) ''
+                if command -v ${getExe' pkgs.wl-clipboard "wl-copy"} &>/dev/null; then
+                  echo -n "$content" | ${getExe' pkgs.wl-clipboard "wl-copy"}
+                  return $?
+                fi
+              ''}
+
+              ${lib.optionalString (lib.hasAttr "xclip" pkgs) ''
+                if ${getExe pkgs.xclip} -version &>/dev/null 2>&1; then
+                  echo -n "$content" | ${getExe pkgs.xclip} -selection clipboard
+                  return $?
+                fi
+              ''}
+
+              ${lib.optionalString (lib.hasAttr "xsel" pkgs) ''
+                if ${getExe pkgs.xsel} --version &>/dev/null 2>&1; then
+                  echo -n "$content" | ${getExe pkgs.xsel} -ib
+                  return $?
+                fi
+              ''}
+
+              echo "pbcopy: No clipboard utility found (wl-clipboard, xclip, or xsel)" >&2
+              return 1
             }
           ''}
+
         '';
       };
 
