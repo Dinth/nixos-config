@@ -47,6 +47,7 @@
     options = [
       "noatime"
       "nodiratime"
+      "x-systemd.device-timeout=infinity"
     ];
   };
 

@@ -46,5 +46,11 @@
       group = "users";
       mode = "0644";
     };
+    cloudflare-cert = {
+      file = ./cloudflare-cert.age;
+      owner = "michal";
+      group = "users";
+      mode = "0644";
+    };
   };
 }

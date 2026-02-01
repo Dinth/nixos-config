@@ -20,5 +20,9 @@ in
       "d /var/lib/cloudflare-warp 0755 root root -"
       "L /var/lib/cloudflare-warp/mdm.xml - - - - ${config.age.secrets.cloudflare-mdm.path}"
     ];
+    systemd.services.cloudflare-warp.preStart = ''
+      ${pkgs.coreutils}/bin/install -Dm644 ${config.age.secrets.cloudflare-cert.path} /etc/ssl/certs/cloudflare-warp.pem
+      ${pkgs.cacert}/bin/update-ca-certificates
+    '';
   };
 }

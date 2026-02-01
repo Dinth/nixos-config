@@ -13,6 +13,7 @@
     ./htop
     ./kate
     ./konsole
+    ./lnxlink
     ./mc
     ./neovim
     ./nextcloud-client
