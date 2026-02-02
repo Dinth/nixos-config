@@ -6,18 +6,20 @@ let
 
   lnxlink = pkgs.python3Packages.buildPythonPackage rec {
     pname = "lnxlink";
-    version = "2025.6.0";
+    version = "2026.2.0";
     pyproject = true;
 
     src = pkgs.fetchFromGitHub {
       owner = "bkbilly";
       repo = "lnxlink";
       rev = "${version}";
-      hash = "sha256-Ov3o3Ue7HEDnb58XO7dhKOpItffYxRdi8vE3EUPwgOo=";
+      hash = "sha256-PyonUBCeEiXQWsW9v5F3XiQE30xPOkRJTNmtaktg0Sw=";
     };
 
     postPatch = ''
       sed -i"" -E 's@requires = .*@requires = ["setuptools", "wheel"]@g' pyproject.toml
+      sed -i"" '/asyncio/d' pyproject.toml
+
     '';
 
     nativeBuildInputs = with pkgs.python3Packages; [
@@ -34,6 +36,12 @@ let
       pydbus
       pygobject3
       dasbus
+      psutil
+      distro
+      inotify
+      beaupy
+      aiohttp
+      jeepney
     ];
 
     meta = with lib; {
