@@ -31,6 +31,7 @@
   yubikey.enable = true;
   opencode.enable = true;
   cloudflarewarp.enable = true;
+  lnxlink.enable = true;
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
