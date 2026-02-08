@@ -15,7 +15,15 @@ in
     };
   };
   config = mkIf cfg.enable {
-    programs.nix-ld.enable = true;
+    programs.nix-ld = {
+      enable = true;
+      libraries = with pkgs; [
+        # General logic and compression
+        stdenv.cc.cc
+        zlib
+        zstd
+      ];
+    };
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
         yamlfmt
@@ -27,21 +35,25 @@ in
         bash-language-server
         pyright
         lemminx
+        shellcheck
+        nodePackages.prettier
+        mcp-nixos
+        djlint
+        ruff
       ];
+      home.file.".config/opencode/infrastructure.md".source = ./infrastructure.md;
       home.sessionVariables = {
         OPENCODE_LOG_LEVEL = "debug"; # Force debug logging at env level
-        # ensure it uses standard XDG paths
-        XDG_DATA_HOME = "${config.home-manager.users.${primaryUsername}.home.homeDirectory}/.local/share";
+#        OPENCODE_METRICS_ENABLED = "true";
+#        OPENCODE_METRICS_ENDPOINT = "http://10.10.1.13:9090/metrics";  # Prometheus - to add
       };
       programs.opencode = {
         enable = true;
         settings = {
           theme = "catppuccin";
-          model = "ollama/mistral-nemo:latest";
           provider = {
             google = {
               models = {
-                # Antigravity Gemini 3 Pro
                 "antigravity-gemini-3-pro" = {
                   name = "Gemini 3 Pro (Antigravity)";
                   limit = {
@@ -186,6 +198,13 @@ in
             "dist/**"
             "target/**"
             "result/**"
+            "__pycache__/**"      # Python cache
+            "*.pyc"               # Compiled Python
+            ".venv/**"            # Python virtual envs
+            ".pytest_cache/**"    # Pytest cache
+            ".mypy_cache/**"      # Type checking cache
+            "vendor/**"           # PHP/composer dependencies
+            ".home-assistant/**"  # HA runtime data (if editing in place)
           ];
           agent = {
             manager = {
@@ -197,7 +216,7 @@ in
             };
             procurement = {
               mode = "subagent";
-              model = "google/gemini-1.5-pro-latest"; # Superior reasoning/context
+              model = "google/gemini-1.5-pro-latest";
               prompt = ''
                 You are a Procurement & Research Specialist.
                 - Use @web-extractor to pull structured data.
@@ -209,7 +228,30 @@ in
               mode = "subagent";
               model = "google/gemini-1.5-flash-latest";
               prompt = "You are a Parsing Specialist. Convert raw HTML into clean JSON/Markdown. Discover API endpoints by inspecting source code.";
-              tools = ["firecrawl" "agentql"];
+#              tools = ["firecrawl" "agentql"];
+            };
+            triage-specialist = {
+              mode = "subagent";
+              model = "google/gemini-1.5-pro-latest";
+              prompt = ''
+                You are the Triage Lead. Your job is to find the "Why".
+                1. When a failure is reported, query Grafana/Loki for error logs.
+                2. Correlate timestamps across different servers (Debian/Desktop).
+                3. Provide a 'Root Cause Analysis' (RCA) to the Manager.
+              '';
+              tools = [ "grafana-mcp" ];
+            };
+            docs-specialist = {
+              mode = "subagent";
+              model = "google/gemini-1.5-flash-latest";
+              prompt = ''
+                You are the Librarian.
+                - Your task is to maintain the `~/Documents/system_manual.md`.
+                - Every time a script is added or a config is changed, record:
+                  [Date] [Agent] [Change Summary] [Impacted Systems].
+                - If the network inventory file changes, update the topology diagrams (Mermaid).
+              '';
+              tools = [ "filesystem" ];
             };
             nixos-engineer = {
               mode = "subagent";
@@ -220,8 +262,36 @@ in
                 - When a task requires a custom script (Bash/Python/PHP), DELEGATE the script generation to @polyglot-coder.
                 - Once @polyglot-coder provides the script, wrap it in a Nix expression (like `pkgs.writeShellScriptBin` or `virtualisation.oci-containers`).
                 - Always run `nix-instantiate --parse` or `nixpkgs-fmt` on your output.
+                ERROR HANDLING:
+                - If a Nix build fails, run `nix-instantiate --show-trace` for detailed errors
+                - Check syntax with `nix-instantiate --parse` before committing changes
+                - On attribute errors, verify package availability with `nix search`
               '';
-              tools = [ "filesystem" "bash" ];
+              tools = [ "filesystem" "bash" "nixos-mcp" ];
+            };
+            home-assistant-agent = {
+              mode = "subagent";
+              model = "anthropic/claude-3-5-sonnet-latest";
+              prompt = ''
+                You are an IoT Specialist.
+                - You write Home Assistant YAML and ESPHome configs.
+                - You prioritize local-push over cloud-poll for latency.
+                - If an automation fails, ask @triage-specialist for the specific error trace.
+                - When formatting, prioritize `djlint` for any files containing `{{` or `{%` blocks.
+                - JINJA2: Ensure all templates have default values (e.g., `states('sensor.temp') | float(0)`) to prevent boot-looping HA.
+                '';
+              tools = [ "home-assistant-mcp" "filesystem" ];
+            };
+            infra-manager = {
+              mode = "subagent";
+              model = "google/gemini-1.5-pro-latest";
+              prompt = ''
+                You are the Network Custodian.
+                - READ first: Always consult `{file:~/.config/opencode/infrastructure.md}` to locate devices.
+                - SSH ACCESS: Use the `ssh-mcp` tool for Debian/pfSense.
+                - CONTEXT: You know that only the Desktop is NixOS; others are Debian/Unifi/ESPHome.
+              '';
+              tools = [ "ssh-mcp" "filesystem" ];
             };
             polyglot-coder = {
               mode = "subagent";
@@ -234,7 +304,8 @@ in
                 - TASK: When writing scripts that parse data, check if @web-extractor has data available first.
                 - Output ONLY the code and a brief explanation of how to execute it.
               '';
-              tools = [ "bash" ]; # Can run local tests to verify script syntax
+              tools = [ "bash" ];
+              skills = [ "coding-standards" ];
             };
             secops = {
               mode = "subagent";
@@ -270,7 +341,10 @@ in
               "git show*" = "allow";
               "git branch*" = "allow";
               "git remote*" = "allow";
-              "git config*" = "allow";
+              "git config --get*" = "allow";
+              "git config --list*" = "allow";
+              "git config --global*" = "ask";
+              "git config*" = "ask";
               "git rev-parse*" = "allow";
               "git ls-files*" = "allow";
               "git ls-remote*" = "allow";
@@ -279,7 +353,7 @@ in
               "git blame*" = "allow";
               "git shortlog*" = "allow";
               "git reflog*" = "allow";
-              "git add*" = "allow";
+              "git add*" = "ask";
 
               # Safe Nix commands
               "nix search*" = "allow";
@@ -354,6 +428,18 @@ in
               "kill*" = "ask";
               "killall*" = "ask";
               "pkill*" = "ask";
+
+              # Docker management
+              "docker ps*" = "allow";
+              "docker logs*" = "allow";
+              "docker inspect*" = "allow";
+              "docker compose*" = "ask";
+              "docker images*" = "allow";
+              "docker stats*" = "allow";
+              "docker version*" = "allow";
+              "docker info*" = "allow";
+              "docker network ls*" = "allow";
+              "docker volume ls*" = "allow";
             };
             read = "allow";
             list = "allow";
@@ -395,17 +481,40 @@ in
               ];
               extensions = [ ".nix" ];
             };
+            jsonc = {
+              command = [ (lib.getExe pkgs.nodePackages.prettier) "--parser" "json" "$FILE" ];
+              extensions = [ ".json" ];
+            };
+            djlint = {
+              command = [
+                "${pkgs.djlint}/bin/djlint"
+                "$FILE"
+                "--reformat"
+                "--indent" "2"
+              ];
+              extensions = [ ".html" ".jinja" ".jinja2" ".j2" ];
+            };
+            yamlfmt = {
+              command = [ "(lib.getExe pkgs.yamlfmt)" "$FILE" ];
+              extensions = [ ".yaml" ".yml" ];
+            };
+            python = {
+              command = [ (lib.getExe pkgs.ruff) "format" "$FILE" ];
+              extensions = [ ".py" ];
+            };
           };
           mcp = {
             grafana = {
               type = "remote";
               url = "http://10.10.1.13:5133/mcp";
               enabled = true;
+              timeout = 30000;
             };
             unifi = {
               type = "remote";
               url = "http://10.10.1.13:5134/sse";
               enabled = true;
+              timeout = 20000;
               headers = {
                 Accept = "text/event-stream";
               };
@@ -413,7 +522,8 @@ in
             nixos = {
               enabled = true;
               type = "local";
-              command = [ "${pkgs.nix}/bin/nix" "run" "github:utensils/mcp-nixos" "--" ];
+              command = [ (lib.getExe pkgs.mcp-nixos) ];
+              timeout = 15000;
             };
           };
         };
