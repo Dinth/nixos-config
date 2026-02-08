@@ -41,7 +41,7 @@ in
         djlint
         ruff
       ];
-      home.file.".config/opencode/infrastructure.md".source = ./infrastructure.md;
+      home.file.".config/opencode/knowledge/infrastructure.md".source = ./infrastructure.md;
       home.sessionVariables = {
         OPENCODE_LOG_LEVEL = "debug"; # Force debug logging at env level
 #        OPENCODE_METRICS_ENABLED = "true";
@@ -328,17 +328,8 @@ in
               prompt = "Ethical Hacker. Perform pentesting (ZAP/Nmap), risk modelling, and gather threat intelligence. Map findings to CVEs.";
             };
           };
-          skills = {
-            coding-standards = ''
-              ---
-              name: coding-standards
-              description: Mandatory formatting and commenting rules for all scripts.
-              ---
-              ## Requirements
-              - All Python scripts MUST have a docstring with: Purpose, Dependencies, and Author (AI).
-              - All Bash scripts MUST use `set -euo pipefail` and be commented per function.
-              - PHP code MUST use strict types and PHPDoc headers.
-            '';
+          skill = {
+            "*" = "allow";
           };
           plugin = [
             # "opencode-gemini-auth@latest"
