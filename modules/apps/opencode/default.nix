@@ -187,6 +187,73 @@ in
             "target/**"
             "result/**"
           ];
+          agent = {
+            manager = {
+              mode = "primary";
+              model = "anthropic/claude-3-5-sonnet-latest";
+              prompt = ''
+                You are the Technical Project Manager. Analyze user intent and delegate to specialists. For complex web research, use @procurement. For NixOS configuration, use @nixos-engineer.
+              '';
+            };
+            procurement = {
+              mode = "subagent";
+              model = "google/gemini-1.5-pro-latest"; # Superior reasoning/context
+              prompt = ''
+                You are a Procurement & Research Specialist.
+                - Use @web-extractor to pull structured data.
+                - Iteratively search until exact dimensions/specs are verified.
+                - Provide a final comparison table with 'Confidence Scores'.
+              '';
+            };
+            web-extractor = {
+              mode = "subagent";
+              model = "google/gemini-1.5-flash-latest";
+              prompt = "You are a Parsing Specialist. Convert raw HTML into clean JSON/Markdown. Discover API endpoints by inspecting source code.";
+              tools = ["firecrawl" "agentql"];
+            };
+            nixos-engineer = {
+              mode = "subagent";
+              model = "anthropic/claude-3-5-sonnet-latest";
+              prompt = ''
+                You are a NixOS Specialist.
+                - Your goal is to maintain the system closure in /etc/nixos.
+                - When a task requires a custom script (Bash/Python/PHP), DELEGATE the script generation to @polyglot-coder.
+                - Once @polyglot-coder provides the script, wrap it in a Nix expression (like `pkgs.writeShellScriptBin` or `virtualisation.oci-containers`).
+                - Always run `nix-instantiate --parse` or `nixpkgs-fmt` on your output.
+              '';
+              tools = [ "filesystem" "bash" ];
+            };
+            polyglot-coder = {
+              mode = "subagent";
+              model = "anthravity/claude-sonnet-4-5-thinking";
+              prompt = ''
+                You are an Expert Software Engineer specializing in Bash, Python 3 and PHP 8.3+.
+                - BASH: Use 'set -euo pipefail', local variables, and prioritize readability. Always assume `shellcheck` will be run.
+                - PYTHON: Prioritize type hinting and use standard libraries unless specialized ones are requested.
+                - PHP: Use modern 8.3 features, strict typing, and clean architectural patterns.
+                - TASK: When writing scripts that parse data, check if @web-extractor has data available first.
+                - Output ONLY the code and a brief explanation of how to execute it.
+              '';
+              tools = [ "bash" ]; # Can run local tests to verify script syntax
+            };
+            secops = {
+              mode = "subagent";
+              model = "anthropic/claude-3-5-sonnet-latest";
+              prompt = "Ethical Hacker. Perform pentesting (ZAP/Nmap), risk modelling, and gather threat intelligence. Map findings to CVEs.";
+            };
+          };
+          skills = {
+            coding-standards = ''
+              ---
+              name: coding-standards
+              description: Mandatory formatting and commenting rules for all scripts.
+              ---
+              ## Requirements
+              - All Python scripts MUST have a docstring with: Purpose, Dependencies, and Author (AI).
+              - All Bash scripts MUST use `set -euo pipefail` and be commented per function.
+              - PHP code MUST use strict types and PHPDoc headers.
+            '';
+          };
           plugin = [
             # "opencode-gemini-auth@latest"
             "opencode-google-antigravity-auth@latest"
