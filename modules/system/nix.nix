@@ -13,5 +13,8 @@
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
   ];
-
+  environment.systemPackages = with pkgs; [
+    nix-diff
+  ];
+  programs.nh.enable = true;
 }
