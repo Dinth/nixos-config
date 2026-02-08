@@ -15,6 +15,7 @@ in
     };
   };
   config = mkIf cfg.enable {
+    programs.nix-ld.enable = true;
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
         yamlfmt
@@ -26,11 +27,16 @@ in
         bash-language-server
         pyright
         lemminx
-        mcp-nixos
       ];
+      home.sessionVariables = {
+        OPENCODE_LOG_LEVEL = "debug"; # Force debug logging at env level
+        # ensure it uses standard XDG paths
+        XDG_DATA_HOME = "${config.home-manager.users.${primaryUsername}.home.homeDirectory}/.local/share";
+      };
       programs.opencode = {
         enable = true;
         settings = {
+          theme = "catppuccin";
           model = "ollama/mistral-nemo:latest";
           provider = {
             google = {
@@ -179,6 +185,7 @@ in
             "node_modules/**"
             "dist/**"
             "target/**"
+            "result/**"
           ];
           plugin = [
             # "opencode-gemini-auth@latest"
@@ -339,7 +346,7 @@ in
             nixos = {
               enabled = true;
               type = "local";
-              command = [ "/run/current-system/sw/bin/nix" "run" "github:utensils/mcp-nixos" "--" ];
+              command = [ "${pkgs.nix}/bin/nix" "run" "github:utensils/mcp-nixos" "--" ];
             };
           };
         };
