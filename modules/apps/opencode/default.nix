@@ -239,7 +239,9 @@ in
                 2. Correlate timestamps across different servers (Debian/Desktop).
                 3. Provide a 'Root Cause Analysis' (RCA) to the Manager.
               '';
-              tools = [ "grafana-mcp" ];
+              tools = {
+                grafana-mcp = true;
+              };
             };
             docs-specialist = {
               mode = "subagent";
@@ -251,7 +253,9 @@ in
                   [Date] [Agent] [Change Summary] [Impacted Systems].
                 - If the network inventory file changes, update the topology diagrams (Mermaid).
               '';
-              tools = [ "filesystem" ];
+              tools = {
+                filesystem = true;
+              };
             };
             nixos-engineer = {
               mode = "subagent";
@@ -267,7 +271,11 @@ in
                 - Check syntax with `nix-instantiate --parse` before committing changes
                 - On attribute errors, verify package availability with `nix search`
               '';
-              tools = [ "filesystem" "bash" "nixos-mcp" ];
+              tools = {
+                filesystem = true;
+                bash = true;
+                nixos-mcp = true;
+              };
             };
             home-assistant-agent = {
               mode = "subagent";
@@ -280,7 +288,9 @@ in
                 - When formatting, prioritize `djlint` for any files containing `{{` or `{%` blocks.
                 - JINJA2: Ensure all templates have default values (e.g., `states('sensor.temp') | float(0)`) to prevent boot-looping HA.
                 '';
-              tools = [ "home-assistant-mcp" "filesystem" ];
+              tools = {
+#                home-assistant-mcp = true;
+              };
             };
             infra-manager = {
               mode = "subagent";
@@ -291,7 +301,10 @@ in
                 - SSH ACCESS: Use the `ssh-mcp` tool for Debian/pfSense.
                 - CONTEXT: You know that only the Desktop is NixOS; others are Debian/Unifi/ESPHome.
               '';
-              tools = [ "ssh-mcp" "filesystem" ];
+              tools = {
+                ssh-mcp = true;
+                filesystem = true;
+              };
             };
             polyglot-coder = {
               mode = "subagent";
@@ -304,7 +317,9 @@ in
                 - TASK: When writing scripts that parse data, check if @web-extractor has data available first.
                 - Output ONLY the code and a brief explanation of how to execute it.
               '';
-              tools = [ "bash" ];
+              tools = {
+                bash = true;
+              };
               skills = [ "coding-standards" ];
             };
             secops = {
