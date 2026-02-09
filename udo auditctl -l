@@ -1,0 +1,21 @@
+[0;1;32m●[0m audit-rules-nixos.service - Load Audit Rules
+     Loaded: loaded (]8;;file://dinth-nixos-desktop/etc/systemd/system/audit-rules-nixos.service\/etc/systemd/system/audit-rules-nixos.service]8;;\; [0;1;32menabled[0m; preset: ignored)
+     Active: [0;1;32mactive (exited)[0m since Mon 2026-02-09 10:07:42 GMT; 1min 18s ago
+ Invocation: ff429cd8499f40408206c98e4f4627d7
+    Process: 74398 ExecStart=/nix/store/mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules (code=exited, status=0/SUCCESS)
+   Main PID: 74398 (code=exited, status=0/SUCCESS)
+         IP: 0B in, 0B out
+         IO: 0B read, 0B written
+   Mem peak: 4M
+        CPU: 25ms
+
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74438]: Old style watch rules are slower
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74398]: + /nix/store/1p8bry4118b8bsz9kj1a341fsnc4vvpr-audit-4.1.2-unstable-2025-09-06-bin/bin/auditctl -w /etc/passwd -p wa -k identity
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74441]: Old style watch rules are slower
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74398]: + /nix/store/1p8bry4118b8bsz9kj1a341fsnc4vvpr-audit-4.1.2-unstable-2025-09-06-bin/bin/auditctl -w /etc/group -p wa -k identity
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74444]: Old style watch rules are slower
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74398]: + /nix/store/1p8bry4118b8bsz9kj1a341fsnc4vvpr-audit-4.1.2-unstable-2025-09-06-bin/bin/auditctl -w /etc/shadow -p wa -k identity
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74446]: Old style watch rules are slower
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74398]: + /nix/store/1p8bry4118b8bsz9kj1a341fsnc4vvpr-audit-4.1.2-unstable-2025-09-06-bin/bin/auditctl -w /run/wrappers/bin/doas -p x -k privileged
+Feb 09 10:07:42 dinth-nixos-desktop mlay68010kp8ijp2g7s8s0z74bdvgb2l-load-audit-rules[74449]: Old style watch rules are slower
+Feb 09 10:07:42 dinth-nixos-desktop systemd[1]: Finished Load Audit Rules.

@@ -44,48 +44,56 @@ in
     cleanOnBoot = true;  # optional: clean on boot
   };
   security.audit.enable = true;
-  security.auditd.enable = true;
+  security.auditd.enable = false;
   security.audit.rules = [
-    # --- Noise Reduction ---
-    # Exclude systemd service start/stop - must be first
-    "-a exclude,always -F msgtype=SERVICE_START"
-    "-a exclude,always -F msgtype=SERVICE_STOP"
-    # Exclude systemd eBPF usage - must be first
-    "- exclude,always -F msgtype=BPF"
+    # Exclude service messages and BPF noise
+    "-a always,exclude -F msgtype=SERVICE_START"
+    "-a always,exclude -F msgtype=SERVICE_STOP"
+    "-a always,exclude -F msgtype=BPF"
 
-    # --- AppArmor Profile Protection ---
-    # Monitor changes to AppArmor profiles
-    # -p wa = watch for writes and attribute changes
-    # -k = tag with key for easy log filtering
-    "-w /etc/apparmor/ -p wa -k apparmor_changes"
-    "-w /etc/apparmor.d/ -p wa -k apparmor_changes"
+    # AppArmor configuration changes
+    "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor/ -F perm=wa -F key=apparmor_changes"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/apparmor/ -F perm=wa -F key=apparmor_changes"
+    "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor.d/ -F perm=wa -F key=apparmor_changes"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/apparmor.d/ -F perm=wa -F key=apparmor_changes"
 
-    # --- Kernel Module Loading Detection ---
-    # Log all kernel module insertions
-    # init_module/finit_module = syscalls used by insmod/modprobe
-    # Both 64-bit and 32-bit architectures covered for compatibility
-    "-a exit,always -F arch=b64 -S init_module -S finit_module -k module_insertion"
-    "-a exit,always -F arch=b32 -S init_module -S finit_module -k module_insertion"
+    # Kernel module loading
+    "-a always,exit -F arch=b64 -S init_module,finit_module -F key=module_insertion"
+    "-a always,exit -F arch=b32 -S init_module,finit_module -F key=module_insertion"
 
-    # --- Privilege Escalation Detection ---
-    # Capture when processes execute as root but were started by different user
-    # auid = original login user ID (doesn't change with sudo/doas)
-    # euid = effective user ID (becomes 0 when elevated to root)
-    # This logs all doas/sudo usage and potential exploit attempts
-    # auid!=unset filters out system processes without login sessions
-    "-a exit,always -F arch=b64 -C auid!=euid -F auid!=unset -F euid=0 -S execve -k privesc_execve"
-    "-a exit,always -F arch=b32 -C auid!=euid -F auid!=unset -F euid=0 -S execve -k privesc_execve"
+    # Privilege escalation monitoring
+    "-a always,exit -F arch=b64 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
+    "-a always,exit -F arch=b32 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
 
-    # --- System Configuration Monitoring ---
-    # Track changes to critical NixOS and identity management files
-    "-w /etc/nixos/ -p wa -k nixos-config"
-    "-w /etc/passwd -p wa -k identity"
-    "-w /etc/group -p wa -k identity"
-    "-w /etc/shadow -p wa -k identity"
+    # NixOS configuration changes
+    "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
 
-    # --- Privileged Command Monitoring ---
-    # Log execution of doas (your privilege escalation tool)
-    "-w /run/wrappers/bin/doas -p x -k privileged"
+    # Identity files monitoring
+    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/passwd -F perm=wa -F key=identity"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/passwd -F perm=wa -F key=identity"
+    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/group -F perm=wa -F key=identity"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/group -F perm=wa -F key=identity"
+    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/shadow -F perm=wa -F key=identity"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/shadow -F perm=wa -F key=identity"
+
+    # Privileged command execution
+    "-a always,exit -F arch=b64 -S execve -F path=/run/wrappers/bin/doas -F key=privileged"
+    "-a always,exit -F arch=b32 -S execve -F path=/run/wrappers/bin/doas -F key=privileged"
+
+    # Network configuration changes
+    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/hosts -F perm=wa -F key=network_modifications"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/hosts -F perm=wa -F key=network_modifications"
+    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/resolv.conf -F perm=wa -F key=network_modifications"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/resolv.conf -F perm=wa -F key=network_modifications"
+
+    # Privilege configuration changes
+    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/doas.conf -F perm=wa -F key=privileged_modifications"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/doas.conf -F perm=wa -F key=privileged_modifications"
+
+    # SSH configuration changes
+    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/ssh/sshd_config -F perm=wa -F key=sshd_config"
+    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/ssh/sshd_config -F perm=wa -F key=sshd_config"
   ];
   # Allow wheel group to read audit logs
   systemd.tmpfiles.rules = [
@@ -166,4 +174,20 @@ in
       Persistent = true;
     };
   };
+  # Workaround for https://github.com/NixOS/nixpkgs/issues/483085
+  systemd.services.audit-rules-nixos.serviceConfig.ExecStart = lib.mkForce [
+    ""
+    (pkgs.writeShellScript "load-audit-rules" ''
+
+      ${pkgs.audit}/bin/auditctl -D
+
+      ${lib.concatMapStringsSep "\n" (rule:
+        "${pkgs.audit}/bin/auditctl ${rule}"
+      ) config.security.audit.rules}
+
+      ${pkgs.audit}/bin/auditctl -e 1 || true
+
+      exit 0
+    '')
+  ];
 }
