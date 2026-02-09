@@ -37,7 +37,10 @@
     "amdgpu"
     "amd_pstate"
   ];
-  boot.extraModulePackages = [ config.boot.kernelPackages.r8125 config.boot.kernelPackages.it87 ];
+  boot.extraModulePackages = [
+    config.boot.kernelPackages.r8125
+    config.boot.kernelPackages.it87
+  ];
   boot.blacklistedKernelModules = [
     "gigabyte-wmi"
   ];
@@ -109,6 +112,10 @@
   ];
   boot.extraModprobeConfig = ''
     options it87 ignore_resource_conflict=1
+    # Disable ALSA power management to prevent audio device suspension
+    # This fixes audio delay and white noise issues when devices wake from suspend
+    options snd_hda_intel power_save=0 power_save_controller=N
+    options snd_ac97_codec power_save=0
   '';
   boot = {
     kernel.sysctl = {
@@ -173,7 +180,31 @@
         default.clock.quantum = 256; # Lower from 1024 for less delay
         default.clock.min-quantum = 32;
         default.clock.max-quantum = 2048;
+        # Prevent device suspension
+        node.pause-on-idle = false;
+        session.suspend-timeout-seconds = 0;
       };
+      context.modules = [
+        {
+          name = "libpipewire-module-rt";
+          args = {
+            nice.level = -11;
+            rt.prio = 88;
+            rt.time.soft = 2000000;
+            rt.time.hard = 2000000;
+          };
+          flags = [
+            "ifexists"
+            "nofail"
+          ];
+        }
+        {
+          name = "libpipewire-module-protocol-pulse";
+          args = {
+            server.address = [ "unix:native" ];
+          };
+        }
+      ];
     };
     # Set highest quality resampling when needed
     extraConfig.pipewire-pulse."92-low-latency" = {
@@ -188,21 +219,66 @@
         resample.quality = 5;
       };
     };
-    wireplumber.extraConfig."51-starship-matisse-profile" = {
-      "monitor.alsa.rules" = [
-        {
-          matches = [
-            { "device.product.name" = "Starship/Matisse HD Audio Controller"; }
-          ];
-          actions = {
-            update-props = {
-              "device.profile" = "iec958-stereo";
-              "session.suspend-timeout-seconds" = 0;
-              "node.pause-on-idle" = false;
+    # Enhanced WirePlumber configuration to prevent audio suspension
+    # This fixes: 1) Delay when starting playback, 2) White noise on device wake
+    wireplumber.extraConfig = {
+      # Configure the AMD motherboard audio device
+      "51-starship-matisse-profile" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "device.product.name" = "Starship/Matisse HD Audio Controller"; }
+            ];
+            actions = {
+              update-props = {
+                "device.profile" = "iec958-stereo";
+                "session.suspend-timeout-seconds" = 0;
+                "api.alsa.period-size" = 256;
+                "api.alsa.headroom" = 1024;
+              };
             };
-          };
-        }
-      ];
+          }
+        ];
+      };
+
+      # Prevent ALL audio nodes from suspending (applies to all devices)
+      "52-prevent-node-suspension" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "node.name" = "~alsa_output.*"; }
+            ];
+            actions = {
+              update-props = {
+                "node.pause-on-idle" = false;
+                "session.suspend-timeout-seconds" = 0;
+                "api.alsa.period-size" = 256;
+                "api.alsa.headroom" = 1024;
+              };
+            };
+          }
+        ];
+      };
+
+      # Keep audio streams active
+      "53-disable-stream-suspension" = {
+        "wireplumber.settings" = {
+          "node.features.audio.no-dsp" = false;
+        };
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "media.class" = "Audio/Sink"; }
+            ];
+            actions = {
+              update-props = {
+                "node.pause-on-idle" = false;
+                "session.suspend-timeout-seconds" = 0;
+              };
+            };
+          }
+        ];
+      };
     };
   };
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
