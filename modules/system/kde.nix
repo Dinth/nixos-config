@@ -1,4 +1,10 @@
-{ config, lib, pkgs, machineType ? "", ... }:
+{
+  config,
+  lib,
+  pkgs,
+  machineType ? "",
+  ...
+}:
 let
   inherit (lib) mkIf mkOption;
   cfg = config.kde;
@@ -19,38 +25,41 @@ in
   config = mkIf cfg.enable {
     services.displayManager.sddm.wayland.enable = true;
     services.desktopManager.plasma6.enable = true;
-    environment.systemPackages = with pkgs; [
-      kdePackages.korganizer
-      kdePackages.kontact
-      kdePackages.kio-extras
-      kdePackages.kio-fuse
-      kdePackages.dolphin-plugins
-      kdePackages.ktorrent
-      kdePackages.kdepim-addons
-      kdePackages.kompare
-      kdePackages.kaccounts-providers
-      kdePackages.kaccounts-integration
-      kdePackages.skanlite
-      kdePackages.phonon-vlc
-      kdePackages.ksshaskpass
-      kdePackages.ark
-      kdePackages.kservice
-      kdePackages.kdegraphics-thumbnailers
-      kdePackages.kimageformats
-      kdePackages.qtimageformats
-      kdePackages.ffmpegthumbs
-      kdePackages.filelight # disk usage visualiser
-      kdePackages.kcalc # calculator
-      kdePackages.gwenview # image viewer
-      haruna # KDE video player based on mpv
-      kdePackages.ksystemlog
-      libreoffice-qt
-      kdePackages.isoimagewriter
-      kdePackages.plasma-browser-integration
-    ] ++ lib.optionals (machineType == "tablet") [
-      maliit-keyboard
-      maliit-framework
-    ];
+    environment.systemPackages =
+      with pkgs;
+      [
+        kdePackages.korganizer
+        kdePackages.kontact
+        kdePackages.kio-extras
+        kdePackages.kio-fuse
+        kdePackages.dolphin-plugins
+        kdePackages.ktorrent
+        kdePackages.kdepim-addons
+        kdePackages.kompare
+        kdePackages.kaccounts-providers
+        kdePackages.kaccounts-integration
+        kdePackages.skanlite
+        kdePackages.phonon-vlc
+        kdePackages.ksshaskpass
+        kdePackages.ark
+        kdePackages.kservice
+        kdePackages.kdegraphics-thumbnailers
+        kdePackages.kimageformats
+        kdePackages.qtimageformats
+        kdePackages.ffmpegthumbs
+        kdePackages.filelight # disk usage visualiser
+        kdePackages.kcalc # calculator
+        kdePackages.gwenview # image viewer
+        haruna # KDE video player based on mpv
+        kdePackages.ksystemlog
+        libreoffice-qt
+        kdePackages.isoimagewriter
+        kdePackages.plasma-browser-integration
+      ]
+      ++ lib.optionals (machineType == "tablet") [
+        maliit-keyboard
+        maliit-framework
+      ];
     xdg.portal = {
       extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
       config.common.default = "kde";
@@ -66,13 +75,13 @@ in
       platformTheme = "kde";
       style = "breeze";
     };
-#    security.wrappers = {
-#      kwin_wayland = {
-#        owner = "root";
-#        group = "root";
-#        source = "${lib.getExe' pkgs.kdePackages.kwin "kwin_wayland"}";
-#      };
-#    };
+    #    security.wrappers = {
+    #      kwin_wayland = {
+    #        owner = "root";
+    #        group = "root";
+    #        source = "${lib.getExe' pkgs.kdePackages.kwin "kwin_wayland"}";
+    #      };
+    #    };
     # Session variables for KDE
     environment.sessionVariables = {
       # Common KDE variables
@@ -108,77 +117,111 @@ in
         captureRectangularRegion = "Alt+$";
         captureActiveWindow = "Alt+%";
         captureCurrentMonitor = "Alt+#";
-          launch = "Print";
+        launch = "Print";
       };
       panels = [
-      {
-        location = "bottom";
-        widgets = [
-          # --- Applet 3: Application Launcher ---
-          {
-            name = "org.kde.plasma.kickoff";
-            config.General = {
-              favoritesPortedToKAstats = true;
-            };
-          }
+        {
+          location = "bottom";
+          widgets = [
+            # --- Applet 3: Application Launcher ---
+            {
+              name = "org.kde.plasma.kickoff";
+              config.General = {
+                favoritesPortedToKAstats = true;
+              };
+            }
 
-          # --- Applet 4: Pager (Virtual Desktop Switcher) ---
-          { name = "org.kde.plasma.pager"; }
+            # --- Applet 4: Pager (Virtual Desktop Switcher) ---
+            { name = "org.kde.plasma.pager"; }
 
-          # --- Applet 5: Icon-Only Task Manager ---
-          { name = "org.kde.plasma.icontasks"; }
+            # --- Applet 5: Icon-Only Task Manager ---
+            {
+              name = "org.kde.plasma.icontasks";
+              config.General = {
+                launchers = [
+                  "applications:systemsettings.desktop"
+                  "preferred://filemanager"
+                  "applications:google-chrome.desktop"
+                ];
+              };
+            }
 
-          # --- Applet 6: Margins Separator (Spacer) ---
-          { name = "org.kde.plasma.marginsseparator"; }
+            # --- Applet 6: Margins Separator (Spacer) ---
+            { name = "org.kde.plasma.marginsseparator"; }
 
-          # --- Applet 7: System Tray ---
-          {
-            name = "org.kde.plasma.systemtray";
-            config.General = {
-              extraItems = [
-                "org.kde.plasma.devicenotifier" "org.kde.plasma.cameraindicator"
-                "org.kde.plasma.mediacontroller" "org.kde.plasma.manage-inputmethod"
-                "org.kde.plasma.notifications" "org.kde.plasma.keyboardindicator"
-                "org.kde.kscreen" "org.kde.plasma.networkmanagement"
-                "org.kde.plasma.volume" "org.kde.plasma.keyboardlayout"
-                "org.kde.plasma.printmanager" "org.kde.kdeconnect"
-                "org.kde.plasma.brightness" "org.kde.plasma.weather"
-                "org.kde.plasma.bluetooth" "org.kde.plasma.battery"
-                "org.kde.plasma.clipboard"
-              ];
-              knownItems = [
-                "org.kde.plasma.devicenotifier" "org.kde.plasma.cameraindicator"
-                "org.kde.plasma.mediacontroller" "org.kde.plasma.manage-inputmethod"
-                "org.kde.plasma.clipboard" "org.kde.plasma.notifications"
-                "org.kde.plasma.keyboardindicator" "org.kde.kscreen"
-                "org.kde.plasma.networkmanagement" "org.kde.plasma.volume"
-                "org.kde.plasma.keyboardlayout" "org.kde.plasma.printmanager"
-                "org.kde.kdeconnect" "org.kde.plasma.battery"
-                "org.kde.plasma.brightness" "org.kde.plasma.weather"
-                "org.kde.plasma.bluetooth"
-              ];
-              shownItems = [ "org.kde.plasma.battery" "org.kde.plasma.clipboard" ];
-            };
-          }
-          # --- Applet 19: Digital Clock ---
-          {
-            name = "org.kde.plasma.digitalclock";
-            config.Appearance = {
-              fontWeight = 400;
-            };
-          }
+            # --- Applet 7: System Tray ---
+            {
+              name = "org.kde.plasma.systemtray";
+              config.General = {
+                extraItems = [
+                  "org.kde.plasma.devicenotifier"
+                  "org.kde.plasma.cameraindicator"
+                  "org.kde.plasma.mediacontroller"
+                  "org.kde.plasma.manage-inputmethod"
+                  "org.kde.plasma.notifications"
+                  "org.kde.plasma.keyboardindicator"
+                  "org.kde.kscreen"
+                  "org.kde.plasma.networkmanagement"
+                  "org.kde.plasma.volume"
+                  "org.kde.plasma.keyboardlayout"
+                  "org.kde.plasma.printmanager"
+                  "org.kde.kdeconnect"
+                  "org.kde.plasma.brightness"
+                  "org.kde.plasma.weather"
+                  "org.kde.plasma.bluetooth"
+                  "org.kde.plasma.battery"
+                  "org.kde.plasma.clipboard"
+                ];
+                knownItems = [
+                  "org.kde.plasma.devicenotifier"
+                  "org.kde.plasma.cameraindicator"
+                  "org.kde.plasma.mediacontroller"
+                  "org.kde.plasma.manage-inputmethod"
+                  "org.kde.plasma.clipboard"
+                  "org.kde.plasma.notifications"
+                  "org.kde.plasma.keyboardindicator"
+                  "org.kde.kscreen"
+                  "org.kde.plasma.networkmanagement"
+                  "org.kde.plasma.volume"
+                  "org.kde.plasma.keyboardlayout"
+                  "org.kde.plasma.printmanager"
+                  "org.kde.kdeconnect"
+                  "org.kde.plasma.battery"
+                  "org.kde.plasma.brightness"
+                  "org.kde.plasma.weather"
+                  "org.kde.plasma.bluetooth"
+                ];
+                shownItems = [
+                  "org.kde.plasma.battery"
+                  "org.kde.plasma.clipboard"
+                ];
+              };
+            }
+            # --- Applet 19: Digital Clock ---
+            {
+              name = "org.kde.plasma.digitalclock";
+              config.Appearance = {
+                fontWeight = 400;
+              };
+            }
 
-          # --- Applet 20: Show Desktop ---
-          { name = "org.kde.plasma.showdesktop"; }
-        ];
-      }
-    ];
+            # --- Applet 20: Show Desktop ---
+            { name = "org.kde.plasma.showdesktop"; }
+          ];
+        }
+      ];
       desktop.widgets = [
         # --- Applet 1014: IO ---
         {
           name = "org.kde.plasma.systemmonitor";
-          position = { horizontal = 1696; vertical = 656; };
-          size = { width = 352; height = 224; };
+          position = {
+            horizontal = 1696;
+            vertical = 656;
+          };
+          size = {
+            width = 352;
+            height = 224;
+          };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.linechart";
@@ -191,7 +234,10 @@ in
             SensorLabels."disk/nvme0n1/write" = "Write Rate";
             SensorLabels."lmsensors/nvme-pci-0100/temp1" = "Temperature";
             # Convert the JSON-like string to a proper Nix list
-            Sensors.highPrioritySensorIds = [ "disk/nvme0n1/read" "disk/nvme0n1/write" ];
+            Sensors.highPrioritySensorIds = [
+              "disk/nvme0n1/read"
+              "disk/nvme0n1/write"
+            ];
             Sensors.lowPrioritySensorIds = [ "lmsensors/nvme-pci-0100/temp1" ];
           };
         }
@@ -199,8 +245,14 @@ in
         # --- Applet 1016: Memory ---
         {
           name = "org.kde.plasma.systemmonitor";
-          position = { horizontal = 1696; vertical = 224; };
-          size = { width = 352; height = 224; };
+          position = {
+            horizontal = 1696;
+            vertical = 224;
+          };
+          size = {
+            width = 352;
+            height = 224;
+          };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.piechart";
@@ -213,14 +265,25 @@ in
               "memory/swap/usedPercent" = "71,61,233";
             };
             SensorLabels."memory/swap/usedPercent" = "Swap";
-            Sensors.highPrioritySensorIds = [ "memory/physical/applicationPercent" "memory/physical/bufferPercent" "memory/physical/cachePercent" "memory/swap/usedPercent" ];
+            Sensors.highPrioritySensorIds = [
+              "memory/physical/applicationPercent"
+              "memory/physical/bufferPercent"
+              "memory/physical/cachePercent"
+              "memory/swap/usedPercent"
+            ];
           };
         }
         # --- Applet 1017: GPU ---
         {
           name = "org.kde.plasma.systemmonitor";
-          position = { horizontal = 1696; vertical = 448; };
-          size = { width = 352; height = 208; };
+          position = {
+            horizontal = 1696;
+            vertical = 448;
+          };
+          size = {
+            width = 352;
+            height = 208;
+          };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.linechart";
@@ -237,7 +300,10 @@ in
               "gpu/gpu1/temp3" = "Temperature";
             };
             Sensors = {
-              highPrioritySensorIds = [ "gpu/gpu1/usage" "gpu/gpu1/usedVram" ];
+              highPrioritySensorIds = [
+                "gpu/gpu1/usage"
+                "gpu/gpu1/usedVram"
+              ];
               lowPrioritySensorIds = [ "gpu/gpu1/temp3" ];
             };
           };
@@ -245,8 +311,14 @@ in
         # --- Applet 1018: Network ---
         {
           name = "org.kde.plasma.systemmonitor";
-          position = { horizontal = 1696; vertical = 880; };
-          size = { width = 352; height = 224; };
+          position = {
+            horizontal = 1696;
+            vertical = 880;
+          };
+          size = {
+            width = 352;
+            height = 224;
+          };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.linechart";
@@ -257,15 +329,24 @@ in
               "network/all/upload" = "233,61,140";
             };
             Sensors = {
-              highPrioritySensorIds = [ "network/all/download" "network/all/upload" ];
+              highPrioritySensorIds = [
+                "network/all/download"
+                "network/all/upload"
+              ];
             };
           };
         }
         # --- Applet 1020: CPU ---
         {
           name = "org.kde.plasma.systemmonitor";
-          position = { horizontal = 1696; vertical = 0; };
-          size = { width = 352; height = 224; };
+          position = {
+            horizontal = 1696;
+            vertical = 0;
+          };
+          size = {
+            width = 352;
+            height = 224;
+          };
           config = {
             Appearance = {
               chartFace = "org.kde.ksysguard.linechart";
@@ -284,8 +365,16 @@ in
               "cpu/loadaverages/loadaverage5" = "Load avg 5m";
               "pressure/cpu/full10Sec" = "Pressure 10s";
             };
-            Sensors.highPrioritySensorIds = [ "cpu/all/averageFrequency" "cpu/all/averageTemperature" ];
-            Sensors.lowPrioritySensorIds = [ "cpu/loadaverages/loadaverage1" "cpu/loadaverages/loadaverage5" "cpu/loadaverages/loadaverage15" "pressure/cpu/full10Sec" ];
+            Sensors.highPrioritySensorIds = [
+              "cpu/all/averageFrequency"
+              "cpu/all/averageTemperature"
+            ];
+            Sensors.lowPrioritySensorIds = [
+              "cpu/loadaverages/loadaverage1"
+              "cpu/loadaverages/loadaverage5"
+              "cpu/loadaverages/loadaverage15"
+              "pressure/cpu/full10Sec"
+            ];
           };
         }
       ];
@@ -355,7 +444,8 @@ in
           "Module-device_automounter"."autoload" = false;
         };
         "baloofilerc"."General" = {
-          "exclude filters" = "*~,*.part,*.o,*.la,*.lo,*.loT,*.moc,moc_*.cpp,qrc_*.cpp,ui_*.h,cmake_install.cmake,CMakeCache.txt,CTestTestfile.cmake,libtool,config.status,confdefs.h,autom4te,conftest,confstat,Makefile.am,*.gcode,.ninja_deps,.ninja_log,build.ninja,*.csproj,*.m4,*.rej,*.gmo,*.pc,*.omf,*.aux,*.tmp,*.po,*.vm*,*.nvram,*.rcore,*.swp,*.swap,lzo,litmain.sh,*.orig,.histfile.*,.xsession-errors*,*.map,*.so,*.a,*.db,*.qrc,*.ini,*.init,*.img,*.vdi,*.vbox*,vbox.log,*.qcow2,*.vmdk,*.vhd,*.vhdx,*.sql,*.sql.gz,*.ytdl,*.tfstate*,*.class,*.pyc,*.pyo,*.elc,*.qmlc,*.jsc,*.fastq,*.fq,*.gb,*.fasta,*.fna,*.gbff,*.faa,po,CVS,.svn,.git,_darcs,.bzr,.hg,CMakeFiles,CMakeTmp,CMakeTmpQmake,.moc,.obj,.pch,.uic,.npm,.yarn,.yarn-cache,__pycache__,node_modules,node_packages,nbproject,.terraform,.venv,venv,core-dumps,lost+found";
+          "exclude filters" =
+            "*~,*.part,*.o,*.la,*.lo,*.loT,*.moc,moc_*.cpp,qrc_*.cpp,ui_*.h,cmake_install.cmake,CMakeCache.txt,CTestTestfile.cmake,libtool,config.status,confdefs.h,autom4te,conftest,confstat,Makefile.am,*.gcode,.ninja_deps,.ninja_log,build.ninja,*.csproj,*.m4,*.rej,*.gmo,*.pc,*.omf,*.aux,*.tmp,*.po,*.vm*,*.nvram,*.rcore,*.swp,*.swap,lzo,litmain.sh,*.orig,.histfile.*,.xsession-errors*,*.map,*.so,*.a,*.db,*.qrc,*.ini,*.init,*.img,*.vdi,*.vbox*,vbox.log,*.qcow2,*.vmdk,*.vhd,*.vhdx,*.sql,*.sql.gz,*.ytdl,*.tfstate*,*.class,*.pyc,*.pyo,*.elc,*.qmlc,*.jsc,*.fastq,*.fq,*.gb,*.fasta,*.fna,*.gbff,*.faa,po,CVS,.svn,.git,_darcs,.bzr,.hg,CMakeFiles,CMakeTmp,CMakeTmpQmake,.moc,.obj,.pch,.uic,.npm,.yarn,.yarn-cache,__pycache__,node_modules,node_packages,nbproject,.terraform,.venv,venv,core-dumps,lost+found";
           "exclude filters version" = 9;
         };
         "dolphinrc" = {
@@ -380,7 +470,8 @@ in
             "Places Icons Static Size" = 22;
           };
           "Notification Messages"."warnAboutRisksBeforeActingAsAdmin" = false;
-          "PreviewSettings"."Plugins" = "appimagethumbnail,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,mobithumbnail,opendocumentthumbnail,gsthumbnail,rawthumbnail,svgthumbnail,ffmpegthumbs";
+          "PreviewSettings"."Plugins" =
+            "appimagethumbnail,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,mobithumbnail,opendocumentthumbnail,gsthumbnail,rawthumbnail,svgthumbnail,ffmpegthumbs";
           "VersionControl"."enabledPlugins" = "Git";
         };
       };

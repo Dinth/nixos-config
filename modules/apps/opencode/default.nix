@@ -57,7 +57,7 @@ in
           theme = "catppuccin";
           provider = {
             opencode = {
-#               timeout = 120000;  # 2 minutes - handles long context processing
+#               timeout = 120000;
 #               retryAttempts = 3;
 #               retryDelay = 1000;
 #               retryExponentialBase = 2.0;
@@ -115,7 +115,8 @@ in
           agent = {
             manager = {
               mode = "primary";
-              model = "opencode/claude-sonnet-4-5";
+              model = "google/gemini-2.5-pro";
+              # model = "opencode/claude-sonnet-4-5";
               prompt = ''
                 You are the Technical Project Manager. Analyze user intent and delegate to specialists. For complex web research, use @procurement. For NixOS configuration, use @nixos-engineer.
               '';
@@ -183,7 +184,8 @@ in
             };
             web-extractor = {
               mode = "subagent";
-              model = "opencode/gemini-3-flash";
+              model = "google/gemini-2.5-flash";
+              # model = "opencode/gemini-3-flash";
               prompt = "You are a Parsing Specialist. Convert raw HTML into clean JSON/Markdown. Discover API endpoints by inspecting source code.";
 #              tools = ["firecrawl" "agentql"];
               temperature = 0.1;
@@ -208,7 +210,8 @@ in
             };
             triage-specialist = {
               mode = "subagent";
-              model = "opencode/gemini-3-pro";
+              model = "google/gemini-2.5-pro";
+              # model = "opencode/gemini-3-pro";
               prompt = ''
                 You are the Triage Lead. Your job is to find the "Why".
                 1. When a failure is reported, query Grafana/Loki for error logs.
@@ -271,7 +274,8 @@ in
             };
             nixos-engineer = {
               mode = "subagent";
-              model = "opencode/claude-sonnet-4-5";
+              model = "google/gemini-2.5-pro";
+              # model = "opencode/claude-sonnet-4-5";
               prompt = ''
                 You are a NixOS Specialist.
                 - Your goal is to maintain the system closure in /etc/nixos.
@@ -315,7 +319,8 @@ in
             };
             home-assistant-agent = {
               mode = "subagent";
-              model = "opencode/claude-sonnet-4-5";
+              model = "google/gemini-2.5-pro";
+              # model = "opencode/claude-sonnet-4-5";
               prompt = ''
                 You are an IoT Specialist.
                 - You write Home Assistant YAML and ESPHome configs.
@@ -348,7 +353,8 @@ in
             };
             infra-manager = {
               mode = "subagent";
-              model = "opencode/gemini-3-pro";
+              model = "google/gemini-2.5-pro";
+              # model = "opencode/gemini-3-pro";
               prompt = ''
                 You are the Network Custodian.
                 - READ first: Always consult `{file:~/.config/opencode/knowledge/infrastructure.md}` to locate devices.
@@ -380,7 +386,8 @@ in
             };
             polyglot-coder = {
               mode = "subagent";
-              model = "opencode/gpt-5.2-codex";
+              model = "google/gemini-2.5-pro";
+              # model = "opencode/gpt-5.2-codex";
               prompt = ''
                 You are an Expert Software Engineer specializing in Bash, Python 3 and PHP 8.3+.
                 - BASH: Use 'set -euo pipefail', local variables, and prioritize readability. Always assume `shellcheck` will be run.
@@ -416,7 +423,8 @@ in
             };
             secops = {
               mode = "subagent";
-              model = "opencode/claude-opus-4-5";
+              model = "google/gemini-2.5-pro";
+              # model = "opencode/claude-opus-4-5";
               prompt = "Ethical Hacker. Perform pentesting (ZAP/Nmap), risk modelling, and gather threat intelligence. Map findings to CVEs.";
               temperature = 0.4;
               topP = 0.9;
@@ -446,7 +454,6 @@ in
             "@mohak34/opencode-notifier@latest"
           ];
           permission = {
-            edit = "ask";
             bash = {
               # Allow non-destructive git commands with wildcards
               "git status*" = "allow";
@@ -555,7 +562,9 @@ in
               "docker network ls*" = "allow";
               "docker volume ls*" = "allow";
             };
+            edit = "ask";
             read = "allow";
+            context_info = "allow";
             list = "allow";
             glob = "allow";
             grep = "allow";
