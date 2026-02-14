@@ -22,15 +22,15 @@ Always read the relevant existing module before writing or modifying anything.
 Host-specific configs and hardware configurations live in `hosts/<hostname>/`.
 
 ### dinth-nixos-desktop
-- **CPU:** <!-- e.g. AMD Ryzen 5 5600X / Intel Core i7-12700K -->
-- **GPU:** <!-- e.g. AMD RX 6700 XT / Nvidia RTX 3070 — matters for driver choice -->
-- **Boot:** <!-- UEFI or legacy BIOS -->
-- **Quirks:** <!-- anything unusual — e.g. hybrid graphics, specific kernel params -->
+- **CPU:** AMD Ryzen 7 5800X
+- **GPU:** Radeon RX6700XT
+- **Boot:** UEFI
+- **Quirks:** 
 
 ### michal-surface-go
-- **Model:** Microsoft Surface Go 3
-- **CPU:** <!-- Intel Pentium Gold / Core i3 — confirm exact -->
-- **Boot:** UEFI (Surface devices are always UEFI)
+- **Model:** Microsoft Surface Go 2
+- **CPU:** Intel M3-8100Y
+- **Boot:** UEFI
 - **Known Linux quirks:** <!-- e.g. WiFi chipset, touchscreen driver, type cover, suspend/resume issues -->
 - **Kernel:** <!-- any custom kernel or patches needed, e.g. linux-surface -->
 

@@ -314,7 +314,7 @@ in
                 - Your goal is to maintain the system closure in /etc/nixos.
                 - When a task requires a custom script (Bash/Python/PHP), DELEGATE the script generation to @polyglot-coder.
                 - Once @polyglot-coder provides the script, wrap it in a Nix expression (like `pkgs.writeShellScriptBin` or `virtualisation.oci-containers`).
-                - Always run `nix-instantiate --parse` or `nixpkgs-fmt` on your output.
+                - Always run `nix-instantiate --parse` or `nixfmt-rfc-style` on your output.
                 ERROR HANDLING:
                 - If a Nix build fails, run `nix-instantiate --show-trace` for detailed errors
                 - Check syntax with `nix-instantiate --parse` before committing changes
@@ -650,9 +650,9 @@ in
             };
           };
           formatter = {
-            nixfmt = {
+            nixfmt-rfc-style = {
               command = [
-                (lib.getExe pkgs.nixfmt)
+                (lib.getExe pkgs.nixfmt-rfc-style)
                 "$FILE"
               ];
               extensions = [ ".nix" ];
@@ -671,7 +671,7 @@ in
               extensions = [ ".html" ".jinja" ".jinja2" ".j2" ];
             };
             yamlfmt = {
-              command = [ "(lib.getExe pkgs.yamlfmt)" "$FILE" ];
+              command = [ (lib.getExe pkgs.yamlfmt) "$FILE" ];
               extensions = [ ".yaml" ".yml" ];
             };
             python = {
