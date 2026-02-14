@@ -41,7 +41,11 @@ in
         djlint
         ruff
       ];
-      home.file.".config/opencode/knowledge/infrastructure.md".source = ./knowledge/infrastructure.md;
+      # Knowledge files — split by topic, loaded per-agent to avoid wasting context
+      home.file.".config/opencode/knowledge/hosts.md".source         = ./knowledge/hosts.md;
+      home.file.".config/opencode/knowledge/docker.md".source        = ./knowledge/docker.md;
+      home.file.".config/opencode/knowledge/homeassistant.md".source = ./knowledge/homeassistant.md;
+      home.file.".config/opencode/knowledge/nixos.md".source         = ./knowledge/nixos.md;
       home.file.".config/opencode/skills" = {
         source = ./skills;
         recursive = true;
@@ -117,6 +121,9 @@ in
               mode = "primary";
               model = "google/gemini-2.5-pro";
               # model = "opencode/claude-sonnet-4-5";
+              # High-level overview only — enough to delegate correctly,
+              # no deep Docker/HA detail needed here.
+              knowledge = [ "hosts" ];
               prompt = ''
                 You are the Technical Project Manager. Analyze user intent and delegate to specialists. For complex web research, use @procurement. For NixOS configuration, use @nixos-engineer.
               '';
@@ -157,6 +164,7 @@ in
             procurement = {
               mode = "subagent";
               model = "google/gemini-2.5-pro";
+              # No homelab knowledge needed — this agent does external research only
               prompt = ''
                 You are a Procurement & Research Specialist.
                 - Use @web-extractor to pull structured data.
@@ -186,7 +194,26 @@ in
               mode = "subagent";
               model = "google/gemini-2.5-flash";
               # model = "opencode/gemini-3-flash";
-              prompt = "You are a Parsing Specialist. Convert raw HTML into clean JSON/Markdown. Discover API endpoints by inspecting source code.";
+              # No homelab knowledge needed — pure web parsing specialist
+              prompt = ''You are a Parsing & Reverse-Engineering Specialist.
+                STATIC SITES: Extract CSS selectors, XPath patterns, pagination logic.
+
+                DYNAMIC/SPA SITES:
+                - Inspect <script> tags for embedded JSON (window.__INITIAL_STATE__, etc.)
+                - Look for fetch()/XHR patterns in bundled JS to discover hidden REST/GraphQL APIs
+                - Check for /api/, /_next/data/, /wp-json/, /graphql endpoints
+                - Identify auth requirements (cookies, tokens, headers)
+
+                OUTPUT FORMAT (always structured):
+                - site_type: static | spa | hybrid
+                - recommended_approach: dom_scraping | json_api | rss_exists
+                - endpoints: [{url, method, headers_needed, sample_response_schema}]
+                - dom_selectors: [{purpose, css_selector, example_value}]
+                - pagination: {type, pattern}
+                - caveats: [rate_limits, cloudflare, paywalls, etc.]
+
+                Convert raw HTML into clean JSON/Markdown.
+              '';
 #              tools = ["firecrawl" "agentql"];
               temperature = 0.1;
               topP = 0.85;
@@ -212,6 +239,8 @@ in
               mode = "subagent";
               model = "google/gemini-2.5-pro";
               # model = "opencode/gemini-3-pro";
+              # Needs host topology and Docker stack locations; not HA YAML conventions
+              knowledge = [ "hosts" "docker" ];
               prompt = ''
                 You are the Triage Lead. Your job is to find the "Why".
                 1. When a failure is reported, query Grafana/Loki for error logs.
@@ -243,6 +272,8 @@ in
             docs-specialist = {
               mode = "subagent";
               model = "opencode/glm-4.7-free";
+              # Needs full picture to document changes accurately
+              knowledge = [ "hosts" "docker" "homeassistant" ];
               prompt = ''
                 You are the Librarian.
                 - Your task is to maintain the `~/Documents/system_manual.md`.
@@ -276,6 +307,8 @@ in
               mode = "subagent";
               model = "google/gemini-2.5-pro";
               # model = "opencode/claude-sonnet-4-5";
+              # Needs host topology and NixOS config structure; not Docker conventions or HA detail
+              knowledge = [ "hosts" "nixos" ];
               prompt = ''
                 You are a NixOS Specialist.
                 - Your goal is to maintain the system closure in /etc/nixos.
@@ -321,6 +354,8 @@ in
               mode = "subagent";
               model = "google/gemini-2.5-pro";
               # model = "opencode/claude-sonnet-4-5";
+              # Needs HA specifics and host context; not Docker compose conventions
+              knowledge = [ "hosts" "homeassistant" ];
               prompt = ''
                 You are an IoT Specialist.
                 - You write Home Assistant YAML and ESPHome configs.
@@ -355,11 +390,15 @@ in
               mode = "subagent";
               model = "google/gemini-2.5-pro";
               # model = "opencode/gemini-3-pro";
+              # Full picture — this agent manages the entire homelab
+              knowledge = [ "hosts" "docker" "homeassistant" ];
               prompt = ''
                 You are the Network Custodian.
-                - READ first: Always consult `{file:~/.config/opencode/knowledge/infrastructure.md}` to locate devices.
+                - READ first: Always consult your loaded knowledge files to locate devices
+                  and understand the infrastructure before taking any action.
                 - SSH ACCESS: Use the `ssh-mcp` tool for Debian/pfSense.
-                - CONTEXT: You know that only the Desktop is NixOS; others are Debian/Unifi/ESPHome.
+                - CONTEXT: You know that only Desktop and Surface Go are NixOS;
+                  omv (10.10.1.13) is Debian-based; HA (10.10.1.11) is HAOS.
               '';
               temperature = 0.4;
               topP = 0.9;
@@ -388,12 +427,17 @@ in
               mode = "subagent";
               model = "google/gemini-2.5-pro";
               # model = "opencode/gpt-5.2-codex";
+              # Minimal context — host IPs only in case scripts need to reference
+              # the homelab (e.g. a backup script targeting 10.10.1.13)
+              knowledge = [ "hosts" ];
               prompt = ''
                 You are an Expert Software Engineer specializing in Bash, Python 3 and PHP 8.3+.
                 - BASH: Use 'set -euo pipefail', local variables, and prioritize readability. Always assume `shellcheck` will be run.
                 - PYTHON: Prioritize type hinting and use standard libraries unless specialized ones are requested.
                 - PHP: Use modern 8.3 features, strict typing, and clean architectural patterns.
-                - TASK: When writing scripts that parse data, check if @web-extractor has data available first.
+                - WEB PARSING: When a task requires parsing, scraping, or understanding a website's structure,
+                  ALWAYS delegate to @web-extractor first. Use its structured output as your implementation spec.
+                  Prefer JSON API endpoints over HTML parsing when web-extractor finds them.
                 - Output ONLY the code and a brief explanation of how to execute it.
               '';
               skills = [ "coding-standards" ];
@@ -425,7 +469,16 @@ in
               mode = "subagent";
               model = "google/gemini-2.5-pro";
               # model = "opencode/claude-opus-4-5";
-              prompt = "Ethical Hacker. Perform pentesting (ZAP/Nmap), risk modelling, and gather threat intelligence. Map findings to CVEs.";
+              # No homelab knowledge — operates against external targets only
+              prompt = ''
+                You are an Ethical Hacker and Security Specialist.
+                - RECON & DISCOVERY: Before running active tools (ZAP/Nmap), delegate to @web-extractor
+                  to passively map endpoints, discover hidden APIs, inspect JS bundles for auth flows,
+                  and identify the attack surface. Use its findings to focus active scans.
+                - ACTIVE TESTING: Run ZAP/Nmap/nikto against the endpoints web-extractor identified.
+                - OUTPUT: Perform risk modelling, map findings to CVEs, and produce a structured report
+                  with severity ratings and remediation steps.
+              '';
               temperature = 0.4;
               topP = 0.9;
               topK = 40;
