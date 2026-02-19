@@ -6,16 +6,16 @@
 }:
 let
   inherit (lib) mkIf mkOption;
-  cfg = config.opencode;
+  cfg = config.claude-code;
   primaryUsername = config.primaryUser.name;
 in
 {
   options = {
-    opencode = {
+    claude-code = {
       enable = mkOption {
         type = lib.types.bool;
         default = false;
-        description = "Install opencode.";
+        description = "Install claude-code.";
       };
     };
   };
@@ -29,6 +29,11 @@ in
         zstd
       ];
     };
+    environment.systemPackages = with pkgs; [
+      # Re-adding mcp-nixos as it is crucial for NixOS maintenance
+      # Adding nom for better build log analysis
+      nix-output-monitor
+    ];
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
         yamlfmt
@@ -42,79 +47,43 @@ in
         lemminx
         shellcheck
         nodePackages.prettier
-        mcp-nixos
         djlint
         ruff
-        nix-output-monitor
       ];
       # Knowledge files — split by topic, loaded per-agent to avoid wasting context
-      home.file.".config/opencode/knowledge/hosts.md".source = ./knowledge/hosts.md;
-      home.file.".config/opencode/knowledge/docker.md".source = ./knowledge/docker.md;
-      home.file.".config/opencode/knowledge/homeassistant.md".source = ./knowledge/homeassistant.md;
-      home.file.".config/opencode/knowledge/nixos.md".source = ./knowledge/nixos.md;
-      home.file.".config/opencode/skills" = {
+      home.file.".config/claude-code/knowledge/hosts.md".source = ./knowledge/hosts.md;
+      home.file.".config/claude-code/knowledge/docker.md".source = ./knowledge/docker.md;
+      home.file.".config/claude-code/knowledge/homeassistant.md".source = ./knowledge/homeassistant.md;
+      home.file.".config/claude-code/knowledge/nixos.md".source = ./knowledge/nixos.md;
+      home.file.".config/claude-code/skills" = {
         source = ./skills;
         recursive = true;
       };
       home.sessionVariables = {
-        OPENCODE_LOG_LEVEL = "debug"; # Force debug logging at env level
-        #        OPENCODE_METRICS_ENABLED = "true";
-        #        OPENCODE_METRICS_ENDPOINT = "http://10.10.1.13:9090/metrics";  # Prometheus - to add
+        CLAUDE_CODE_LOG_LEVEL = "debug"; # Force debug logging at env level
       };
-      programs.opencode = {
+      programs.claude-code = {
         enable = true;
         settings = {
           theme = "catppuccin";
           provider = {
-            opencode = {
-              #               timeout = 120000;
-              #               retryAttempts = 3;
-              #               retryDelay = 1000;
-              #               retryExponentialBase = 2.0;
-              #               retryJitter = true;
-              #               maxRetryDelay = 60000;
+            claude = {
+              # timeout = 120000;
+              # retryAttempts = 3;
+              # retryDelay = 1000;
+              # retryExponentialBase = 2.0;
+              # retryJitter = true;
+              # maxRetryDelay = 60000;
             };
             google = {
-              #               timeout = 120000;
-              #               retryAttempts = 3;
-              #               retryDelay = 1000;
-              #               retryExponentialBase = 2.0;
-              #               retryJitter = true;
-              #               maxRetryDelay = 60000;
-            };
-            ollama = {
-              name = "Ollama (10.10.1.13)";
-              npm = "@ai-sdk/openai-compatible";
-              options = {
-                baseURL = "http://10.10.1.13:11434/v1";
-              };
-              #               timeout = 240000;  # 3 minutes - local models can be slower
-              #               retryAttempts = 2;  # Fewer retries for local server
-              #               retryDelay = 500;
-              #               retryExponentialBase = 1.5;
-              #               maxRetryDelay = 5000;
-              models = {
-                "gpt-oss:20b" = {
-                  name = "GPT-OSS 20B";
-                  tools = true;
-                };
-                "mistral-nemo:latest" = {
-                  name = "Mistral Nemo";
-                  tools = true;
-                };
-              };
+              # timeout = 120000;
+              # retryAttempts = 3;
+              # retryDelay = 1000;
+              # retryExponentialBase = 2.0;
+              # retryJitter = true;
+              # maxRetryDelay = 60000;
             };
           };
-          #           rateLimit = {
-          #             enabled = true;
-          #             maxRequestsPerMinute = 30;
-          #             maxRequestsPerHour = 500;
-          #             maxTokensPerDay = 2000000;
-          #             costAlert = {
-          #               dailyThreshold = 10;  # Alert at $100/day
-          #               notificationEmail = "michal@gawronskikot.com";
-          #             };
-          #           };
           watcher.ignore = [
             ".git/**"
             ".direnv/**"
@@ -132,10 +101,7 @@ in
           ];
           agent = import ./agents.nix;
           plugin = [
-            # "opencode-gemini-auth@latest"
-            "opencode-google-antigravity-auth@latest"
-            "@tarquinen/opencode-dcp@latest"
-            "@mohak34/opencode-notifier@latest"
+            # Add any relevant plugins for claude-code here
           ];
           permission = {
             bash = {
@@ -180,19 +146,6 @@ in
               "mkdir*" = "allow";
               "chmod*" = "allow";
 
-              # Safe system info commands
-              "systemctl list-units*" = "allow";
-              "systemctl list-timers*" = "allow";
-              "systemctl status*" = "allow";
-              "journalctl*" = "allow";
-              "dmesg*" = "allow";
-              "env*" = "allow";
-              "nh search*" = "allow";
-
-              # Audio system (read-only)
-              "pactl list*" = "allow";
-              "pw-top*" = "allow";
-
               # Potentially destructive git commands
               "git reset*" = "ask";
               "git commit*" = "ask";
@@ -208,43 +161,6 @@ in
               "rm*" = "ask";
               "mv*" = "ask";
               "cp*" = "ask";
-
-              # System control operations
-              "systemctl start*" = "ask";
-              "systemctl stop*" = "ask";
-              "systemctl restart*" = "ask";
-              "systemctl reload*" = "ask";
-              "systemctl enable*" = "ask";
-              "systemctl disable*" = "ask";
-
-              # Network operations
-              "curl*" = "ask";
-              "wget*" = "ask";
-              "ping*" = "ask";
-              "ssh*" = "ask";
-              "scp*" = "ask";
-              "rsync*" = "ask";
-
-              # Package management
-              "sudo*" = "ask";
-              "nixos-rebuild*" = "ask";
-
-              # Process management
-              "kill*" = "ask";
-              "killall*" = "ask";
-              "pkill*" = "ask";
-
-              # Docker management
-              "docker ps*" = "allow";
-              "docker logs*" = "allow";
-              "docker inspect*" = "allow";
-              "docker compose*" = "ask";
-              "docker images*" = "allow";
-              "docker stats*" = "allow";
-              "docker version*" = "allow";
-              "docker info*" = "allow";
-              "docker network ls*" = "allow";
-              "docker volume ls*" = "allow";
             };
             edit = "ask";
             read = "allow";
@@ -347,43 +263,6 @@ in
                 "$FILE"
               ];
               extensions = [ ".py" ];
-            };
-          };
-          mcp = {
-            grafana = {
-              type = "remote";
-              url = "http://10.10.1.13:5133/mcp";
-              enabled = true;
-              timeout = 30000;
-              #               retryAttempts = 3;
-              #               retryDelay = 1000;
-              #               circuitBreaker = {
-              #                 enabled = true;
-              #                 failureThreshold = 5;
-              #                 recoveryTimeout = 60;
-              #               };
-            };
-            unifi = {
-              type = "remote";
-              url = "http://10.10.1.13:5134/sse";
-              enabled = true;
-              timeout = 20000;
-              #               retryAttempts = 3;
-              #               retryDelay = 1000;
-              #               headers = {
-              #                 Accept = "text/event-stream";
-              #               };
-              #               circuitBreaker = {
-              #                 enabled = true;
-              #                 failureThreshold = 3;
-              #                 recoveryTimeout = 30;
-              #               };
-            };
-            nixos = {
-              enabled = true;
-              type = "local";
-              command = [ (lib.getExe pkgs.mcp-nixos) ];
-              timeout = 15000;
             };
           };
         };
