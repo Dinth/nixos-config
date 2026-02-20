@@ -5,6 +5,7 @@
     ./bat
     ./btop
     ./clamav
+    ./claude-code
     ./cloudflarewarp
     ./eza
     ./fzf

@@ -75,14 +75,6 @@ in
               # retryJitter = true;
               # maxRetryDelay = 60000;
             };
-            google = {
-              # timeout = 120000;
-              # retryAttempts = 3;
-              # retryDelay = 1000;
-              # retryExponentialBase = 2.0;
-              # retryJitter = true;
-              # maxRetryDelay = 60000;
-            };
           };
           watcher.ignore = [
             ".git/**"
