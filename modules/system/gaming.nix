@@ -21,6 +21,7 @@ in
       pkgs.lutris
       pkgs.openttd-jgrpp
       pkgs.heroic
+      pkgs.wine
     ];
   };
 }
