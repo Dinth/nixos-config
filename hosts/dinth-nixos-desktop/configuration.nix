@@ -12,11 +12,7 @@
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
 
-  boot.plymouth = {
-    enable = true;
-  };
-  catppuccin.plymouth.enable = true;
-  catppuccin.plymouth.flavor = "mocha";
+  boot.plymouth.enable = true;
 
   cli.enable = true;
   graphical.enable = true;
@@ -48,7 +44,7 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "scanner" "lp" "input" ];
+    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" "input" ];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {
@@ -64,7 +60,6 @@
         milkytracker
       ];
     };
-    catppuccin.flavor = "mocha";
   };
 
   environment.systemPackages = with pkgs; [

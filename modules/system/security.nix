@@ -121,7 +121,135 @@ in
   };
   security.apparmor = {
     enable = true;
-    packages = with pkgs; [ apparmor-utils ];
+    killUnconfinedConfinables = false;
+    packages = with pkgs; [ apparmor-utils apparmor-profiles ];
+    policies = {
+      # Google Chrome - web browser
+      "google-chrome" = {
+        state = "enforce";
+        profile = ''
+          abi <abi/4.0>,
+          include <tunables/global>
+          ${lib.getBin pkgs.google-chrome}/bin/.google-chrome-stable-wrapped flags=(enforce) {
+            include <abstractions/base>
+            include <abstractions/audio>
+            include <abstractions/dbus-session-strict>
+            include <abstractions/fonts>
+            include <abstractions/freedesktop.org>
+            include <abstractions/gnome>
+            include <abstractions/mesa>
+            include <abstractions/nameservice>
+            include <abstractions/ssl_certs>
+            include <abstractions/user-download>
+            include <abstractions/vulkan>
+            include <abstractions/X>
+
+            capability sys_admin,
+            capability sys_chroot,
+            capability sys_ptrace,
+
+            network inet stream,
+            network inet6 stream,
+            network inet dgram,
+            network inet6 dgram,
+            network netlink raw,
+
+            /nix/store/** r,
+            /nix/store/*/lib/** mr,
+            /nix/store/*/bin/** rix,
+
+            owner @{HOME}/.config/google-chrome/** rwk,
+            owner @{HOME}/.cache/google-chrome/** rwk,
+            owner @{HOME}/Downloads/** rw,
+
+            /dev/ r,
+            /dev/shm/** rw,
+            /dev/dri/** rw,
+            /sys/devices/** r,
+            /proc/@{pid}/** r,
+            /etc/machine-id r,
+            /run/user/@{uid}/** rw,
+
+            deny @{HOME}/.ssh/** rwx,
+            deny @{HOME}/.gnupg/** rwx,
+            deny @{HOME}/.config/git/** rwx,
+            deny /etc/shadow r,
+          }
+        '';
+      };
+
+      # Electron apps (Discord, Slack, VSCode, etc.) - common attack vector
+      "electron-common" = {
+        state = "complain"; # Complain mode - Electron apps vary widely
+        profile = ''
+          abi <abi/4.0>,
+          include <tunables/global>
+          /nix/store/*-electron-*/lib/electron/electron flags=(complain) {
+            include <abstractions/base>
+            include <abstractions/audio>
+            include <abstractions/fonts>
+            include <abstractions/freedesktop.org>
+            include <abstractions/mesa>
+            include <abstractions/nameservice>
+            include <abstractions/ssl_certs>
+            include <abstractions/X>
+
+            network inet stream,
+            network inet6 stream,
+
+            /nix/store/** r,
+            /nix/store/*/lib/** mr,
+
+            owner @{HOME}/.config/** rwk,
+            owner @{HOME}/.cache/** rwk,
+            owner @{HOME}/Downloads/** rw,
+
+            /dev/shm/** rw,
+            /dev/dri/** rw,
+            /proc/@{pid}/** r,
+            /run/user/@{uid}/** rw,
+
+            deny @{HOME}/.ssh/** rwx,
+            deny @{HOME}/.gnupg/** rwx,
+          }
+        '';
+      };
+
+      # clamonacc - runs as root, should be restricted
+      "clamav-clamonacc" = {
+        state = "enforce";
+        profile = ''
+          abi <abi/4.0>,
+          include <tunables/global>
+          ${lib.getBin pkgs.clamav}/bin/clamonacc flags=(enforce) {
+            include <abstractions/base>
+            include <abstractions/nameservice>
+
+            capability sys_admin,      # fanotify
+            capability dac_read_search, # read all files
+
+            /nix/store/** r,
+            /nix/store/*/lib/** mr,
+            /nix/store/*/bin/** rix,
+
+            # ClamAV operational paths
+            /var/lib/clamav/** r,
+            /var/lib/quarantine/** rw,
+            /var/log/clamav/** rw,
+            /run/clamav/** rw,
+            /etc/clamav/** r,
+
+            # Read access for scanning
+            /** r,
+
+            # Deny sensitive modifications
+            deny /etc/** w,
+            deny /boot/** w,
+            deny /nix/** w,
+          }
+        '';
+      };
+    };
   };
   programs.firejail = {
     enable = true;
@@ -132,11 +260,9 @@ in
     enable = true;
     extraRules = [
       {
-        users = ["michal"];
+        users = [primaryUsername];
         persist = true;
-        # noPass = true;
         keepEnv = true;
-        # cmd = "ALL";
       }
     ];
   };

@@ -39,13 +39,11 @@
       packages = with pkgs; [
       ];
     };
-    catppuccin.flavor = "mocha";
   };
   cli.enable = true;
   graphical.enable = false;
   kde.enable = false;
   _1password.enable = false;
-  _1password.gui = false;
   gaming.enable = false;
   virtualisation.enable = false;
   logitech.enable = false;

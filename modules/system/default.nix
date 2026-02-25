@@ -11,6 +11,7 @@
     ./networking.nix
     ./nix.nix
     ./security.nix
+    ./theme.nix
     ./virtualisation
   ];
 }

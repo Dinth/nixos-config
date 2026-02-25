@@ -20,6 +20,10 @@ let
       sed -i"" -E 's@requires = .*@requires = ["setuptools", "wheel"]@g' pyproject.toml
       sed -i"" '/asyncio/d' pyproject.toml
 
+      # Fix log file location - use ~/.local/state/lnxlink instead of config directory
+      substituteInPlace lnxlink/files_setup.py \
+        --replace-fail 'config_dir = os.path.dirname(os.path.realpath(config_path))' \
+                       'config_dir = os.path.expanduser("~/.local/state/lnxlink"); os.makedirs(config_dir, exist_ok=True)'
     '';
 
     nativeBuildInputs = with pkgs.python3Packages; [
@@ -57,28 +61,33 @@ in
       enable = mkOption {
         type = types.bool;
         default = false;
+        description = "Enable LNXLink Home Assistant companion service.";
       };
 
       mqtt = {
         broker = mkOption {
           type = types.str;
           default = "localhost";
+          description = "MQTT broker hostname or IP address.";
         };
 
         port = mkOption {
           type = types.port;
           default = 1883;
+          description = "MQTT broker port.";
         };
 
         credentialsFile = mkOption {
           type = types.nullOr types.path;
           default = null;
+          description = "Path to file containing MQTT username (line 1) and password (line 2).";
         };
       };
 
       autodiscovery = mkOption {
         type = types.bool;
         default = true;
+        description = "Enable Home Assistant MQTT autodiscovery.";
       };
     };
   };

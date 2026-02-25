@@ -48,11 +48,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
   boot.initrd.systemd.enable = true;
-  boot.plymouth = {
-    enable = true;
-  };
-  catppuccin.plymouth.enable = true;
-  catppuccin.plymouth.flavor = "mocha";
+  boot.plymouth.enable = true;
+
   cli.enable = true;
   graphical.enable = true;
   kde.enable = true;
@@ -79,7 +76,7 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "scanner" "lp" ];
+    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" ];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {

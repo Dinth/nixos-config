@@ -10,7 +10,7 @@ in
       enable = mkOption {
         type = lib.types.bool;
         default = false;
-        description = "Enable docker deamon.";
+        description = "Enable Docker daemon (rootless).";
       };
     };
   };

@@ -116,18 +116,32 @@ in
       wantedBy = ["multi-user.target"];
       serviceConfig = {
         Type = "simple";
+        # Root required for fanotify (CAP_SYS_ADMIN), but capabilities are restricted
         User = "root";
         ExecStartPre = ''${lib.getExe pkgs.bash} -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
-        ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F --log=/var/log/clamav/clamonacc.log -c /etc/clamav/clamd.conf --move /var/lib/quarantine  --fdpass --allmatch'';
+        ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F -c /etc/clamav/clamd.conf --move /var/lib/quarantine --fdpass --allmatch'';
+        StandardOutput = "journal";
+        StandardError = "journal";
         ExecReload = ''${lib.getExe' pkgs.coreutils "kill"} -USR2 $MAINPID'';
-        PrivateTmp = "yes";
-        PrivateDevices = "yes";
-        PrivateNetwork = "yes";
+        # Capability restrictions - only what fanotify needs
+        CapabilityBoundingSet = "CAP_SYS_ADMIN CAP_DAC_READ_SEARCH";
+        AmbientCapabilities = "CAP_SYS_ADMIN CAP_DAC_READ_SEARCH";
+        # Hardening (relaxed - scanner needs broad filesystem read access)
+        PrivateTmp = true;
+        PrivateDevices = true;
+        PrivateNetwork = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        NoNewPrivileges = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        RestrictRealtime = true;
       };
     };
     systemd.tmpfiles.rules = [
       "d /var/log/clamav 0755 clamav clamav - -"
-      "d /var/quarantine 0755 root root - -"
+      "d /var/lib/quarantine 0755 root root - -"
     ];
     environment.variables = {
       CLAMAV_ONACCESS_FLAGS = "--fanotify";  # Avoid legacy inotify

@@ -10,7 +10,7 @@ in
       enable = mkOption {
         type = lib.types.bool;
         default = false;
-        description = "Enable 1Password CLI";
+        description = "Enable 1Password CLI and GUI (GUI requires graphical.enable)";
       };
     };
   };
