@@ -477,7 +477,7 @@ in
             "VersionControl"."enabledPlugins" = "Git";
           };
         };
-    };
+      };
     };
   };
 }
