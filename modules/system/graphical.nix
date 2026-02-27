@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  inherit (lib) mkIf;
-  inherit (lib) mkOption;
+  inherit (lib) mkIf mkOption mkDefault;
   cfg = config.graphical;
   primaryUsername = config.primaryUser.name;
 in
@@ -45,22 +44,22 @@ in
       ubuntu-classic
     ];
     fonts.fontconfig = {
-      enable = true;
-      antialias = true;
-      subpixel.rgba = "rgb";
-      subpixel.lcdfilter = "default";
+      enable = mkDefault true;
+      antialias = mkDefault true;
+      subpixel.rgba = mkDefault "rgb";
+      subpixel.lcdfilter = mkDefault "default";
       hinting = {
-        enable = true;
-        style = "full";
-        autohint = true;
+        enable = mkDefault true;
+        style = mkDefault "full";
+        autohint = mkDefault true;
       };
-      allowBitmaps = false;
+      allowBitmaps = mkDefault false;
     };
-    orcaslicer.enable = true;
-    security.rtkit.enable = true;
-    services.colord.enable = true;
-    security.polkit.enable = true;
-    services.libinput.touchpad.naturalScrolling = true;
+    orcaslicer.enable = mkDefault true;
+    security.rtkit.enable = mkDefault true;
+    services.colord.enable = mkDefault true;
+    security.polkit.enable = mkDefault true;
+    services.libinput.touchpad.naturalScrolling = mkDefault true;
     xdg.portal = {
       enable = true;
     };

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, machineType ? "desktop", ... }:
 let
   inherit (lib) mkDefault;
 in
@@ -8,9 +8,12 @@ in
       allowUnfree = true;
     };
   };
-  # Bootloader.
-  # Use latest kernel.
-  boot.kernelPackages = mkDefault pkgs.linuxPackages_latest;
+  # Kernel: stable for servers, latest for desktops/tablets
+  boot.kernelPackages = mkDefault (
+    if machineType == "server"
+    then pkgs.linuxPackages
+    else pkgs.linuxPackages_latest
+  );
 #  boot.tmp.cleanOnBoot = true;
   services.fwupd.enable = true;
 }

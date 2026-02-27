@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, catppuccin, ... }:
 
 {
   imports =
@@ -80,6 +80,7 @@
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {
+    imports = [ catppuccin.homeModules.catppuccin ];
     home = {
       stateVersion = "25.05";
       username = config.primaryUser.name;

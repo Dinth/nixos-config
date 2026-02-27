@@ -25,7 +25,6 @@ in
       mcp-nixos
     ];
     home-manager.users.${primaryUsername} = {
-      nixpkgs.config.allowUnfree = true;
       home.packages = with pkgs; [
         yamlfmt
         php83Packages.php-cs-fixer

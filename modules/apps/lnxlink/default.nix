@@ -3,6 +3,7 @@ let
   inherit (lib) mkIf mkOption types;
   cfg = config.lnxlink;
   primaryUsername = config.primaryUser.name;
+  hostname = config.networking.hostName;
 
   lnxlink = pkgs.python3Packages.buildPythonPackage rec {
     pname = "lnxlink";
@@ -24,6 +25,11 @@ let
       substituteInPlace lnxlink/files_setup.py \
         --replace-fail 'config_dir = os.path.dirname(os.path.realpath(config_path))' \
                        'config_dir = os.path.expanduser("~/.local/state/lnxlink"); os.makedirs(config_dir, exist_ok=True)'
+
+      # Skip writing config if read-only (NixOS symlinks to nix store)
+      substituteInPlace lnxlink/config_setup.py \
+        --replace-fail 'if len(missing_keys) > 0:' \
+                       'if len(missing_keys) > 0 and os.access(config_path, os.W_OK):'
     '';
 
     nativeBuildInputs = with pkgs.python3Packages; [
@@ -128,6 +134,13 @@ in
           ExecStart = "${lnxlink}/bin/lnxlink -c %h/.config/lnxlink/config.yaml";
           Restart = "on-failure";
           RestartSec = "10s";
+          # Light hardening (lnxlink needs broad access for monitoring/control)
+          NoNewPrivileges = true;
+          ProtectControlGroups = true;
+          ProtectKernelModules = true;
+          ProtectKernelTunables = true;
+          RestrictSUIDSGID = true;
+          LockPersonality = true;
         } // lib.optionalAttrs (cfg.mqtt.credentialsFile != null) {
           ExecStartPre = "${pkgs.bash}/bin/bash %h/.config/lnxlink/make-env.sh ${cfg.mqtt.credentialsFile} %h/.config/lnxlink/mqtt-env";
           EnvironmentFile = "%h/.config/lnxlink/mqtt-env";
@@ -138,16 +151,31 @@ in
 
       xdg.configFile."lnxlink/config.yaml".text = ''
         mqtt:
-          broker: ${cfg.mqtt.broker}
+          prefix: lnxlink
+          clientId: ${hostname}
+          server: ${cfg.mqtt.broker}
           port: ${toString cfg.mqtt.port}
-          ${lib.optionalString (cfg.mqtt.credentialsFile != null) "username: $MQTT_USERNAME\n          password: $MQTT_PASSWORD"}
+          auth:
+            user: ${if cfg.mqtt.credentialsFile != null then "$MQTT_USERNAME" else ""}
+            pass: ${if cfg.mqtt.credentialsFile != null then "$MQTT_PASSWORD" else ""}
+          discovery:
+            enabled: ${lib.boolToString cfg.autodiscovery}
+            prefix: homeassistant
+          lwt:
+            enabled: true
+            topic: lnxlink/${hostname}/lwt
+          clear_on_off: false
 
-        autodiscovery: ${lib.boolToString cfg.autodiscovery}
+        update_interval: 5
+        update_on_change: true
 
         modules:
           control: { shutdown: true, restart: true, suspend: true, hibernate: true, send_keys: true, notify: true, media: true, screen: true, bash: true }
           monitor: { cpu: true, ram: true, network: true, disk: true, battery: true, idle: true, media: true, microphone: true, camera: true, gpu: true, updates: true }
 
+        custom_modules: []
+        exclude: []
+        settings: {}
         logging: { level: INFO }
       '';
     };

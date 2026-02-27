@@ -6,7 +6,7 @@
   ...
 }:
 let
-  inherit (lib) mkIf mkOption;
+  inherit (lib) mkIf mkOption mkDefault;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
   inherit (config) specialArgs;
@@ -23,8 +23,8 @@ in
     };
   };
   config = mkIf cfg.enable {
-    services.displayManager.sddm.wayland.enable = true;
-    services.desktopManager.plasma6.enable = true;
+    services.displayManager.sddm.wayland.enable = mkDefault true;
+    services.desktopManager.plasma6.enable = mkDefault true;
     environment.systemPackages =
       with pkgs;
       [

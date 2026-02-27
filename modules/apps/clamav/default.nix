@@ -1,11 +1,11 @@
 { config, lib, pkgs, ... }:
 let
   inherit (lib) mkIf mkOption mkMerge;
-  cfg = config.antivirus;
+  cfg = config.clamav;
 in
 {
   options = {
-    antivirus = {
+    clamav = {
       enable = mkOption {
         type = lib.types.bool;
         default = true;
@@ -44,7 +44,7 @@ in
     cfg.accessScanning.homeDirectories;
   in
   {
-    antivirus.accessScanning.directories = allACScanHomeDirs;
+    clamav.accessScanning.directories = allACScanHomeDirs;
     services.clamav = {
       daemon = {
         enable = true;

@@ -251,10 +251,9 @@ in
       };
     };
   };
-  programs.firejail = {
-    enable = true;
-    # TBD: Add jails
-  };
+  # Firejail for ad-hoc sandboxing (e.g., firejail --private ./untrusted-binary)
+  # No wrapped binaries - AppArmor handles everyday apps
+  programs.firejail.enable = true;
   security.sudo.enable = false;
   security.doas = {
     enable = true;

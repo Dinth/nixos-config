@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  inherit (lib) mkIf mkOption getExe getExe';
+  inherit (lib) mkIf mkOption mkDefault getExe getExe';
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
 in
@@ -78,7 +78,7 @@ in
       diff = "${getExe pkgs.difftastic}";                                     # Use difftastic for diffs
       ip = "${lib.getExe' pkgs.iproute2 "ip"} --color=auto";                             # Colorize IP output
     };
-    programs.usbtop.enable = true;
-    programs.ssh.startAgent = true;
+    programs.usbtop.enable = mkDefault true;
+    programs.ssh.startAgent = mkDefault true;
   };
 }

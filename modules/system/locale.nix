@@ -18,8 +18,8 @@ in
       LC_TIME = "en_GB.UTF-8";
     };
     console = {
-#      font = "Lat2-Terminus16";
-# TODO: choose a console font
+      font = "ter-v18n";
+      packages = [ pkgs.terminus_font ];
       useXkbConfig = true;
     };
     services.xserver.xkb = {

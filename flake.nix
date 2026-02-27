@@ -26,12 +26,12 @@
   };
 
   outputs =
-    inputs@{ nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nix-darwin, nixos-hardware, ... }:
+    inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, ... }:
     {
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { machineType = "desktop"; };
+          specialArgs = { machineType = "desktop"; inherit catppuccin; };
           modules = [
             ./libs
             ./modules
@@ -40,23 +40,16 @@
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
             {
-              #home-manager.useGlobalPkgs = true;
+              home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
-              home-manager.users.michal = {
-                imports = [
-                  catppuccin.homeModules.catppuccin
-                ];
-              };
-              # Optionally, use home-manager.extraSpecialArgs to pass
-              # arguments to home.nix
+              home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default ];
             }
           ];
         };
         r230-nixos = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { machineType = "server"; };
+          specialArgs = { machineType = "server"; inherit catppuccin; };
           modules = [
             ./libs
             ./modules
@@ -65,23 +58,16 @@
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
             {
-              #home-manager.useGlobalPkgs = true;
+              home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ agenix.homeManagerModules.default];
-              home-manager.users.michal = {
-                imports = [
-                  catppuccin.homeModules.catppuccin
-                ];
-              };
-              # Optionally, use home-manager.extraSpecialArgs to pass
-              # arguments to home.nix
+              home-manager.sharedModules = [ agenix.homeManagerModules.default ];
             }
           ];
         };
         michal-surface-go = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
-            specialArgs = { machineType = "tablet"; };
+            specialArgs = { machineType = "tablet"; inherit catppuccin; };
             modules = [
               ./libs
               ./modules
@@ -91,21 +77,23 @@
               nixos-hardware.nixosModules.microsoft-surface-go
               home-manager.nixosModules.home-manager
               {
-                #home-manager.useGlobalPkgs = true;
+                home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
                 home-manager.backupFileExtension = "backup";
-                home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default];
-                home-manager.users.michal = {
-                  imports = [
-                    catppuccin.homeModules.catppuccin
-                  ];
-                };
-                # Optionally, use home-manager.extraSpecialArgs to pass
-                # arguments to home.nix
+                home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default ];
               }
             ];
           };
         };
+
+      # Flake checks - run with: nix flake check
+      checks.x86_64-linux = {
+        # Verify each host configuration evaluates successfully
+        dinth-nixos-desktop = self.nixosConfigurations.dinth-nixos-desktop.config.system.build.toplevel;
+        michal-surface-go = self.nixosConfigurations.michal-surface-go.config.system.build.toplevel;
+        r230-nixos = self.nixosConfigurations.r230-nixos.config.system.build.toplevel;
+      };
+
 # Doesnt work
 #       darwinConfigurations = {
 #         michal-macbook-pro = nix-darwin.lib.darwinSystem {
