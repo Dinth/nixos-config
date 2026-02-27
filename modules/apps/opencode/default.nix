@@ -166,7 +166,12 @@ in
               "nix show-config*" = "allow";
               "nix flake show*" = "allow";
               "nix flake check*" = "allow";
+              "nix flake info*" = "allow";
+              "nix flake metadata*" = "allow";
               "nix log*" = "allow";
+              "nix-instantiate --parse*" = "allow";
+              "nix-instantiate --show-trace*" = "allow";
+              "nh search*" = "allow";
 
               # Safe file system operations
               "ls*" = "allow";
@@ -177,17 +182,52 @@ in
               "cat*" = "allow";
               "head*" = "allow";
               "tail*" = "allow";
+              "less*" = "allow";
+              "wc*" = "allow";
+              "sort*" = "allow";
+              "uniq*" = "allow";
+              "file*" = "allow";
+              "stat*" = "allow";
+              "tree*" = "allow";
+              "eza*" = "allow";
               "mkdir*" = "allow";
               "chmod*" = "allow";
 
               # Safe system info commands
               "systemctl list-units*" = "allow";
+              "systemctl list-unit-files*" = "allow";
               "systemctl list-timers*" = "allow";
               "systemctl status*" = "allow";
+              "systemctl is-active*" = "allow";
+              "systemctl is-enabled*" = "allow";
+              "systemctl show*" = "allow";
               "journalctl*" = "allow";
               "dmesg*" = "allow";
               "env*" = "allow";
-              "nh search*" = "allow";
+              "uname*" = "allow";
+              "hostname*" = "allow";
+              "whoami*" = "allow";
+              "id*" = "allow";
+              "which*" = "allow";
+              "type*" = "allow";
+              "date*" = "allow";
+              "uptime*" = "allow";
+              "df*" = "allow";
+              "du*" = "allow";
+              "free*" = "allow";
+              "lsblk*" = "allow";
+              "lsusb*" = "allow";
+              "lspci*" = "allow";
+
+              # Network info (read-only)
+              "ip addr*" = "allow";
+              "ip route*" = "allow";
+              "ip link*" = "allow";
+              "ss*" = "allow";
+
+              # Process info (read-only)
+              "ps*" = "allow";
+              "pgrep*" = "allow";
 
               # Audio system (read-only)
               "pactl list*" = "allow";
@@ -234,17 +274,28 @@ in
               "killall*" = "ask";
               "pkill*" = "ask";
 
-              # Docker management
+              # Docker management (read-only)
               "docker ps*" = "allow";
               "docker logs*" = "allow";
               "docker inspect*" = "allow";
-              "docker compose*" = "ask";
               "docker images*" = "allow";
               "docker stats*" = "allow";
               "docker version*" = "allow";
               "docker info*" = "allow";
               "docker network ls*" = "allow";
+              "docker network inspect*" = "allow";
               "docker volume ls*" = "allow";
+              "docker volume inspect*" = "allow";
+              # Docker management (mutations)
+              "docker compose*" = "ask";
+
+              # GitHub CLI (read-only)
+              "gh pr list*" = "allow";
+              "gh pr view*" = "allow";
+              "gh issue list*" = "allow";
+              "gh issue view*" = "allow";
+              "gh repo view*" = "allow";
+              "gh api*" = "allow";
             };
             edit = "ask";
             read = "allow";
@@ -252,7 +303,8 @@ in
             list = "allow";
             glob = "allow";
             grep = "allow";
-            webfetch = "ask";
+            webfetch = "allow";
+            websearch = "allow";
             write = "ask";
             task = "allow";
             todowrite = "allow";

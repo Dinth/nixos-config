@@ -158,25 +158,26 @@ in
           auth:
             user: ${if cfg.mqtt.credentialsFile != null then "$MQTT_USERNAME" else ""}
             pass: ${if cfg.mqtt.credentialsFile != null then "$MQTT_PASSWORD" else ""}
+            tls: false
+            keyfile: ""
+            certfile: ""
+            ca_certs: ""
           discovery:
             enabled: ${lib.boolToString cfg.autodiscovery}
             prefix: homeassistant
           lwt:
             enabled: true
-            topic: lnxlink/${hostname}/lwt
+            qos: 1
           clear_on_off: false
-
         update_interval: 5
         update_on_change: true
-
         modules:
-          control: { shutdown: true, restart: true, suspend: true, hibernate: true, send_keys: true, notify: true, media: true, screen: true, bash: true }
-          monitor: { cpu: true, ram: true, network: true, disk: true, battery: true, idle: true, media: true, microphone: true, camera: true, gpu: true, updates: true }
-
-        custom_modules: []
-        exclude: []
-        settings: {}
-        logging: { level: INFO }
+        custom_modules:
+        exclude:
+        settings:
+          statistics: ""
+        logging:
+          level: INFO
       '';
     };
   };
