@@ -103,7 +103,10 @@ in
       };
       scanner = {
         scanDirectories = [
-          "/"
+          "/home"
+          "/tmp"
+          "/run/media"
+          "/run/user"
         ];
         interval = "*-*-* 09:00:00";
       };

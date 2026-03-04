@@ -216,12 +216,13 @@ in
       };
 
       # clamonacc - runs as root, should be restricted
+      # attach_disconnected is required for fanotify-based scanning
       "clamav-clamonacc" = {
         state = "enforce";
         profile = ''
           abi <abi/4.0>,
           include <tunables/global>
-          ${lib.getBin pkgs.clamav}/bin/clamonacc flags=(enforce) {
+          ${lib.getBin pkgs.clamav}/bin/clamonacc flags=(attach_disconnected) {
             include <abstractions/base>
             include <abstractions/nameservice>
 

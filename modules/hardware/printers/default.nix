@@ -21,12 +21,15 @@ in
       drivers = with pkgs; [
         canon-cups-ufr2
         cups-filters
-        cups-browsed
       ];
+      browsing = true;
       extraConf = ''
         DefaultPaperSize A4
       '';
     };
+    services.printing.cups-pdf.enable = false;
+    services.avahi.publish.enable = true;
+    services.avahi.publish.userServices = true;
     hardware.printers = {
       ensurePrinters = [
         {

@@ -213,48 +213,38 @@ in
           }
         ];
         desktop.widgets = [
-          # --- Applet 1014: IO ---
+          # --- SSD ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = {
-              horizontal = 1696;
-              vertical = 656;
-            };
-            size = {
-              width = 352;
-              height = 224;
-            };
+            position = { horizontal = 1696; vertical = 656; };
+            size = { width = 352; height = 224; };
             config = {
               Appearance = {
                 chartFace = "org.kde.ksysguard.linechart";
                 title = "SSD";
               };
-              SensorColors."disk/nvme0n1/read" = "186,61,233";
-              SensorColors."disk/nvme0n1/write" = "179,233,61";
-              SensorColors."lmsensors/nvme-pci-0100/temp1" = "134,233,61";
-              SensorLabels."disk/nvme0n1/read" = "Read Rate";
-              SensorLabels."disk/nvme0n1/write" = "Write Rate";
-              SensorLabels."lmsensors/nvme-pci-0100/temp1" = "Temperature";
-              # Convert the JSON-like string to a proper Nix list
-              Sensors.highPrioritySensorIds = [
-                "disk/nvme0n1/read"
-                "disk/nvme0n1/write"
-              ];
-              Sensors.lowPrioritySensorIds = [ "lmsensors/nvme-pci-0100/temp1" ];
+              SensorColors = {
+                "disk/nvme0n1/read" = "186,61,233";
+                "disk/nvme0n1/write" = "179,233,61";
+                "lmsensors/nvme-pci-0100/temp1" = "134,233,61";
+              };
+              SensorLabels = {
+                "disk/nvme0n1/read" = "Read Rate";
+                "disk/nvme0n1/write" = "Write Rate";
+                "lmsensors/nvme-pci-0100/temp1" = "Temperature";
+              };
+              Sensors = {
+                highPrioritySensorIds = ["disk/nvme0n1/read" "disk/nvme0n1/write"];
+                lowPrioritySensorIds = ["lmsensors/nvme-pci-0100/temp1"];
+              };
             };
           }
-  
-          # --- Applet 1016: Memory ---
+
+          # --- Memory ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = {
-              horizontal = 1696;
-              vertical = 224;
-            };
-            size = {
-              width = 352;
-              height = 224;
-            };
+            position = { horizontal = 1696; vertical = 224; };
+            size = { width = 352; height = 224; };
             config = {
               Appearance = {
                 chartFace = "org.kde.ksysguard.piechart";
@@ -266,35 +256,32 @@ in
                 "memory/physical/cachePercent" = "233,82,61";
                 "memory/swap/usedPercent" = "71,61,233";
               };
-              SensorLabels."memory/swap/usedPercent" = "Swap";
-              Sensors.highPrioritySensorIds = [
-                "memory/physical/applicationPercent"
-                "memory/physical/bufferPercent"
-                "memory/physical/cachePercent"
-                "memory/swap/usedPercent"
-              ];
+              SensorLabels = {
+                "memory/physical/applicationPercent" = "Application";
+                "memory/physical/bufferPercent" = "Buffer";
+                "memory/physical/cachePercent" = "Cache";
+                "memory/swap/usedPercent" = "Swap";
+              };
+              Sensors = {
+                highPrioritySensorIds = ["memory/physical/applicationPercent" "memory/physical/bufferPercent" "memory/physical/cachePercent" "memory/swap/usedPercent"];
+              };
             };
           }
-          # --- Applet 1017: GPU ---
+
+          # --- GPU ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = {
-              horizontal = 1696;
-              vertical = 448;
-            };
-            size = {
-              width = 352;
-              height = 208;
-            };
+            position = { horizontal = 1696; vertical = 448; };
+            size = { width = 352; height = 208; };
             config = {
               Appearance = {
                 chartFace = "org.kde.ksysguard.linechart";
                 title = "GPU";
               };
               SensorColors = {
-                "gpu/gpu1/temp3" = "233,107,61";
                 "gpu/gpu1/usage" = "66,233,61";
                 "gpu/gpu1/usedVram" = "61,233,224";
+                "gpu/gpu1/temp3" = "233,107,61";
               };
               SensorLabels = {
                 "gpu/gpu1/usage" = "GPU %";
@@ -302,25 +289,17 @@ in
                 "gpu/gpu1/temp3" = "Temperature";
               };
               Sensors = {
-                highPrioritySensorIds = [
-                  "gpu/gpu1/usage"
-                  "gpu/gpu1/usedVram"
-                ];
-                lowPrioritySensorIds = [ "gpu/gpu1/temp3" ];
+                highPrioritySensorIds = ["gpu/gpu1/usage" "gpu/gpu1/usedVram"];
+                lowPrioritySensorIds = ["gpu/gpu1/temp3"];
               };
             };
           }
-          # --- Applet 1018: Network ---
+
+          # --- Network ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = {
-              horizontal = 1696;
-              vertical = 880;
-            };
-            size = {
-              width = 352;
-              height = 224;
-            };
+            position = { horizontal = 1696; vertical = 880; };
+            size = { width = 352; height = 224; };
             config = {
               Appearance = {
                 chartFace = "org.kde.ksysguard.linechart";
@@ -330,25 +309,21 @@ in
                 "network/all/download" = "89,233,61";
                 "network/all/upload" = "233,61,140";
               };
+              SensorLabels = {
+                "network/all/download" = "Download";
+                "network/all/upload" = "Upload";
+              };
               Sensors = {
-                highPrioritySensorIds = [
-                  "network/all/download"
-                  "network/all/upload"
-                ];
+                highPrioritySensorIds = ["network/all/download" "network/all/upload"];
               };
             };
           }
-          # --- Applet 1020: CPU ---
+
+          # --- CPU ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = {
-              horizontal = 1696;
-              vertical = 0;
-            };
-            size = {
-              width = 352;
-              height = 224;
-            };
+            position = { horizontal = 1696; vertical = 0; };
+            size = { width = 352; height = 224; };
             config = {
               Appearance = {
                 chartFace = "org.kde.ksysguard.linechart";
@@ -357,26 +332,19 @@ in
               SensorColors = {
                 "cpu/all/averageFrequency" = "175,61,233";
                 "cpu/all/averageTemperature" = "74,61,233";
-                "cpu/all/usage" = "61,174,233";
               };
               SensorLabels = {
                 "cpu/all/averageFrequency" = "Frequency";
                 "cpu/all/averageTemperature" = "Temperature";
                 "cpu/loadaverages/loadaverage1" = "Load avg 1m";
-                "cpu/loadaverages/loadaverage15" = "Load avg 15m";
                 "cpu/loadaverages/loadaverage5" = "Load avg 5m";
+                "cpu/loadaverages/loadaverage15" = "Load avg 15m";
                 "pressure/cpu/full10Sec" = "Pressure 10s";
               };
-              Sensors.highPrioritySensorIds = [
-                "cpu/all/averageFrequency"
-                "cpu/all/averageTemperature"
-              ];
-              Sensors.lowPrioritySensorIds = [
-                "cpu/loadaverages/loadaverage1"
-                "cpu/loadaverages/loadaverage5"
-                "cpu/loadaverages/loadaverage15"
-                "pressure/cpu/full10Sec"
-              ];
+              Sensors = {
+                highPrioritySensorIds = ["cpu/all/averageFrequency" "cpu/all/averageTemperature"];
+                lowPrioritySensorIds = ["cpu/loadaverages/loadaverage1" "cpu/loadaverages/loadaverage5" "cpu/loadaverages/loadaverage15" "pressure/cpu/full10Sec"];
+              };
             };
           }
         ];

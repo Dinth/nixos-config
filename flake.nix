@@ -10,12 +10,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     plasma-manager = {
-      url = "github:nix-community/plasma-manager/d4fae34";
+      url = "github:nix-community/plasma-manager/";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
     agenix = {
       url = "github:yaxitech/ragenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixvirt = {
+      url = "github:AshleyYakeley/NixVirt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -26,7 +30,7 @@
   };
 
   outputs =
-    inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, ... }:
+    inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, ... }:
     {
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
@@ -38,6 +42,7 @@
             ./hosts/dinth-nixos-desktop/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
+            nixvirt.nixosModules.default
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -56,6 +61,7 @@
             ./hosts/r230-nixos/configuration.nix
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
+            nixvirt.nixosModules.default
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;

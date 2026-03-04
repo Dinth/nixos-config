@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 {
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.trusted-users = [ "root" "@wheel" ];
   nix.optimise.automatic = true;
   nix.gc = {
     automatic = true;

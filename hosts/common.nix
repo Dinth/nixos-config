@@ -14,6 +14,13 @@ in
     then pkgs.linuxPackages
     else pkgs.linuxPackages_latest
   );
-#  boot.tmp.cleanOnBoot = true;
+  boot.tmp.useTmpfs = true;
+  boot.tmp.cleanOnBoot = true;
   services.fwupd.enable = true;
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 10;
+    enableNotifications = true;
+  };
 }

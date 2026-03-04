@@ -5,6 +5,10 @@ let
   primaryUsername = config.primaryUser.name;
 in
 {
+  imports = [
+    ./vms
+  ];
+
   options = {
     virtualisation = {
       enable = mkOption {

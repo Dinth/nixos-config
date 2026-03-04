@@ -1,22 +1,5 @@
 { config, lib, pkgs, ... }:
-let
-  primaryUsername = config.primaryUser.name;
-in
 {
-  # Enable the OpenSSH daemon.
-  services.openssh = {
-    enable = true;
-    settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-      PermitEmptyPasswords = false;
-      MaxAuthTries = 3;
-      MaxSessions = 10;
-      AllowUsers = [ primaryUsername ];
-    };
-  };
-
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
