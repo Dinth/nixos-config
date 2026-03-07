@@ -25,11 +25,6 @@ let
       substituteInPlace lnxlink/files_setup.py \
         --replace-fail 'config_dir = os.path.dirname(os.path.realpath(config_path))' \
                        'config_dir = os.path.expanduser("~/.local/state/lnxlink"); os.makedirs(config_dir, exist_ok=True)'
-
-      # Skip writing config if read-only (NixOS symlinks to nix store)
-      substituteInPlace lnxlink/config_setup.py \
-        --replace-fail 'if len(missing_keys) > 0:' \
-                       'if len(missing_keys) > 0 and os.access(config_path, os.W_OK):'
     '';
 
     nativeBuildInputs = with pkgs.python3Packages; [
@@ -60,6 +55,32 @@ let
       license = licenses.mit;
     };
   };
+
+  # Script to prepare runtime config from template + secrets
+  setupScript = pkgs.writeShellScript "lnxlink-setup" ''
+    set -euo pipefail
+    RUNTIME_DIR="$HOME/.local/state/lnxlink"
+    TEMPLATE="$HOME/.config/lnxlink/config.yaml.template"
+    CONFIG="$RUNTIME_DIR/config.yaml"
+    SECRETS="${cfg.mqtt.secretsFile}"
+
+    mkdir -p "$RUNTIME_DIR"
+
+    if [ -f "$SECRETS" ]; then
+      MQTT_SERVER=$(sed -n '1p' "$SECRETS")
+      MQTT_USER=$(sed -n '2p' "$SECRETS")
+      MQTT_PASS=$(sed -n '3p' "$SECRETS")
+    else
+      echo "Secrets file not found: $SECRETS" >&2
+      exit 1
+    fi
+
+    sed -e "s|__MQTT_SERVER__|$MQTT_SERVER|g" \
+        -e "s|__MQTT_USER__|$MQTT_USER|g" \
+        -e "s|__MQTT_PASS__|$MQTT_PASS|g" \
+        "$TEMPLATE" > "$CONFIG"
+    chmod 600 "$CONFIG"
+  '';
 in
 {
   options = {
@@ -71,22 +92,15 @@ in
       };
 
       mqtt = {
-        broker = mkOption {
-          type = types.str;
-          default = "localhost";
-          description = "MQTT broker hostname or IP address.";
+        secretsFile = mkOption {
+          type = types.path;
+          description = "Path to file containing: MQTT server (line 1), username (line 2), password (line 3).";
         };
 
         port = mkOption {
           type = types.port;
           default = 1883;
           description = "MQTT broker port.";
-        };
-
-        credentialsFile = mkOption {
-          type = types.nullOr types.path;
-          default = null;
-          description = "Path to file containing MQTT username (line 1) and password (line 2).";
         };
       };
 
@@ -100,7 +114,6 @@ in
 
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-#      lnxlink
       xdotool
       xprintidle
       xdg-utils
@@ -109,19 +122,6 @@ in
     ];
 
     home-manager.users.${primaryUsername} = { config, ... }: {
-
-      home.file.".config/lnxlink/make-env.sh" = mkIf (cfg.mqtt.credentialsFile != null) {
-        text = ''
-          #!/usr/bin/env bash
-          if [ -f "$1" ]; then
-            echo "MQTT_USERNAME=$(sed -n '1p' "$1")" > "$2"
-            echo "MQTT_PASSWORD=$(sed -n '2p' "$1")" >> "$2"
-            chmod 600 "$2"
-          fi
-        '';
-        executable = true;
-      };
-
       systemd.user.services.lnxlink = {
         Unit = {
           Description = "LNXlink";
@@ -131,33 +131,30 @@ in
 
         Service = {
           Type = "simple";
-          ExecStart = "${lnxlink}/bin/lnxlink -c %h/.config/lnxlink/config.yaml";
+          ExecStartPre = "${setupScript}";
+          ExecStart = "${lnxlink}/bin/lnxlink -c %h/.local/state/lnxlink/config.yaml";
           Restart = "on-failure";
           RestartSec = "10s";
-          # Light hardening (lnxlink needs broad access for monitoring/control)
           NoNewPrivileges = true;
           ProtectControlGroups = true;
           ProtectKernelModules = true;
           ProtectKernelTunables = true;
           RestrictSUIDSGID = true;
           LockPersonality = true;
-        } // lib.optionalAttrs (cfg.mqtt.credentialsFile != null) {
-          ExecStartPre = "${pkgs.bash}/bin/bash %h/.config/lnxlink/make-env.sh ${cfg.mqtt.credentialsFile} %h/.config/lnxlink/mqtt-env";
-          EnvironmentFile = "%h/.config/lnxlink/mqtt-env";
         };
 
         Install.WantedBy = [ "default.target" ];
       };
 
-      xdg.configFile."lnxlink/config.yaml".text = ''
+      xdg.configFile."lnxlink/config.yaml.template".text = ''
         mqtt:
           prefix: lnxlink
           clientId: ${hostname}
-          server: ${cfg.mqtt.broker}
+          server: __MQTT_SERVER__
           port: ${toString cfg.mqtt.port}
           auth:
-            user: ${if cfg.mqtt.credentialsFile != null then "$MQTT_USERNAME" else ""}
-            pass: ${if cfg.mqtt.credentialsFile != null then "$MQTT_PASSWORD" else ""}
+            user: __MQTT_USER__
+            pass: __MQTT_PASS__
             tls: false
             keyfile: ""
             certfile: ""

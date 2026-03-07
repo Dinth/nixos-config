@@ -52,5 +52,11 @@
       group = "users";
       mode = "0644";
     };
+    age.secrets.lnxlink-mqtt = {
+      file = ./lnxlink-mqtt.age;
+      owner = "michal";
+      group = "users";
+      mode = "0644";
+    };
   };
 }

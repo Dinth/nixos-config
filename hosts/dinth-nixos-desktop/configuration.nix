@@ -28,6 +28,7 @@
   opencode.enable = true;
   cloudflarewarp.enable = true;
   lnxlink.enable = true;
+  lnxlink.mqtt.secretsFile = config.age.secrets.lnxlink-mqtt.path;
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
