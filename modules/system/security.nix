@@ -24,7 +24,10 @@ in
     "net.core.bpf_jit_harden" = 2;
     "kernel.ftrace_enabled" = 0;
   };
-  boot.kernelParams = [ "ipv6.disable=1" ];
+  boot.kernelParams = [
+    "ipv6.disable=1"
+    "audit_backlog_limit=8192"  # Prevent kauditd queue overflow with AppArmor
+  ];
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
     lynis # vulnerability scanner
@@ -46,10 +49,12 @@ in
   security.audit.enable = true;
   security.auditd.enable = false;
   security.audit.rules = [
-    # Exclude service messages and BPF noise
+    # Exclude high-volume low-value message types to prevent kauditd queue overflow
     "-a always,exclude -F msgtype=SERVICE_START"
     "-a always,exclude -F msgtype=SERVICE_STOP"
     "-a always,exclude -F msgtype=BPF"
+    "-a always,exclude -F msgtype=PROCTITLE"
+    "-a always,exclude -F msgtype=CWD"
 
     # AppArmor configuration changes
     "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor/ -F perm=wa -F key=apparmor_changes"
@@ -268,7 +273,7 @@ in
   };
   # Run vulnix daily
   systemd.services.vulnix-scan = {
-    script = "${lib.getExe pkgs.vulnix} --system --user ${primaryUsername} --verbose > /var/log/vulnix.log";
+    script = "${lib.getExe pkgs.vulnix} --system --gc-roots --verbose > /var/log/vulnix.log";
     serviceConfig = {
       Type = "oneshot";
       User = "root";
