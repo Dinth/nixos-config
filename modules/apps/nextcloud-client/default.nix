@@ -11,6 +11,8 @@ in
         enable = true;
         startInBackground = true;
       };
+      # Delay startup to avoid race condition with Qt shared memory
+      systemd.user.services.nextcloud-client.Service.ExecStartPre = "${pkgs.coreutils}/bin/sleep 3";
     };
   };
 }
