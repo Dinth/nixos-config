@@ -1,7 +1,6 @@
 { config, pkgs, lib,...}:
 let
-  inherit (lib) mkIf;
-  inherit (lib) mkOption;
+  inherit (lib) mkIf mkOption;
   cfg = config.eizo;
   primaryUsername = config.primaryUser.name;
 in
@@ -13,6 +12,11 @@ in
         default = false;
         description = "Enable support for Eizo screen (DDC)";
       };
+      iccProfile = mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Path to ICC profile file for the Eizo monitor";
+      };
     };
   };
   config = mkIf cfg.enable {
@@ -21,9 +25,17 @@ in
       ddcutil
       ddccontrol
     ];
-#     services.udev.extraRules = ''
-#           KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
-#     '';
     hardware.i2c.enable = true;
+
+    # Add primary user to i2c group for DDC control
+    users.users.${primaryUsername}.extraGroups = [ "i2c" ];
+
+    # Install ICC profile to system color directory
+    environment.etc = mkIf (cfg.iccProfile != null) {
+      "color/icc/devices/display/${baseNameOf (toString cfg.iccProfile)}".source = cfg.iccProfile;
+    };
+
+    # Disable PowerDevil DDC brightness control (glitchy i2c on this monitor)
+    home-manager.users.${primaryUsername}.systemd.user.services.plasma-powerdevil.Service.Environment = "POWERDEVIL_NO_DDCUTIL=1";
   };
 }
