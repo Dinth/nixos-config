@@ -32,10 +32,7 @@
     "kvm-amd"
     "k10temp"
     "it87"
-    "usb_hid"
-    "hid_generic"
     "amdgpu"
-    "amd_pstate"
   ];
   boot.extraModulePackages = [
     config.boot.kernelPackages.r8125
@@ -148,6 +145,9 @@
     enable = true;
     powerOnBoot = true;
   };
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", MODE="0660", GROUP="users", TAG+="uaccess"
+  '';
   #  services.thermald.enable = true;
   networking.modemmanager.enable = false;
   services.hardware.bolt.enable = true;
@@ -284,5 +284,8 @@
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   amd_gpu.enable = true;
-  eizo.enable = true;
+  eizo = {
+    enable = true;
+    iccProfile = ../../modules/hardware/eizo/eizo-cg277.icc;
+  };
 }
