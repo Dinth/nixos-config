@@ -91,6 +91,17 @@ Key patterns:
 
 Reference in configs: `config.age.secrets.<name>.path` or `/run/agenix/<name>`
 
+## Git Workflow
+
+**Always commit changes after completing a task.** After making edits, run:
+
+```bash
+git add .
+git commit -m "description of changes"
+```
+
+Do not include Co-Authored-By lines in commits. Do not push to remote unless explicitly asked.
+
 ## Key Files
 
 | File | Purpose |
