@@ -132,7 +132,7 @@ in
         Service = {
           Type = "simple";
           ExecStartPre = "${setupScript}";
-          ExecStart = "${lnxlink}/bin/lnxlink -c %h/.local/state/lnxlink/config.yaml";
+          ExecStart = "${lnxlink}/bin/lnxlink -c %h/.local/state/lnxlink/config.yaml -e beacondb";
           Restart = "on-failure";
           RestartSec = "10s";
           NoNewPrivileges = true;
