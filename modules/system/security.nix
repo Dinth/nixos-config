@@ -19,7 +19,6 @@ in
     "kernel.yama.ptrace_scope" = 2;
     "net.ipv4.conf.all.log_martians" = 1;
     "net.ipv4.icmp_echo_ignore_broadcasts" = 1;
-    "kernel.unprivileged_userns_clone" = 0;
     "kernel.unprivileged_bpf_disabled" = 1;
     "net.core.bpf_jit_harden" = 2;
     "kernel.ftrace_enabled" = 0;

@@ -100,7 +100,6 @@
     "amd_pstate=active" # AMD Active Pstates instead of cpufreq
     "tsc=reliable" # Trust AMD builtin clock for better latency
     "clocksource=tsc" # Trust AMD builtin clock for better latency
-    "thermal.acpi_disabled=1"
     "iommu=pt"
     "thermal.crt=105" # Fix a bug with acpitz reporting overheat on resume from suspend
     "plymouth.use-simpledrm"
@@ -157,6 +156,8 @@
   hardware.flipperzero.enable = true;
   systemd.tpm2.enable = true;
   services.irqbalance.enable = true;
+  # Grant irqbalance permission to set IRQ affinity (blocked by kernel hardening)
+  systemd.services.irqbalance.serviceConfig.AmbientCapabilities = [ "CAP_SYS_NICE" ];
   services.fwupd.enable = true;
   services.fstrim.enable = true;
   services.pulseaudio.enable = false;
