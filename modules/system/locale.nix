@@ -18,14 +18,16 @@ in
       LC_TIME = "en_GB.UTF-8";
     };
     console = {
+      earlySetup = false;  # Avoid conflict with Plymouth during initrd
       font = "ter-v18n";
       packages = [ pkgs.terminus_font ];
       useXkbConfig = true;
     };
+    # Base layout for TTY (inherited via console.useXkbConfig)
+    # Graphical options are managed in kde.nix via plasma-manager
     services.xserver.xkb = {
       layout = "pl";
       variant = "legacy";
-      options = "terminate:ctrl_alt_bksp,kpdl:dot";
     };
     environment.systemPackages = with pkgs; [
       aspellDicts.en
