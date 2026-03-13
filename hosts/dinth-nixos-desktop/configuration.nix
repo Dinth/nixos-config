@@ -21,6 +21,7 @@
   gaming.enable = true;
   virtualisation.enable = true;
   logitech.enable = true;
+  brio4k.enable = true;
   printers.enable = true;
   weechat.enable = true;
   docker.enable = false;
