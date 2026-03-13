@@ -280,6 +280,23 @@
           }
         ];
       };
+
+      # Blue Yeti microphone - force 48kHz to avoid sample rate mismatch warnings
+      "54-blue-yeti-sample-rate" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "device.product.name" = "Yeti Stereo Microphone"; }
+            ];
+            actions = {
+              update-props = {
+                "audio.rate" = 48000;
+                "audio.allowed-rates" = "48000";
+              };
+            };
+          }
+        ];
+      };
     };
   };
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
