@@ -10,7 +10,7 @@ in
       enable = true;
       enableDefaultConfig = false;
       matchBlocks = {
-        "r230-nixos r230" = {
+        "r230-nixos r230 10.10.1.12" = {
           hostname = "10.10.1.12";
           user = "michal";
           identityFile = [ "~/.ssh/id_ed25519" ];
