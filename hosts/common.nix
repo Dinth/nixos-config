@@ -3,7 +3,7 @@ let
   inherit (lib) mkDefault mkIf;
 in
 {
-  # Passwordless doas for servers (remote deployments have no TTY)
+  # Server remote deployment settings (no TTY available)
   security.doas.extraRules = mkIf (machineType == "server") (lib.mkForce [
     {
       users = [ config.primaryUser.name ];
@@ -11,6 +11,7 @@ in
       keepEnv = true;
     }
   ]);
+  nix.settings.trusted-users = mkIf (machineType == "server") [ "root" config.primaryUser.name ];
 
   nixpkgs = {
     config = {

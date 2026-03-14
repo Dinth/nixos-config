@@ -22,8 +22,6 @@
     "fs.inotify.max_user_instances" = 512;
   };
 
-  # Trust user for remote deployments (accepts unsigned paths from local builds)
-  nix.settings.trusted-users = [ "root" "michal" ];
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
