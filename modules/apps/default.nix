@@ -7,7 +7,6 @@
     ./clamav
     ./claude-code
     ./cloudflarewarp
-    ./deploy
     ./eza
     ./fzf
     ./git
