@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:nixos/nixos-hardware/master"; # Hardware Specific Configurations
     catppuccin.url = "github:catppuccin/nix/release-25.11";
     home-manager = {
@@ -30,7 +31,10 @@
   };
 
   outputs =
-    inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, ... }:
+    inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, ... }:
+    let
+      pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; config.allowUnfree = true; };
+    in
     {
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
@@ -54,7 +58,7 @@
         };
         r230-nixos = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { machineType = "server"; inherit catppuccin; };
+          specialArgs = { machineType = "server"; inherit catppuccin pkgs-unstable; };
           modules = [
             ./libs
             ./modules
@@ -63,6 +67,7 @@
             catppuccin.nixosModules.catppuccin
             nixvirt.nixosModules.default
             home-manager.nixosModules.home-manager
+            "${nixpkgs-unstable}/nixos/modules/services/admin/komodo-periphery.nix"
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

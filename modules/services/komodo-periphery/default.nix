@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, pkgs-unstable ? null, ... }:
 let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
@@ -27,6 +27,7 @@ in
   config = mkIf cfg.enable {
     services.komodo-periphery = {
       enable = true;
+      package = pkgs-unstable.komodo;
       openFirewall = cfg.openFirewall;
       passkeys = cfg.passkeys;
     };
