@@ -10,6 +10,12 @@ in
       enable = true;
       enableDefaultConfig = false;
       matchBlocks = {
+        "r230-nixos r230" = {
+          hostname = "10.10.1.12";
+          user = "michal";
+          identityFile = [ "~/.ssh/id_ed25519" ];
+          identitiesOnly = true;
+        };
         "*" = {
           identityFile = [
             "~/.ssh/id_ed25519_sk_rk_1"
@@ -17,17 +23,6 @@ in
             "~/.ssh/id_ed25519_sk_rk_3"
           ];
           identitiesOnly = true;
-          # Optional: Add any other defaults you want from the old defaults
-          # forwardAgent = false;
-          # addKeysToAgent = "no";
-          # compression = false;
-          # serverAliveInterval = 0;
-          # serverAliveCountMax = 3;
-          # hashKnownHosts = false;
-          # userKnownHostsFile = "~/.ssh/known_hosts";
-          # controlMaster = "no";
-          # controlPath = "~/.ssh/master-%r@%n:%p";
-          # controlPersist = "no";
         };
       };
     };
