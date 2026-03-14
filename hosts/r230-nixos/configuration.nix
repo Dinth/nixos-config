@@ -12,6 +12,15 @@
       useDHCP = true;
     };
   };
+
+  # TRIM for thin-provisioned Proxmox disks
+  services.fstrim.enable = true;
+
+  # Increase inotify limits for Docker containers
+  boot.kernel.sysctl = {
+    "fs.inotify.max_user_watches" = 524288;
+    "fs.inotify.max_user_instances" = 512;
+  };
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
