@@ -56,9 +56,9 @@
             }
           ];
         };
-        r230-nixos = nixpkgs.lib.nixosSystem {
+        r230-nixos = nixpkgs-unstable.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { machineType = "server"; inherit catppuccin pkgs-unstable; };
+          specialArgs = { machineType = "server"; inherit catppuccin; };
           modules = [
             ./libs
             ./modules
@@ -67,7 +67,6 @@
             catppuccin.nixosModules.catppuccin
             nixvirt.nixosModules.default
             home-manager.nixosModules.home-manager
-            "${nixpkgs-unstable}/nixos/modules/services/admin/komodo-periphery.nix"
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

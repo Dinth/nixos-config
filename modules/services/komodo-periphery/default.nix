@@ -1,4 +1,4 @@
-{ config, lib, pkgs, pkgs-unstable ? null, ... }:
+{ config, lib, pkgs, ... }:
 let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
@@ -27,9 +27,9 @@ in
   config = mkIf cfg.enable {
     services.komodo-periphery = {
       enable = true;
-      package = pkgs-unstable.komodo;
-      openFirewall = cfg.openFirewall;
       passkeys = cfg.passkeys;
     };
+
+    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ 8120 ];
   };
 }
