@@ -10,6 +10,10 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    home-manager-unstable = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     plasma-manager = {
       url = "github:nix-community/plasma-manager/";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,7 +35,7 @@
   };
 
   outputs =
-    inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, ... }:
+    inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, home-manager-unstable, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, ... }:
     let
       pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; config.allowUnfree = true; };
     in
@@ -66,7 +70,7 @@
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
             nixvirt.nixosModules.default
-            home-manager.nixosModules.home-manager
+            home-manager-unstable.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
