@@ -62,4 +62,10 @@
   printers.enable = false;
   weechat.enable = false;
   docker.enable = true;
+
+  # Komodo Periphery - connects to Komodo Core on 10.10.1.13
+  komodo-periphery = {
+    enable = true;
+    passkeys = [ "CHANGE_THIS_PASSKEY" ];  # Must match Komodo Core's KOMODO_PASSKEY
+  };
 }
