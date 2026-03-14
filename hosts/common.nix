@@ -33,4 +33,11 @@ in
     freeSwapThreshold = 10;
     enableNotifications = true;
   };
+
+  # Base home-manager config for root (required when modules apply HM config to root)
+  home-manager.users.root.home = {
+    stateVersion = "25.05";
+    username = "root";
+    homeDirectory = "/root";
+  };
 }
