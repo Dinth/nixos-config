@@ -48,7 +48,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default ];
+              home-manager.sharedModules = [ plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default ];
             }
           ];
         };
@@ -86,7 +86,7 @@
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
                 home-manager.backupFileExtension = "backup";
-                home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager agenix.homeManagerModules.default ];
+                home-manager.sharedModules = [ plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default ];
               }
             ];
           };
