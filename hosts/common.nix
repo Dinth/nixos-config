@@ -1,8 +1,17 @@
 { config, pkgs, lib, machineType ? "desktop", ... }:
 let
-  inherit (lib) mkDefault;
+  inherit (lib) mkDefault mkIf;
 in
 {
+  # Passwordless doas for servers (remote deployments have no TTY)
+  security.doas.extraRules = mkIf (machineType == "server") (lib.mkForce [
+    {
+      users = [ config.primaryUser.name ];
+      noPass = true;
+      keepEnv = true;
+    }
+  ]);
+
   nixpkgs = {
     config = {
       allowUnfree = true;

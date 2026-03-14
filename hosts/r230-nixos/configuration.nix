@@ -1,4 +1,4 @@
-{ config, lib, pkgs, catppuccin, ... }:
+{ config, pkgs, catppuccin, ... }:
 
 {
   imports = [
@@ -24,15 +24,6 @@
 
   # Trust user for remote deployments (accepts unsigned paths from local builds)
   nix.settings.trusted-users = [ "root" "michal" ];
-
-  # Passwordless doas for remote deployments (no TTY available)
-  security.doas.extraRules = lib.mkForce [
-    {
-      users = [ config.primaryUser.name ];
-      noPass = true;
-      keepEnv = true;
-    }
-  ];
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
