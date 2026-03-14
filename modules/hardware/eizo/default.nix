@@ -36,9 +36,9 @@ in
     };
 
     # Disable PowerDevil DDC brightness control (glitchy i2c on this monitor)
-    home-manager.users.${primaryUsername}.systemd.user.services.plasma-powerdevil = {
-      overrideStrategy = "asDropin";
-      Service.Environment = "POWERDEVIL_NO_DDCUTIL=1";
-    };
+    home-manager.users.${primaryUsername}.xdg.configFile."systemd/user/plasma-powerdevil.service.d/override.conf".text = ''
+      [Service]
+      Environment=POWERDEVIL_NO_DDCUTIL=1
+    '';
   };
 }
