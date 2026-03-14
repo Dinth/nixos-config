@@ -14,19 +14,8 @@ let
     "open %d/%p"
   else
     "${lib.getExe' pkgs.util-linux "setsid"} -f ${lib.getExe' pkgs.xdg-utils "xdg-open"} %d/%p";
-in
-{
-  config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      p7zip unrar unzip zip
-      ripgrep
-      fd
-      jq
-      mediainfo
-    ] ++ lib.optionals config.graphical.enable [
-      wl-clipboard
-    ];
-    home-manager.users.${primaryUsername} = {
+
+  mcHomeConfig = {
       home.file."/.local/share/mc/skins/catppuccin.ini" = {
         source = "${mc_catppuccin}/catppuccin.ini";
       };
@@ -1109,5 +1098,18 @@ in
         };
       };
     };
+in
+{
+  config = mkIf cfg.enable {
+    environment.systemPackages = with pkgs; [
+      p7zip unrar unzip zip
+      ripgrep
+      fd
+      jq
+      mediainfo
+    ] ++ lib.optionals config.graphical.enable [
+      wl-clipboard
+    ];
+    home-manager.users = lib.genAttrs [ primaryUsername "root" ] (_: mcHomeConfig);
   };
 }
