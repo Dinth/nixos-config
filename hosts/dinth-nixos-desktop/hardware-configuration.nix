@@ -105,6 +105,7 @@
     "plymouth.use-simpledrm"
     "acpi_enforce_resource=lax"
     "amdgpu.sched_jobs=64"
+    "amdgpu.ppfeaturemask=0xffffffff" # Enable all power features for better SMU compatibility on resume
   ];
   boot.extraModprobeConfig = ''
     options it87 ignore_resource_conflict=1
