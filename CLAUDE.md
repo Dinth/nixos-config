@@ -93,14 +93,18 @@ Reference in configs: `config.age.secrets.<name>.path` or `/run/agenix/<name>`
 
 ## Git Workflow
 
-**Always commit changes after completing a task.** After making edits, run:
+**MANDATORY: Every completed task MUST end with a commit before responding to the user.**
+
+After completing a task (which may involve multiple file edits):
+1. Validate syntax (for .nix files: `nix-instantiate --parse`)
+2. Stage all related changes and commit — do NOT wait for user to ask
 
 ```bash
-git add .
+git add <changed-files>
 git commit -m "description of changes"
 ```
 
-Do not include Co-Authored-By lines in commits. Do not push to remote unless explicitly asked.
+Do not include Co-Authored-By lines. Do not push unless explicitly asked.
 
 ## Key Files
 
