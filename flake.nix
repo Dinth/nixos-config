@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/b122cf0ef0df0b13ec712f9987063c3e9e8eac3f";
     nixos-hardware.url = "github:nixos/nixos-hardware/master"; # Hardware Specific Configurations
     catppuccin.url = "github:catppuccin/nix/release-25.11";
     home-manager = {
