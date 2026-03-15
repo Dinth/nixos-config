@@ -4,7 +4,7 @@ let
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
 
-  # 1. Standard config (your existing colorful one)
+  # 1. Standard config - flat colored segments (no Powerline arrows for Konsole compatibility)
   normalSettings = lib.mkMerge [
     (builtins.fromTOML (builtins.readFile
       "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
@@ -14,8 +14,8 @@ let
       # Add NixOS symbol (missing from preset)
       os.symbols.NixOS = "";
 
-      # Add nix-shell indicator to format (insert before $line_break)
-      format = lib.mkForce "[](red)$os$username[](bg:peach fg:red)$directory[](bg:yellow fg:peach)$git_branch$git_status[](fg:yellow bg:green)$c$rust$golang$nodejs$php$java$kotlin$haskell$python[](fg:green bg:sapphire)$conda$nix_shell[](fg:sapphire bg:lavender)$time[ ](fg:lavender)$cmd_duration$line_break$character";
+      # Flat format without Powerline arrows (fixes cursor position issues in Konsole)
+      format = lib.mkForce "$os$username$directory$git_branch$git_status$c$rust$golang$nodejs$php$java$kotlin$haskell$python$conda$nix_shell$time $cmd_duration$line_break$character";
 
       # Style nix-shell indicator to match the theme
       nix_shell = {
