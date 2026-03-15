@@ -60,7 +60,7 @@
             }
           ];
         };
-        r230-nixos = nixpkgs-unstable.lib.nixosSystem {
+        r230-nixos = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = { machineType = "server"; inherit catppuccin; };
           modules = [
@@ -70,7 +70,7 @@
             agenix.nixosModules.default
             catppuccin.nixosModules.catppuccin
             nixvirt.nixosModules.default
-            home-manager-unstable.nixosModules.home-manager
+            home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

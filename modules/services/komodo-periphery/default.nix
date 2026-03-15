@@ -3,28 +3,41 @@ let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
 
-  # Fetch prebuilt periphery binary (avoids building broken core)
-  komodo-periphery-bin = pkgs.stdenv.mkDerivation rec {
+  # Build periphery from source (only periphery binary, not core)
+  komodo-periphery-pkg = pkgs.rustPlatform.buildRustPackage rec {
     pname = "komodo-periphery";
-    version = "1.19.5";
+    version = "1.16.3";
 
-    src = pkgs.fetchurl {
-      url = "https://github.com/moghtech/komodo/releases/download/v${version}/periphery-x86_64";
-      hash = "sha256-1uics2Avffe2TEPTWJLGQVeBGcJFGWuu0oV9fQeFlHA=";
+    src = pkgs.fetchFromGitHub {
+      owner = "moghtech";
+      repo = "komodo";
+      rev = "v${version}";
+      hash = "sha256-TaQXUUWHBYo+/mGbygak0Clw8QqAkgPOgBqWzBSjkSM=";
     };
 
-    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-    buildInputs = [ pkgs.stdenv.cc.cc.lib ];
+    cargoHash = lib.fakeHash;
 
-    dontUnpack = true;
-    dontBuild = true;
+    nativeBuildInputs = [ pkgs.pkg-config ];
+    buildInputs = [ pkgs.openssl ];
 
-    installPhase = ''
-      mkdir -p $out/bin
-      cp $src $out/bin/periphery
-      chmod +x $out/bin/periphery
+    cargoBuildFlags = [ "-p" "komodo_periphery" ];
+
+    postInstall = ''
+      mv $out/bin/periphery $out/bin/periphery || true
     '';
+
+    meta = {
+      description = "Komodo Periphery - Multi-server Docker and Git deployment agent";
+      homepage = "https://github.com/moghtech/komodo";
+      license = lib.licenses.gpl3;
+    };
   };
+
+  configFile = pkgs.writeText "komodo-periphery.toml" ''
+    port = 8120
+    ssl_enabled = true
+    passkeys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.passkeys}]
+  '';
 in
 {
   options.komodo-periphery = {
@@ -48,10 +61,30 @@ in
   };
 
   config = mkIf cfg.enable {
-    services.komodo-periphery = {
-      enable = true;
-      package = komodo-periphery-bin;
-      passkeys = cfg.passkeys;
+    users.users.komodo-periphery = {
+      isSystemUser = true;
+      group = "komodo-periphery";
+      extraGroups = [ "docker" ];
+    };
+    users.groups.komodo-periphery = {};
+
+    systemd.services.komodo-periphery = {
+      description = "Komodo Periphery - Multi-server Docker and Git deployment agent";
+      after = [ "network.target" "docker.service" ];
+      requires = [ "docker.service" ];
+      wantedBy = [ "multi-user.target" ];
+
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${komodo-periphery-pkg}/bin/periphery --config-path ${configFile}";
+        Restart = "on-failure";
+        RestartSec = "10s";
+        User = "komodo-periphery";
+        Group = "komodo-periphery";
+        SupplementaryGroups = [ "docker" ];
+        StateDirectory = "komodo-periphery";
+        WorkingDirectory = "/var/lib/komodo-periphery";
+      };
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ 8120 ];
