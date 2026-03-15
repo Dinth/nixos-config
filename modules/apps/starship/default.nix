@@ -10,6 +10,22 @@ let
       "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
     {
       palette = lib.mkForce "catppuccin_mocha";
+
+      # Add NixOS symbol (missing from preset)
+      os.symbols.NixOS = "";
+
+      # Add nix-shell indicator to format (insert before $line_break)
+      format = lib.mkForce "[](red)$os$username[](bg:peach fg:red)$directory[](bg:yellow fg:peach)$git_branch$git_status[](fg:yellow bg:green)$c$rust$golang$nodejs$php$java$kotlin$haskell$python[](fg:green bg:sapphire)$conda$nix_shell[](fg:sapphire bg:lavender)$time[ ](fg:lavender)$cmd_duration$line_break$character";
+
+      # Style nix-shell indicator to match the theme
+      nix_shell = {
+        disabled = false;
+        format = "[[ $symbol$state ](fg:crust bg:sapphire)]($style)";
+        symbol = " ";
+        style = "bg:sapphire";
+        impure_msg = "";
+        pure_msg = "pure";
+      };
     }
   ];
 
