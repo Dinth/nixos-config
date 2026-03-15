@@ -3,34 +3,31 @@ let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
 
-  # Build periphery from source (only periphery binary, not core)
-  komodo-periphery-pkg = pkgs.rustPlatform.buildRustPackage rec {
+  # Prebuilt periphery binary wrapped for NixOS
+  komodo-periphery-pkg = pkgs.stdenv.mkDerivation rec {
     pname = "komodo-periphery";
-    version = "1.16.3";
+    version = "1.19.5";
 
-    src = pkgs.fetchFromGitHub {
-      owner = "moghtech";
-      repo = "komodo";
-      rev = "v${version}";
-      hash = "sha256-TaQXUUWHBYo+/mGbygak0Clw8QqAkgPOgBqWzBSjkSM=";
+    src = pkgs.fetchurl {
+      url = "https://github.com/moghtech/komodo/releases/download/v${version}/periphery-x86_64";
+      hash = "sha256-1uics2Avffe2TEPTWJLGQVeBGcJFGWuu0oV9fQeFlHA=";
     };
 
-    cargoHash = lib.fakeHash;
+    dontUnpack = true;
+    dontBuild = true;
 
-    nativeBuildInputs = [ pkgs.pkg-config ];
-    buildInputs = [ pkgs.openssl ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
 
-    cargoBuildFlags = [ "-p" "komodo_periphery" ];
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $src $out/bin/.periphery-unwrapped
+      chmod +x $out/bin/.periphery-unwrapped
 
-    postInstall = ''
-      mv $out/bin/periphery $out/bin/periphery || true
+      makeWrapper ${pkgs.nix-ld}/libexec/nix-ld $out/bin/periphery \
+        --set NIX_LD_LIBRARY_PATH "${lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.openssl ]}" \
+        --set NIX_LD "${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2" \
+        --add-flags "$out/bin/.periphery-unwrapped"
     '';
-
-    meta = {
-      description = "Komodo Periphery - Multi-server Docker and Git deployment agent";
-      homepage = "https://github.com/moghtech/komodo";
-      license = lib.licenses.gpl3;
-    };
   };
 
   configFile = pkgs.writeText "komodo-periphery.toml" ''
@@ -61,6 +58,8 @@ in
   };
 
   config = mkIf cfg.enable {
+    programs.nix-ld.enable = true;
+
     users.users.komodo-periphery = {
       isSystemUser = true;
       group = "komodo-periphery";
