@@ -2,6 +2,26 @@
 let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
+
+  # Fetch prebuilt periphery binary (avoids building broken core)
+  komodo-periphery-bin = pkgs.stdenv.mkDerivation rec {
+    pname = "komodo-periphery";
+    version = "1.19.5";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/moghtech/komodo/releases/download/v${version}/periphery-x86_64";
+      hash = "sha256-1uics2Avffe2TEPTWJLGQVeBGcJFGWuu0oV9fQeFlHA=";
+    };
+
+    dontUnpack = true;
+    dontBuild = true;
+
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $src $out/bin/periphery
+      chmod +x $out/bin/periphery
+    '';
+  };
 in
 {
   options.komodo-periphery = {
@@ -27,6 +47,7 @@ in
   config = mkIf cfg.enable {
     services.komodo-periphery = {
       enable = true;
+      package = komodo-periphery-bin;
       passkeys = cfg.passkeys;
     };
 
