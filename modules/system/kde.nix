@@ -107,7 +107,20 @@ in
         enable = true;
         overrideConfig = true;
         session.sessionRestore.restoreOpenApplicationsOnLogin = "startWithEmptySession";
-        input.keyboard.numlockOnStartup = "on";
+        input.keyboard = {
+          numlockOnStartup = "on";
+          layouts = [
+            {
+              layout = "pl";
+              # Standard Polish "programmers" layout - Polish chars via AltGr+letter
+            }
+          ];
+          options = [
+            "kpdl:dot"                  # Numpad decimal key produces dot, not comma
+            "compose:rwin"              # Right Super as Compose key
+            "terminate:ctrl_alt_bksp"   # Ctrl+Alt+Backspace kills session
+          ];
+        };
         workspace = {
           clickItemTo = "select";
           theme = "breeze-dark";
@@ -116,10 +129,13 @@ in
           cursor.theme = "catppuccin-mocha-dark-cursors";
         };
         spectacle.shortcuts = {
-          captureRectangularRegion = "Alt+$";
-          captureActiveWindow = "Alt+%";
-          captureCurrentMonitor = "Alt+#";
+          captureRectangularRegion = "Meta+$";
+          captureActiveWindow = "Meta+%";
+          captureCurrentMonitor = "Meta+#";
           launch = "Print";
+        };
+        krunner.shortcuts = {
+          launch = "Meta+Space";
         };
         panels = [
           {
@@ -212,142 +228,144 @@ in
             ];
           }
         ];
-        desktop.widgets = [
-          # --- SSD ---
-          {
-            name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 656; };
-            size = { width = 352; height = 224; };
-            config = {
-              Appearance = {
-                chartFace = "org.kde.ksysguard.linechart";
-                title = "SSD";
-              };
-              SensorColors = {
-                "disk/nvme0n1/read" = "186,61,233";
-                "disk/nvme0n1/write" = "179,233,61";
-                "lmsensors/nvme-pci-0100/temp1" = "134,233,61";
-              };
-              SensorLabels = {
-                "disk/nvme0n1/read" = "Read Rate";
-                "disk/nvme0n1/write" = "Write Rate";
-                "lmsensors/nvme-pci-0100/temp1" = "Temperature";
-              };
-              Sensors = {
-                highPrioritySensorIds = ["disk/nvme0n1/read" "disk/nvme0n1/write"];
-                lowPrioritySensorIds = ["lmsensors/nvme-pci-0100/temp1"];
-              };
-            };
-          }
-
-          # --- Memory ---
-          {
-            name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 224; };
-            size = { width = 352; height = 224; };
-            config = {
-              Appearance = {
-                chartFace = "org.kde.ksysguard.piechart";
-                title = "Memory";
-              };
-              SensorColors = {
-                "memory/physical/applicationPercent" = "61,163,233";
-                "memory/physical/bufferPercent" = "233,181,61";
-                "memory/physical/cachePercent" = "233,82,61";
-                "memory/swap/usedPercent" = "71,61,233";
-              };
-              SensorLabels = {
-                "memory/physical/applicationPercent" = "Application";
-                "memory/physical/bufferPercent" = "Buffer";
-                "memory/physical/cachePercent" = "Cache";
-                "memory/swap/usedPercent" = "Swap";
-              };
-              Sensors = {
-                highPrioritySensorIds = ["memory/physical/applicationPercent" "memory/physical/bufferPercent" "memory/physical/cachePercent" "memory/swap/usedPercent"];
-              };
-            };
-          }
-
-          # --- GPU ---
-          {
-            name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 448; };
-            size = { width = 352; height = 208; };
-            config = {
-              Appearance = {
-                chartFace = "org.kde.ksysguard.linechart";
-                title = "GPU";
-              };
-              SensorColors = {
-                "gpu/gpu1/usage" = "66,233,61";
-                "gpu/gpu1/usedVram" = "61,233,224";
-                "gpu/gpu1/temp3" = "233,107,61";
-              };
-              SensorLabels = {
-                "gpu/gpu1/usage" = "GPU %";
-                "gpu/gpu1/usedVram" = "Memory";
-                "gpu/gpu1/temp3" = "Temperature";
-              };
-              Sensors = {
-                highPrioritySensorIds = ["gpu/gpu1/usage" "gpu/gpu1/usedVram"];
-                lowPrioritySensorIds = ["gpu/gpu1/temp3"];
-              };
-            };
-          }
-
-          # --- Network ---
-          {
-            name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 880; };
-            size = { width = 352; height = 224; };
-            config = {
-              Appearance = {
-                chartFace = "org.kde.ksysguard.linechart";
-                title = "Network";
-              };
-              SensorColors = {
-                "network/all/download" = "89,233,61";
-                "network/all/upload" = "233,61,140";
-              };
-              SensorLabels = {
-                "network/all/download" = "Download";
-                "network/all/upload" = "Upload";
-              };
-              Sensors = {
-                highPrioritySensorIds = ["network/all/download" "network/all/upload"];
-              };
-            };
-          }
-
-          # --- CPU ---
-          {
-            name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 0; };
-            size = { width = 352; height = 224; };
-            config = {
-              Appearance = {
-                chartFace = "org.kde.ksysguard.linechart";
-                title = "CPU";
-              };
-              SensorColors = {
-                "cpu/all/averageFrequency" = "175,61,233";
-                "cpu/all/averageTemperature" = "74,61,233";
-              };
-              SensorLabels = {
-                "cpu/all/averageFrequency" = "Frequency";
-                "cpu/all/averageTemperature" = "Temperature";
-                "cpu/loadaverages/loadaverage1" = "Load avg 1m";
-                "cpu/loadaverages/loadaverage5" = "Load avg 5m";
-                "cpu/loadaverages/loadaverage15" = "Load avg 15m";
-                "pressure/cpu/full10Sec" = "Pressure 10s";
-              };
-              Sensors = {
-                highPrioritySensorIds = ["cpu/all/averageFrequency" "cpu/all/averageTemperature"];
-                lowPrioritySensorIds = ["cpu/loadaverages/loadaverage1" "cpu/loadaverages/loadaverage5" "cpu/loadaverages/loadaverage15" "pressure/cpu/full10Sec"];
-              };
-            };
-          }
-        ];
+        # Desktop widgets disabled - systemmonitor widgets cause TypeError on startup
+        # which prevents the panel from loading. See: https://github.com/nix-community/plasma-manager/issues/
+        # desktop.widgets = [
+        #   # --- SSD ---
+        #   {
+        #     name = "org.kde.plasma.systemmonitor";
+        #     position = { horizontal = 1696; vertical = 656; };
+        #     size = { width = 352; height = 224; };
+        #     config = {
+        #       Appearance = {
+        #         chartFace = "org.kde.ksysguard.linechart";
+        #         title = "SSD";
+        #       };
+        #       SensorColors = {
+        #         "disk/nvme0n1/read" = "186,61,233";
+        #         "disk/nvme0n1/write" = "179,233,61";
+        #         "lmsensors/nvme-pci-0100/temp1" = "134,233,61";
+        #       };
+        #       SensorLabels = {
+        #         "disk/nvme0n1/read" = "Read Rate";
+        #         "disk/nvme0n1/write" = "Write Rate";
+        #         "lmsensors/nvme-pci-0100/temp1" = "Temperature";
+        #       };
+        #       Sensors = {
+        #         highPrioritySensorIds = ["disk/nvme0n1/read" "disk/nvme0n1/write"];
+        #         lowPrioritySensorIds = ["lmsensors/nvme-pci-0100/temp1"];
+        #       };
+        #     };
+        #   }
+        #
+        #   # --- Memory ---
+        #   {
+        #     name = "org.kde.plasma.systemmonitor";
+        #     position = { horizontal = 1696; vertical = 224; };
+        #     size = { width = 352; height = 224; };
+        #     config = {
+        #       Appearance = {
+        #         chartFace = "org.kde.ksysguard.piechart";
+        #         title = "Memory";
+        #       };
+        #       SensorColors = {
+        #         "memory/physical/applicationPercent" = "61,163,233";
+        #         "memory/physical/bufferPercent" = "233,181,61";
+        #         "memory/physical/cachePercent" = "233,82,61";
+        #         "memory/swap/usedPercent" = "71,61,233";
+        #       };
+        #       SensorLabels = {
+        #         "memory/physical/applicationPercent" = "Application";
+        #         "memory/physical/bufferPercent" = "Buffer";
+        #         "memory/physical/cachePercent" = "Cache";
+        #         "memory/swap/usedPercent" = "Swap";
+        #       };
+        #       Sensors = {
+        #         highPrioritySensorIds = ["memory/physical/applicationPercent" "memory/physical/bufferPercent" "memory/physical/cachePercent" "memory/swap/usedPercent"];
+        #       };
+        #     };
+        #   }
+        #
+        #   # --- GPU ---
+        #   {
+        #     name = "org.kde.plasma.systemmonitor";
+        #     position = { horizontal = 1696; vertical = 448; };
+        #     size = { width = 352; height = 208; };
+        #     config = {
+        #       Appearance = {
+        #         chartFace = "org.kde.ksysguard.linechart";
+        #         title = "GPU";
+        #       };
+        #       SensorColors = {
+        #         "gpu/gpu1/usage" = "66,233,61";
+        #         "gpu/gpu1/usedVram" = "61,233,224";
+        #         "gpu/gpu1/temp3" = "233,107,61";
+        #       };
+        #       SensorLabels = {
+        #         "gpu/gpu1/usage" = "GPU %";
+        #         "gpu/gpu1/usedVram" = "Memory";
+        #         "gpu/gpu1/temp3" = "Temperature";
+        #       };
+        #       Sensors = {
+        #         highPrioritySensorIds = ["gpu/gpu1/usage" "gpu/gpu1/usedVram"];
+        #         lowPrioritySensorIds = ["gpu/gpu1/temp3"];
+        #       };
+        #     };
+        #   }
+        #
+        #   # --- Network ---
+        #   {
+        #     name = "org.kde.plasma.systemmonitor";
+        #     position = { horizontal = 1696; vertical = 880; };
+        #     size = { width = 352; height = 224; };
+        #     config = {
+        #       Appearance = {
+        #         chartFace = "org.kde.ksysguard.linechart";
+        #         title = "Network";
+        #       };
+        #       SensorColors = {
+        #         "network/all/download" = "89,233,61";
+        #         "network/all/upload" = "233,61,140";
+        #       };
+        #       SensorLabels = {
+        #         "network/all/download" = "Download";
+        #         "network/all/upload" = "Upload";
+        #       };
+        #       Sensors = {
+        #         highPrioritySensorIds = ["network/all/download" "network/all/upload"];
+        #       };
+        #     };
+        #   }
+        #
+        #   # --- CPU ---
+        #   {
+        #     name = "org.kde.plasma.systemmonitor";
+        #     position = { horizontal = 1696; vertical = 0; };
+        #     size = { width = 352; height = 224; };
+        #     config = {
+        #       Appearance = {
+        #         chartFace = "org.kde.ksysguard.linechart";
+        #         title = "CPU";
+        #       };
+        #       SensorColors = {
+        #         "cpu/all/averageFrequency" = "175,61,233";
+        #         "cpu/all/averageTemperature" = "74,61,233";
+        #       };
+        #       SensorLabels = {
+        #         "cpu/all/averageFrequency" = "Frequency";
+        #         "cpu/all/averageTemperature" = "Temperature";
+        #         "cpu/loadaverages/loadaverage1" = "Load avg 1m";
+        #         "cpu/loadaverages/loadaverage5" = "Load avg 5m";
+        #         "cpu/loadaverages/loadaverage15" = "Load avg 15m";
+        #         "pressure/cpu/full10Sec" = "Pressure 10s";
+        #       };
+        #       Sensors = {
+        #         highPrioritySensorIds = ["cpu/all/averageFrequency" "cpu/all/averageTemperature"];
+        #         lowPrioritySensorIds = ["cpu/loadaverages/loadaverage1" "cpu/loadaverages/loadaverage5" "cpu/loadaverages/loadaverage15" "pressure/cpu/full10Sec"];
+        #       };
+        #     };
+        #   }
+        # ];
         configFile = {
           "spectaclerc" = {
             "GuiConfig"."captureMode" = 0;
