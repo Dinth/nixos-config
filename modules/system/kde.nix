@@ -123,6 +123,30 @@ in
     };
     home-manager.users.${primaryUsername} = {
       home.file.".local/share/user-places.xbel".source = ./dolphin-places.xbel;
+
+      # Override plasma-manager autostart to wait for plasmashell DBus interface
+      # This fixes the timing issue where scripts run before plasmashell is ready
+      xdg.configFile."autostart/plasma-manager-autostart.desktop" = {
+        force = true;
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Plasma Manager theme application
+          Exec=${pkgs.writeShellScript "plasma-manager-wait" ''
+            # Wait for plasmashell DBus interface to be available
+            for i in $(seq 1 30); do
+              if ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "true" 2>/dev/null; then
+                break
+              fi
+              sleep 1
+            done
+            # Run the plasma-manager scripts
+            exec ~/.local/share/plasma-manager/run_all.sh
+          ''}
+          X-KDE-autostart-condition=ksmserver
+        '';
+      };
+
       programs.plasma = {
         enable = true;
         overrideConfig = true;
