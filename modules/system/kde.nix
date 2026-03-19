@@ -140,6 +140,16 @@ in
               fi
               sleep 1
             done
+            # Wait for desktop containment to be fully loaded
+            for i in $(seq 1 30); do
+              desktops=$(${pkgs.kdePackages.qttools}/bin/qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "desktops().length" 2>/dev/null)
+              if [ "$desktops" -gt 0 ] 2>/dev/null; then
+                break
+              fi
+              sleep 1
+            done
+            # Additional delay for widget face initialization
+            sleep 2
             # Run the plasma-manager scripts
             exec ~/.local/share/plasma-manager/run_all.sh
           ''}
