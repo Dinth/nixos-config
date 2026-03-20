@@ -22,6 +22,7 @@
   virtualisation.enable = true;
   logitech.enable = true;
   brio4k.enable = true;
+  dashcam-sd.enable = true;
   printers.enable = true;
   weechat.enable = true;
   docker.enable = false;
