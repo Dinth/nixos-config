@@ -35,7 +35,9 @@ in
         {
           name = "Canon_MF270_Series";
           location = "Wickhay";
-          deviceUri = "ipp://10.10.10.40/ipp";
+          # Wait up to 60s for printer to wake from sleep
+          # If still fails, try: "beh:/3/10/ipp://10.10.10.40/ipp" (retries 3x, 10s apart - may cause duplicates)
+          deviceUri = "ipp://10.10.10.40/ipp?contimeout=60";
           model = "everywhere";
           ppdOptions = {
             PageSize = "A4";
