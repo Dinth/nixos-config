@@ -50,6 +50,22 @@ in
     hardware.sane.enable = true;
     hardware.sane.extraBackends = [ pkgs.sane-airscan ];
     services.saned.enable = true;
+
+    # Make ensure-printers service fault-tolerant - don't fail boot if printer is unreachable
+    systemd.services.ensure-printers = {
+      serviceConfig = {
+        # Don't fail if printer is asleep/offline during boot
+        SuccessExitStatus = [ 0 1 ];
+        Restart = "on-failure";
+        RestartSec = "30s";
+        # Give up after a few retries during boot
+        StartLimitBurst = 3;
+        StartLimitIntervalSec = 180;
+      };
+      # Run after network is online
+      after = [ "network-online.target" "cups.service" ];
+      wants = [ "network-online.target" ];
+    };
   };
 }
 
