@@ -23,26 +23,6 @@ in
     };
   };
   config = mkIf cfg.enable {
-    # Fix systemmonitor widget crash at boot - faceController is null before initialization
-    # FullRepresentation.qml accesses faceController.fullRepresentation without null check
-    # This patch adds optional chaining (?.) to handle the null case gracefully
-    # Upstream fix for main.qml: https://invent.kde.org/plasma/plasma-workspace/-/merge_requests/5338
-    nixpkgs.overlays = [
-      (final: prev: {
-        kdePackages = prev.kdePackages // {
-          plasma-workspace = prev.kdePackages.plasma-workspace.overrideAttrs (oldAttrs: {
-            postInstall = (oldAttrs.postInstall or "") + ''
-              substituteInPlace $out/share/plasma/plasmoids/org.kde.plasma.systemmonitor/contents/ui/FullRepresentation.qml \
-                --replace-fail 'contentItem: Plasmoid.faceController.fullRepresentation' \
-                               'contentItem: Plasmoid.faceController?.fullRepresentation ?? null' \
-                --replace-fail 'target: Plasmoid.faceController.fullRepresentation' \
-                               'target: Plasmoid.faceController?.fullRepresentation ?? null'
-            '';
-          });
-        };
-      })
-    ];
-
     services.displayManager.sddm.wayland.enable = mkDefault true;
     services.desktopManager.plasma6.enable = mkDefault true;
     environment.systemPackages =
@@ -151,7 +131,18 @@ in
             # Additional delay for widget face initialization
             sleep 2
             # Run the plasma-manager scripts
-            exec ~/.local/share/plasma-manager/run_all.sh
+            ~/.local/share/plasma-manager/run_all.sh
+            # Reload all systemmonitor widgets to trigger face initialization
+            sleep 1
+            ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+              desktops().forEach(function(desktop) {
+                desktop.widgets().forEach(function(widget) {
+                  if (widget.type === "org.kde.plasma.systemmonitor") {
+                    widget.reloadConfig();
+                  }
+                });
+              });
+            ' 2>/dev/null || true
           ''}
           X-KDE-autostart-condition=ksmserver
         '';
