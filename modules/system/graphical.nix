@@ -111,11 +111,11 @@ in
 
         # --- MATH & SYMBOLS ---
         <Multi_key> <p> <m> : "±"
-        <Multi_key> <i> <;> : "∞"
+        <Multi_key> <i> <semicolon> : "∞"
         <Multi_key> <n> <e> : "≠"
         <Multi_key> <asciitilde> <equal> : "≈"
         <Multi_key> <s> <q> : "√"
-        <Multi_key> <.> <.> <.> : "…"
+        <Multi_key> <period> <period> <period> : "…"
         <Multi_key> <o> <o> : "°"
 
         # --- CURRENCY ---
