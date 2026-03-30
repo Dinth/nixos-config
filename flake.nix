@@ -3,16 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/b122cf0ef0df0b13ec712f9987063c3e9e8eac3f";
     nixos-hardware.url = "github:nixos/nixos-hardware/master"; # Hardware Specific Configurations
     catppuccin.url = "github:catppuccin/nix/release-25.11";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-    home-manager-unstable = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     plasma-manager = {
       url = "github:nix-community/plasma-manager/";
@@ -27,6 +22,10 @@
       url = "github:AshleyYakeley/NixVirt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
 #     nix-darwin = {
 #       url = "github:nix-darwin/nix-darwin/master";
@@ -35,14 +34,19 @@
   };
 
   outputs =
-    inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, home-manager-unstable, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, ... }:
+    inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, llm-agents, ... }:
     let
-      pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; config.allowUnfree = true; };
+      system = "x86_64-linux";
+      # Overlay to use llm-agents.nix packages for claude-code and opencode
+      llmAgentsOverlay = final: prev: {
+        claude-code = llm-agents.packages.${system}.claude-code;
+        opencode = llm-agents.packages.${system}.opencode;
+      };
     in
     {
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+          inherit system;
           specialArgs = { machineType = "desktop"; inherit catppuccin; };
           modules = [
             ./libs
@@ -53,6 +57,7 @@
             nixvirt.nixosModules.default
             home-manager.nixosModules.home-manager
             {
+              nixpkgs.overlays = [ llmAgentsOverlay ];
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
@@ -61,7 +66,7 @@
           ];
         };
         r230-nixos = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+          inherit system;
           specialArgs = { machineType = "server"; inherit catppuccin; };
           modules = [
             ./libs
@@ -80,7 +85,7 @@
           ];
         };
         michal-surface-go = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
+            inherit system;
             specialArgs = { machineType = "tablet"; inherit catppuccin; };
             modules = [
               ./libs
@@ -91,6 +96,7 @@
               nixos-hardware.nixosModules.microsoft-surface-go
               home-manager.nixosModules.home-manager
               {
+                nixpkgs.overlays = [ llmAgentsOverlay ];
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
                 home-manager.backupFileExtension = "backup";
