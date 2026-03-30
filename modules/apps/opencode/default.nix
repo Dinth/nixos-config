@@ -46,6 +46,7 @@ in
         djlint
         ruff
         nix-output-monitor
+        rtk # Rust Token Killer - reduces LLM token consumption
       ];
       # Knowledge files — split by topic, loaded per-agent to avoid wasting context
       home.file.".config/opencode/knowledge/hosts.md".source = ./knowledge/hosts.md;
@@ -136,6 +137,7 @@ in
             "opencode-google-antigravity-auth@latest"
             "@tarquinen/opencode-dcp@latest"
             "@mohak34/opencode-notifier@latest"
+            "rtk-for-opencode@latest" # Rust Token Killer - reduces token consumption by 60-90%
           ];
           permission = {
             bash = {

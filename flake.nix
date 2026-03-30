@@ -37,10 +37,11 @@
     inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, llm-agents, ... }:
     let
       system = "x86_64-linux";
-      # Overlay to use llm-agents.nix packages for claude-code and opencode
+      # Overlay to use llm-agents.nix packages for claude-code, opencode, and rtk
       llmAgentsOverlay = final: prev: {
         claude-code = llm-agents.packages.${system}.claude-code;
         opencode = llm-agents.packages.${system}.opencode;
+        rtk = llm-agents.packages.${system}.rtk;
       };
     in
     {

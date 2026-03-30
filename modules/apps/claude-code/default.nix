@@ -8,6 +8,27 @@ let
   inherit (lib) mkIf mkOption;
   cfg = config.opencode;
   primaryUsername = config.primaryUser.name;
+
+  # RTK rewrite hook script for Claude Code
+  rtkHookScript = pkgs.writeShellScript "rtk-rewrite-hook.sh" ''
+    # Read the tool input JSON from environment
+    COMMAND=$(echo "$CLAUDE_TOOL_INPUT" | ${lib.getExe pkgs.jq} -r '.command // empty')
+
+    if [ -z "$COMMAND" ]; then
+      exit 0
+    fi
+
+    # Try to rewrite the command through RTK
+    REWRITTEN=$(${lib.getExe pkgs.rtk} rewrite "$COMMAND" 2>/dev/null) || exit 0
+
+    # If rtk gave us a rewritten command, output the modified tool input
+    if [ -n "$REWRITTEN" ]; then
+      echo "$CLAUDE_TOOL_INPUT" | ${lib.getExe pkgs.jq} --arg cmd "$REWRITTEN" '.command = $cmd'
+      exit 0
+    fi
+
+    exit 0
+  '';
 in
 {
   config = mkIf cfg.enable {
@@ -33,12 +54,26 @@ in
         nodePackages.prettier
         djlint
         ruff
+        rtk # Rust Token Killer - reduces LLM token consumption
       ];
       # Global Claude Code instructions
       home.file.".claude/CLAUDE.md".source = ./CLAUDE.md;
       programs.claude-code = {
         enable = true;
         settings = {
+          hooks = {
+            PreToolUse = [
+              {
+                matcher = "Bash";
+                hooks = [
+                  {
+                    type = "command";
+                    command = toString rtkHookScript;
+                  }
+                ];
+              }
+            ];
+          };
           theme = "catppuccin";
           respectGitignore = true;
           includeCoAuthoredBy = true;
@@ -46,9 +81,13 @@ in
             nixos = {
               command = lib.getExe pkgs.mcp-nixos;
             };
+            homeassistant = {
+              url = "http://10.10.1.11:9583/private_qkIKhBJAoLwsNLm-9D4tdg";
+              transport = "streamable-http";
+            };
             grafana = {
               url = "http://10.10.1.13:5133/mcp";
-              transport = "sse";
+              transport = "http";
             };
             unifi = {
               url = "http://10.10.1.13:5134/sse";
