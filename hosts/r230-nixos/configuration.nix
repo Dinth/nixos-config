@@ -61,8 +61,8 @@
   amd_gpu.enable = false;
   printers.enable = false;
   weechat.enable = false;
-  docker.enable = true;
-
-  # Komodo Periphery - auto-enabled for servers with Docker
-  komodo-periphery.passkeys = [ "CHANGE_THIS_PASSKEY" ];  # Must match Komodo Core's KOMODO_PASSKEY
+  docker = {
+    enable = true;
+    tcpClients = [ "10.10.1.11" ];
+  };
 }
