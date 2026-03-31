@@ -143,6 +143,7 @@ in
               "Bash(tree*)"
               "Bash(eza*)"
               "Bash(mkdir*)"
+              "Bash(chmod*)"
               # System info commands (read-only)
               "Bash(journalctl*)"
               "Bash(systemctl status*)"
@@ -221,13 +222,27 @@ in
               "Bash(rm*)"
               "Bash(mv*)"
               "Bash(cp*)"
-              "Bash(chmod*)"
+              # Process management
+              "Bash(kill*)"
+              "Bash(killall*)"
+              "Bash(pkill*)"
               # System operations
               "Bash(sudo*)"
               "Bash(nixos-rebuild*)"
               # Network operations
+              "Bash(ping*)"
               "Bash(curl*)"
               "Bash(wget*)"
+              "Bash(ssh*)"
+              "Bash(scp*)"
+              "Bash(rsync*)"
+              # systemctl mutations
+              "Bash(systemctl start*)"
+              "Bash(systemctl stop*)"
+              "Bash(systemctl restart*)"
+              "Bash(systemctl reload*)"
+              "Bash(systemctl enable*)"
+              "Bash(systemctl disable*)"
               # Docker mutations
               "Bash(docker compose*)"
               "Bash(docker run*)"
