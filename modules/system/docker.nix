@@ -24,9 +24,9 @@ in
   config = mkIf cfg.enable {
     virtualisation.docker = {
       enable = true;
-      # Add TCP listener alongside the default fd:// socket activation
-      extraOptions = lib.optionalString tcpEnabled "--host tcp://0.0.0.0:2375";
       daemon.settings = {
+        hosts = [ "unix:///var/run/docker.sock" ]
+          ++ lib.optionals tcpEnabled [ "tcp://0.0.0.0:2375" ];
         log-driver = "json-file";
         log-opts = {
           max-size = "10m";
@@ -35,6 +35,10 @@ in
         storage-driver = "overlay2";
       };
     };
+
+    # daemon manages its own sockets via hosts in daemon.json;
+    # disable socket activation to avoid the fd:// conflict
+    systemd.sockets.docker.enable = false;
 
     # Allow only the specified IPs to reach port 2375; all others are dropped by default
     networking.firewall.extraInputRules = lib.mkIf tcpEnabled (
