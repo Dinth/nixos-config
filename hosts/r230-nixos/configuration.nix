@@ -65,4 +65,8 @@
     enable = true;
     tcpClients = [ "10.10.1.11" ];
   };
+  komodo-periphery = {
+    enable = true;
+    passkeys = [ "CHANGEME" ];
+  };
 }

@@ -3,7 +3,6 @@ let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
 
-  # Prebuilt periphery binary wrapped for NixOS
   komodo-periphery-pkg = pkgs.stdenv.mkDerivation rec {
     pname = "komodo-periphery";
     version = "1.19.5";
@@ -30,8 +29,8 @@ let
     '';
   };
 
-  configFile = pkgs.writeText "komodo-periphery.toml" ''
-    port = 8120
+  configFile = pkgs.writeText "periphery.toml" ''
+    port = ${toString cfg.port}
     ssl_enabled = true
     passkeys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.passkeys}]
   '';
@@ -40,20 +39,26 @@ in
   options.komodo-periphery = {
     enable = mkOption {
       type = lib.types.bool;
-      default = config.docker.enable;
-      description = "Enable Komodo Periphery agent (auto-enabled when Docker is enabled)";
+      default = false;
+      description = "Enable Komodo Periphery agent.";
     };
 
     passkeys = mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
-      description = "Passkeys for authentication with Komodo Core";
+      description = "Passkeys for authentication with Komodo Core.";
+    };
+
+    port = mkOption {
+      type = lib.types.port;
+      default = 8120;
+      description = "Port the Periphery agent listens on.";
     };
 
     openFirewall = mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Open port 8120 in firewall";
+      description = "Open the Periphery port in the firewall.";
     };
   };
 
@@ -68,7 +73,7 @@ in
     users.groups.komodo-periphery = {};
 
     systemd.services.komodo-periphery = {
-      description = "Komodo Periphery - Multi-server Docker and Git deployment agent";
+      description = "Komodo Periphery agent";
       after = [ "network.target" "docker.service" ];
       requires = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
@@ -80,12 +85,11 @@ in
         RestartSec = "10s";
         User = "komodo-periphery";
         Group = "komodo-periphery";
-        SupplementaryGroups = [ "docker" ];
         StateDirectory = "komodo-periphery";
         WorkingDirectory = "/var/lib/komodo-periphery";
       };
     };
 
-    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ 8120 ];
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
   };
 }
