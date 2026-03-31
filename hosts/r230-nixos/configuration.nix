@@ -67,6 +67,6 @@
   };
   komodo-periphery = {
     enable = true;
-    corePublicKeys = [ "CHANGEME" ];
+    corePublicKeys = [ "MCowBQYDK2VuAyEAfIXxIx7Ls5qTL3fODOxzXc0b+7AA0h0KQA5Dj0YDmXk=" ];
   };
 }
