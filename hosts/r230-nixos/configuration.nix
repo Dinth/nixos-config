@@ -67,6 +67,6 @@
   };
   komodo-periphery = {
     enable = true;
-    passkeys = [ "CHANGEME" ];
+    corePublicKeys = [ "CHANGEME" ];
   };
 }

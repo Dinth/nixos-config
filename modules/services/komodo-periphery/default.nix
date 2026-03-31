@@ -5,11 +5,11 @@ let
 
   komodo-periphery-pkg = pkgs.stdenv.mkDerivation rec {
     pname = "komodo-periphery";
-    version = "1.19.5";
+    version = "2.0.0";
 
     src = pkgs.fetchurl {
       url = "https://github.com/moghtech/komodo/releases/download/v${version}/periphery-x86_64";
-      hash = "sha256-1uics2Avffe2TEPTWJLGQVeBGcJFGWuu0oV9fQeFlHA=";
+      hash = "sha256-FfaDSy26wDFIB3I6MCku+UKEGzELqB8TP9gLLKXpb6c=";
     };
 
     dontUnpack = true;
@@ -32,7 +32,8 @@ let
   configFile = pkgs.writeText "periphery.toml" ''
     port = ${toString cfg.port}
     ssl_enabled = true
-    passkeys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.passkeys}]
+    root_directory = "/var/lib/komodo-periphery"
+    core_public_keys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.corePublicKeys}]
   '';
 in
 {
@@ -43,10 +44,10 @@ in
       description = "Enable Komodo Periphery agent.";
     };
 
-    passkeys = mkOption {
+    corePublicKeys = mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
-      description = "Passkeys for authentication with Komodo Core.";
+      description = "Public keys of Komodo Core instances allowed to connect.";
     };
 
     port = mkOption {
