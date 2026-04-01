@@ -80,6 +80,10 @@ in
       requires = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
 
+      environment = {
+        DOCKER_HOST = "unix:///run/docker.sock";
+      };
+
       serviceConfig = {
         Type = "simple";
         ExecStart = "${komodo-periphery-pkg}/bin/periphery --config-path ${configFile}";
