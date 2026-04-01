@@ -17,6 +17,10 @@ in
 {
   config = optionalAttrs hasNixVirt (mkIf (config.virtualisation.enable && elem hostname runOnHosts) {
     virtualisation.libvirt.connections."qemu:///system" = {
+      networks = [{
+        definition = ./default-network.xml;
+        active = true;
+      }];
       domains = [
         { definition = ./win11.xml; }
         { definition = ./win10.xml; }
