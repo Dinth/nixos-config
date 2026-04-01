@@ -91,7 +91,7 @@ in
         RestartSec = "10s";
         User = "komodo-periphery";
         Group = "komodo-periphery";
-        StateDirectory = "komodo-periphery";
+        StateDirectory = "komodo-periphery komodo-periphery/stacks komodo-periphery/repos komodo-periphery/builds";
         WorkingDirectory = "/var/lib/komodo-periphery";
       };
     };
