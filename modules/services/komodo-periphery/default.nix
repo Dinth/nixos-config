@@ -25,6 +25,7 @@ let
       makeWrapper ${pkgs.nix-ld}/libexec/nix-ld $out/bin/periphery \
         --set NIX_LD_LIBRARY_PATH "${lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.openssl ]}" \
         --set NIX_LD "${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2" \
+        --prefix PATH : "${lib.makeBinPath [ pkgs.openssl ]}" \
         --add-flags "$out/bin/.periphery-unwrapped"
     '';
   };
