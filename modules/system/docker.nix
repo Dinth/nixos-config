@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  inherit (lib) mkIf mkOption;
+  inherit (lib) mkIf mkOption mkForce;
   cfg = config.docker;
   primaryUsername = config.primaryUser.name;
   tcpEnabled = cfg.tcpClients != [];
@@ -25,8 +25,9 @@ in
     virtualisation.docker = {
       enable = true;
       daemon.settings = {
-        hosts = [ "unix:///var/run/docker.sock" ]
-          ++ lib.optionals tcpEnabled [ "tcp://0.0.0.0:2375" ];
+        # Keep fd:// for socket activation (docker.service requires docker.socket),
+        # then append TCP if tcpClients are set. mkForce overrides the module default.
+        hosts = mkForce ([ "fd://" ] ++ lib.optionals tcpEnabled [ "tcp://0.0.0.0:2375" ]);
         log-driver = "json-file";
         log-opts = {
           max-size = "10m";
@@ -35,10 +36,6 @@ in
         storage-driver = "overlay2";
       };
     };
-
-    # daemon manages its own sockets via hosts in daemon.json;
-    # disable socket activation to avoid the fd:// conflict
-    systemd.sockets.docker.enable = false;
 
     # Allow only the specified IPs to reach port 2375; all others are dropped by default
     networking.firewall.extraInputRules = lib.mkIf tcpEnabled (
