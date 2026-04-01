@@ -28,7 +28,7 @@
   docker.enable = false;
   yubikey.enable = true;
   opencode.enable = true;
-  cloudflarewarp.enable = true;
+  # cloudflarewarp.enable = true;
   lnxlink.enable = true;
   lnxlink.mqtt.secretsFile = config.age.secrets.lnxlink-mqtt.path;
   primaryUser = {
