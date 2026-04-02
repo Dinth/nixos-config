@@ -67,13 +67,6 @@ in
   config = mkIf cfg.enable {
     programs.nix-ld.enable = true;
 
-    users.users.komodo-periphery = {
-      isSystemUser = true;
-      group = "komodo-periphery";
-      extraGroups = [ "docker" ];
-    };
-    users.groups.komodo-periphery = {};
-
     systemd.services.komodo-periphery = {
       description = "Komodo Periphery agent";
       after = [ "network.target" "docker.service" ];
@@ -89,8 +82,6 @@ in
         ExecStart = "${komodo-periphery-pkg}/bin/periphery --config-path ${configFile}";
         Restart = "on-failure";
         RestartSec = "10s";
-        User = "komodo-periphery";
-        Group = "komodo-periphery";
         StateDirectory = "komodo-periphery komodo-periphery/stacks komodo-periphery/repos komodo-periphery/builds";
         WorkingDirectory = "/var/lib/komodo-periphery";
       };
