@@ -48,7 +48,7 @@
       nixosConfigurations = {
         dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { machineType = "desktop"; inherit catppuccin; };
+          specialArgs = { machineType = "desktop"; inherit catppuccin home-manager; };
           modules = [
             ./libs
             ./modules
@@ -68,7 +68,7 @@
         };
         r230-nixos = nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { machineType = "server"; inherit catppuccin; };
+          specialArgs = { machineType = "server"; inherit catppuccin home-manager; };
           modules = [
             ./libs
             ./modules
@@ -87,7 +87,7 @@
         };
         michal-surface-go = nixpkgs.lib.nixosSystem {
             inherit system;
-            specialArgs = { machineType = "tablet"; inherit catppuccin; };
+            specialArgs = { machineType = "tablet"; inherit catppuccin home-manager; };
             modules = [
               ./libs
               ./modules

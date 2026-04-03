@@ -63,8 +63,8 @@
     enable32Bit = true;    # replaces hardware.opengl.driSupport32Bit (if present)
     extraPackages = with pkgs; [
       intel-media-driver
-      vaapiIntel
-      vaapiVdpau
+      intel-vaapi-driver
+      libva-vdpau-driver
       libvdpau-va-gl
     ];
     # Use enableHybridCodec, extraPackages32Bit, or other new options as needed
@@ -116,11 +116,11 @@
   '';
 
   # Configure automatic behavior
-  services.logind.extraConfig = ''
-    IdleAction=suspend-then-hibernate
-    IdleActionSec=5min
-    HandleLidSwitch=suspend-then-hibernate
-  '';
+  services.logind.settings.Login = {
+    IdleAction = "suspend-then-hibernate";
+    IdleActionSec = "5min";
+    HandleLidSwitch = "suspend-then-hibernate";
+  };
   amd_gpu.enable = false;
 
 }

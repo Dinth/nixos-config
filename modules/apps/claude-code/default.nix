@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  home-manager,
   ...
 }:
 let
@@ -161,7 +162,7 @@ in
       # symlink. Claude Code does a write-test on settings.json at startup;
       # a read-only symlink causes the entire permission system to fall back
       # to asking for everything (upstream issue #3575).
-      home.activation.claudeCodeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      home.activation.claudeCodeSettings = home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         $DRY_RUN_CMD rm -f "$HOME/.claude/settings.json"
         $DRY_RUN_CMD install -m 600 ${claudeSettingsFile} "$HOME/.claude/settings.json"
       '';
