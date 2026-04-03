@@ -37,12 +37,21 @@
     inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, llm-agents, ... }:
     let
       system = "x86_64-linux";
-      # Overlay to use llm-agents.nix packages for claude-code, opencode, and rtk
-      llmAgentsOverlay = final: prev: {
-        claude-code = llm-agents.packages.${system}.claude-code;
-        opencode = llm-agents.packages.${system}.opencode;
-        rtk = llm-agents.packages.${system}.rtk;
-      };
+      # Overlay to use llm-agents.nix packages for claude-code, opencode, and rtk.
+      # Call each package directly from the flake source rather than via
+      # llm-agents.packages.${system}, which uses blueprint and eagerly evaluates
+      # the entire package set — including the broken `apm` package that fails
+      # with nixos-25.11's buildPythonApplication.
+      llmAgentsOverlay = final: prev:
+        let
+          callPkg = path: final.callPackage (llm-agents + path) {};
+          wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
+          versionCheckHomeHook = callPkg "/packages/versionCheckHomeHook/package.nix";
+        in {
+          claude-code = final.callPackage (llm-agents + "/packages/claude-code/package.nix") { inherit wrapBuddy; };
+          opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") { inherit wrapBuddy versionCheckHomeHook; };
+          rtk = callPkg "/packages/rtk/package.nix";
+        };
     in
     {
       nixosConfigurations = {
