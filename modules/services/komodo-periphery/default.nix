@@ -39,7 +39,7 @@ let
   configFile = pkgs.writeText "periphery.toml" ''
     port = ${toString cfg.port}
     ssl_enabled = false
-    root_directory = "/var/lib/komodo-periphery"
+    root_directory = "/var/lib/komodo"
     core_public_keys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.corePublicKeys}]
 
     [logging]
@@ -92,8 +92,8 @@ in
         ExecStart = "${komodo-periphery-pkg}/bin/periphery --config-path ${configFile}";
         Restart = "on-failure";
         RestartSec = "10s";
-        StateDirectory = "komodo-periphery komodo-periphery/stacks komodo-periphery/repos komodo-periphery/builds";
-        WorkingDirectory = "/var/lib/komodo-periphery";
+        StateDirectory = "komodo komodo/stacks komodo/repos komodo/builds";
+        WorkingDirectory = "/var/lib/komodo";
       };
     };
 
