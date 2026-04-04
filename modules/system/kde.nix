@@ -405,6 +405,9 @@ in
               "Active" = true;
               "NightTemperature" = 4800;
             };
+          } // lib.optionalAttrs (machineType == "tablet") {
+            # Surface Go internal panel — enable auto-rotation via iio-sensor-proxy
+            "Output-DSI-1"."AutoRotate" = true;
           };
           "ktrashrc" = {
             "/home/${config.primaryUser.name}/.local/share/Trash" = {
@@ -458,6 +461,9 @@ in
           "kded6rc" = {
             "Module-browserintegrationreminder"."autoload" = false;
             "Module-device_automounter"."autoload" = false;
+          } // lib.optionalAttrs (machineType == "tablet") {
+            # Enable orientation sensor kded module for screen auto-rotation
+            "Module-orientationsensor"."autoload" = true;
           };
           "baloofilerc"."General" = {
             "exclude filters" =
