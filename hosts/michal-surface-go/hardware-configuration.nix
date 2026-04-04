@@ -7,10 +7,12 @@
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ "xhci_pci" "nvme" "usbhid" "i915" ];
 
-  boot.kernelModules = [ "kvm-intel" ];
-#  boot.extraModprobeConfig = ''
-#    options ipu3-imgu load_firmware=1
-#  '';
+  boot.kernelModules = [ "kvm-intel" "ipu3-cio2" ];
+  # ipu3-imgu: Intel IPU3 image processing unit — required for built-in cameras
+  # load_firmware=1 loads intel/ipu3-fw.bin from linux-firmware (already enabled)
+  boot.extraModprobeConfig = ''
+    options ipu3-imgu load_firmware=1
+  '';
   boot.resumeDevice = "/dev/nvme0n1p3";
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
@@ -106,6 +108,8 @@
   environment.systemPackages = with pkgs; [
     iptsd
     surface-control
+    libcamera   # IPU3 camera stack; test with: cam -l
+    v4l-utils   # v4l2-ctl --list-devices to verify camera nodes appear
   ];
   powerManagement.powertop.enable = true;
   # Hibernation after 30m of sleep
