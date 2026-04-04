@@ -9,11 +9,11 @@ in
     # Make neovim available system-wide (root, etc.)
     environment.systemPackages = [ pkgs.neovim ];
 
-    home-manager.users.${primaryUsername}.catppuccin.nvim.enable = true;
-
-    home-manager.users.${primaryUsername}.programs.neovim = {
-      enable = true;
-      defaultEditor = true;
+    home-manager.users.${primaryUsername} = {
+      catppuccin.nvim.enable = true;
+      programs.neovim = {
+        enable = true;
+        defaultEditor = true;
 
       extraLuaConfig = ''
         -- ============================================================
@@ -164,6 +164,7 @@ in
         vim.keymap.set('i', '<C-a>', '<Home>', opts)
         vim.keymap.set('i', '<C-e>', '<End>',  opts)
       '';
+      };
     };
   };
 }
