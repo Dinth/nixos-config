@@ -59,6 +59,7 @@
   logitech.enable = true;
   printers.enable = true;
   tailscale.enable = true;
+  # tailscale.authKeyFile = config.age.secrets.tailscale-authkey.path;
   weechat.enable = true;
   docker.enable = false;
   yubikey.enable = true;
