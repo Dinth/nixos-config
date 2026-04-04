@@ -24,6 +24,9 @@ in
   };
   config = mkIf cfg.enable {
     services.displayManager.sddm.wayland.enable = mkDefault true;
+    services.displayManager.sddm.settings = lib.optionalAttrs (machineType == "tablet") {
+      General.GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.5";
+    };
     services.desktopManager.plasma6.enable = mkDefault true;
     environment.systemPackages =
       with pkgs;
@@ -397,7 +400,7 @@ in
             };
           };
           "kwinrc" = {
-            "Xwayland"."Scale" = 1.25;
+            "Xwayland"."Scale" = if (machineType == "tablet") then 1.5 else 1.25;
             "NightColor" = {
               "Active" = true;
               "NightTemperature" = 4800;
@@ -447,7 +450,11 @@ in
               "View Style" = "DetailTree";
             };
           };
-          "kcminputrc"."Keyboard"."NumLock" = 0;
+          "kcminputrc" = {
+            "Keyboard"."NumLock" = 0;
+          } // lib.optionalAttrs (machineType == "tablet") {
+            "Mouse"."cursorSize" = 36;
+          };
           "kded6rc" = {
             "Module-browserintegrationreminder"."autoload" = false;
             "Module-device_automounter"."autoload" = false;
