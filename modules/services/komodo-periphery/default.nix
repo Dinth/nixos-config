@@ -76,11 +76,6 @@ in
   config = mkIf cfg.enable {
     programs.nix-ld.enable = true;
 
-    # periphery is a pre-compiled Debian binary that hardcodes /bin/bash
-    system.activationScripts.komodo-periphery-bash = lib.stringAfter [ ] ''
-      ln -sf ${pkgs.bash}/bin/bash /bin/bash
-    '';
-
     systemd.services.komodo-periphery = {
       description = "Komodo Periphery agent";
       after = [ "network.target" "docker.service" ];
