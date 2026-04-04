@@ -3,6 +3,12 @@ let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
 
+  # Docker config dir with compose plugin wired in so `docker compose` works
+  dockerConfig = pkgs.runCommand "docker-config-with-compose" {} ''
+    mkdir -p $out/cli-plugins
+    ln -s ${pkgs.docker-compose}/bin/docker-compose $out/cli-plugins/docker-compose
+  '';
+
   komodo-periphery-pkg = pkgs.stdenv.mkDerivation rec {
     pname = "komodo-periphery";
     version = "2.0.0";
@@ -25,7 +31,7 @@ let
       makeWrapper ${pkgs.nix-ld}/libexec/nix-ld $out/bin/periphery \
         --set NIX_LD_LIBRARY_PATH "${lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.openssl ]}" \
         --set NIX_LD "${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2" \
-        --prefix PATH : "${lib.makeBinPath [ pkgs.openssl pkgs.docker pkgs.git pkgs.docker-compose ]}" \
+        --prefix PATH : "${lib.makeBinPath [ pkgs.openssl pkgs.docker pkgs.git ]}" \
         --add-flags "$out/bin/.periphery-unwrapped"
     '';
   };
@@ -35,7 +41,6 @@ let
     ssl_enabled = false
     root_directory = "/var/lib/komodo-periphery"
     core_public_keys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.corePublicKeys}]
-    legacy_compose_cli = true
 
     [logging]
     level = "trace"
@@ -79,6 +84,7 @@ in
 
       environment = {
         DOCKER_HOST = "unix:///run/docker.sock";
+        DOCKER_CONFIG = "${dockerConfig}";
       };
 
       serviceConfig = {
