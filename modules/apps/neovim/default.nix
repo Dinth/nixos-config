@@ -9,10 +9,11 @@ in
     # Make neovim available system-wide (root, etc.)
     environment.systemPackages = [ pkgs.neovim ];
 
+    home-manager.users.${primaryUsername}.catppuccin.nvim.enable = true;
+
     home-manager.users.${primaryUsername}.programs.neovim = {
       enable = true;
       defaultEditor = true;
-      catppuccin.enable = true; # Inherits flavor from theme.nix (default: mocha)
 
       extraLuaConfig = ''
         -- ============================================================
