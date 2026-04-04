@@ -111,6 +111,8 @@
     surface-control
     libcamera   # IPU3 camera stack; test with: cam -l
     v4l-utils   # v4l2-ctl --list-devices to verify camera nodes appear
+    xournalpp   # Stylus note-taking; works via iptsd without libwacom
+    # libwacom  # Uncomment to test: Surface Pen uses IPTS not Wacom, likely no benefit
   ];
   powerManagement.powertop.enable = true;
   # Hibernation after 30m of sleep
