@@ -3,5 +3,6 @@
   imports = [
     ./komodo-periphery
     ./ssh
+    ./tailscale
   ];
 }

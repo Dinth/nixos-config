@@ -58,6 +58,7 @@
   virtualisation.enable = false;
   logitech.enable = true;
   printers.enable = true;
+  tailscale.enable = true;
   weechat.enable = true;
   docker.enable = false;
   yubikey.enable = true;
