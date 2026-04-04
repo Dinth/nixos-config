@@ -31,7 +31,7 @@ let
       makeWrapper ${pkgs.nix-ld}/libexec/nix-ld $out/bin/periphery \
         --set NIX_LD_LIBRARY_PATH "${lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.openssl ]}" \
         --set NIX_LD "${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2" \
-        --prefix PATH : "${lib.makeBinPath [ pkgs.openssl pkgs.docker pkgs.git ]}" \
+        --prefix PATH : "${lib.makeBinPath [ pkgs.bash pkgs.openssl pkgs.docker pkgs.git ]}" \
         --add-flags "$out/bin/.periphery-unwrapped"
     '';
   };
@@ -75,6 +75,11 @@ in
 
   config = mkIf cfg.enable {
     programs.nix-ld.enable = true;
+
+    # periphery is a pre-compiled Debian binary that hardcodes /bin/bash
+    system.activationScripts.komodo-periphery-bash = lib.stringAfter [ "writeBoundary" ] ''
+      ln -sf ${pkgs.bash}/bin/bash /bin/bash
+    '';
 
     systemd.services.komodo-periphery = {
       description = "Komodo Periphery agent";
