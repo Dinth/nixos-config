@@ -82,7 +82,8 @@
       };
     };
   };
-  services.touchegg.enable = true;
+  # touchegg removed: KDE Plasma 6 Wayland handles multi-touch natively via KWin/libinput
+  # Running both caused double-handling of touch events
   hardware.enableRedistributableFirmware = true;
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.sensor.iio.enable = true;
