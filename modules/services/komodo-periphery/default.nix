@@ -77,7 +77,7 @@ in
     programs.nix-ld.enable = true;
 
     # periphery is a pre-compiled Debian binary that hardcodes /bin/bash
-    system.activationScripts.komodo-periphery-bash = lib.stringAfter [ "writeBoundary" ] ''
+    system.activationScripts.komodo-periphery-bash = lib.stringAfter [ ] ''
       ln -sf ${pkgs.bash}/bin/bash /bin/bash
     '';
 
