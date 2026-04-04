@@ -1110,6 +1110,7 @@ in
     ] ++ lib.optionals config.graphical.enable [
       wl-clipboard
     ];
-    home-manager.users = lib.genAttrs [ primaryUsername "root" ] (_: mcHomeConfig);
+    home-manager.users.${primaryUsername} = mcHomeConfig;
+    home-manager.users.root = mcHomeConfig;
   };
 }
