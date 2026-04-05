@@ -16,10 +16,10 @@
   boot.resumeDevice = "/dev/nvme0n1p3";
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
-#    "mem_sleep_default=deep"  # Proper suspend
-#    "i915.fastboot=1"
-#    "i915.enable_fbc=1"       # Frame buffer compression
-#    "i915.enable_psr=1"
+    "mem_sleep_default=deep"  # Use S3 deep sleep; fixes "Device or resource busy" suspend failures
+    "i915.fastboot=1"         # Skip redundant mode-set on boot
+    "i915.enable_fbc=1"       # Frame buffer compression — marginal battery saving
+#    "i915.enable_psr=1"      # PSR causes flickering on Surface Go 2 eDP panel — leave off
   ];
   boot.kernel.sysctl = {
     "vm.dirty_writeback_centisecs" = 1500;
