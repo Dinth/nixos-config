@@ -323,7 +323,7 @@ in
           );
           "AutoHover" = true;
           "AutoImport" = true;
-          "BlockedServerCommandLines" = "";
+          "BlockedServerCommandLines" = "nil";
           "CompletionDocumentation" = true;
           "CompletionParens" = true;
           "Diagnostics" = true;
