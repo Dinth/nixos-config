@@ -106,6 +106,7 @@
     "acpi_enforce_resource=lax"
     "amdgpu.sched_jobs=64"
     "amdgpu.ppfeaturemask=0xffffffff" # Enable all power features for better SMU compatibility on resume
+    "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during suspend/resume
   ];
   boot.extraModprobeConfig = ''
     options it87 ignore_resource_conflict=1

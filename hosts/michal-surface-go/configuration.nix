@@ -58,6 +58,7 @@
   virtualisation.enable = false;
   logitech.enable = true;
   printers.enable = true;
+  opencode.enable = true;
   tailscale.enable = true;
   # tailscale.authKeyFile = config.age.secrets.tailscale-authkey.path;
   weechat.enable = true;
