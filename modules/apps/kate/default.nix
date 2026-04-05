@@ -5,21 +5,13 @@ let
   primaryUsername = config.primaryUser.name;
   customLSPServers = {
     nix = {
-      command = [ "${pkgs.nixd}/bin/nixd" ];
-      url = "https://github.com/nix-community/nixd";
+      command = [ "${pkgs.nil}/bin/nil" ];
+      url = "https://github.com/oxalica/nil";
       highlightingModeRegex = "^Nix$";
       rootIndicationFileNames = [ "flake.nix" "flake.lock" "default.nix" ];
       settings = {
-        nixd = {
+        nil = {
           formatting = { command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ]; };
-          options = {
-            nixos = {
-              expr = ''(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.${config.networking.hostName}.options'';
-            };
-            home_manager = {
-              expr = ''(builtins.getFlake (builtins.toString ./.)).homeConfigurations."${primaryUsername}@${config.networking.hostName}".options'';
-            };
-          };
         };
       };
     };
@@ -60,7 +52,7 @@ in
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
-        nixd
+        nil
         yaml-language-server
         bash-language-server
         (python3.withPackages (ps: [
@@ -323,7 +315,7 @@ in
           );
           "AutoHover" = true;
           "AutoImport" = true;
-          "BlockedServerCommandLines" = "nil";
+          "BlockedServerCommandLines" = "";
           "CompletionDocumentation" = true;
           "CompletionParens" = true;
           "Diagnostics" = true;
