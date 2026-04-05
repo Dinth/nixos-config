@@ -9,18 +9,14 @@
 
   boot.kernelModules = [ "kvm-intel" "ipu3-cio2" ];
   # ipu3-imgu: Intel IPU3 image processing unit — required for built-in cameras
-  # load_firmware=1 loads intel/ipu3-fw.bin from linux-firmware (already enabled)
-  boot.extraModprobeConfig = ''
-    options ipu3-imgu load_firmware=1
-  '';
   boot.resumeDevice = "/dev/nvme0n1p3";
   boot.extraModulePackages = [ ];
   boot.kernelParams = [
-    # mem_sleep_default=deep: S3 deep sleep causes dw9719 camera VCM I2C failure on
-    # resume (error -121), leaving system with blank screen. s2idle is more compatible.
-    # i915.fastboot=1: removed from kernel 6.x — silently ignored, breaks Plymouth
-    # i915.enable_fbc=1: taints kernel as "dangerous option" in kernel 6.18
-    # i915.enable_psr=1: known flickering on Surface Go 2 eDP panel
+    # nixos-hardware microsoft-surface-go sets mem_sleep_default=deep via its surface/common
+    # module, but S3 deep sleep causes dw9719 camera VCM I2C failure on resume (error -121),
+    # leaving the system with a blank screen. Override to s2idle here — last occurrence wins
+    # on the kernel cmdline.
+    "mem_sleep_default=s2idle"
   ];
   boot.kernel.sysctl = {
     "vm.dirty_writeback_centisecs" = 1500;

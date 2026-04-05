@@ -58,7 +58,9 @@ in
         SuccessExitStatus = [ 0 1 ];
         Restart = "on-failure";
         RestartSec = "30s";
-        # Give up after a few retries during boot
+      };
+      unitConfig = {
+        # Give up after a few retries during boot (StartLimit* must be in [Unit], not [Service])
         StartLimitBurst = 3;
         StartLimitIntervalSec = 180;
       };
