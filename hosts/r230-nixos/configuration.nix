@@ -7,10 +7,13 @@
     ../../secrets/deployment.nix
   ];
   networking.hostName = "r230-nixos";
-  networking.interfaces.ens18.useDHCP = true;
-  # ipv6.disable=1 removes /proc/sys/net/ipv6 from procfs entirely; dhcpcd probes
-  # that path and fails when it doesn't exist. noipv6 prevents dhcpcd from touching IPv6.
-  networking.dhcpcd.extraConfig = "noipv6";
+  # Use systemd-networkd instead of dhcpcd — dhcpcd 25.11 namespace sandboxing
+  # fails on this Proxmox QEMU guest (ExecStartPre exits 226/NAMESPACE)
+  networking.useNetworkd = true;
+  systemd.network.networks."10-ens18" = {
+    matchConfig.Name = "ens18";
+    networkConfig.DHCP = "ipv4";
+  };
 
   # TRIM for thin-provisioned Proxmox disks
   services.fstrim.enable = true;
