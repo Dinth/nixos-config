@@ -49,12 +49,19 @@ in
   security.audit.enable = true;
   security.auditd.enable = false;
   security.audit.rules = [
+    # Rate limit: cap at 200 events/sec to prevent kauditd hold queue overflow
+    "-r 200"
+
     # Exclude high-volume low-value message types to prevent kauditd queue overflow
     "-a always,exclude -F msgtype=SERVICE_START"
     "-a always,exclude -F msgtype=SERVICE_STOP"
     "-a always,exclude -F msgtype=BPF"
     "-a always,exclude -F msgtype=PROCTITLE"
     "-a always,exclude -F msgtype=CWD"
+    # Docker generates these constantly (iptables/netfilter changes, network setup)
+    "-a always,exclude -F msgtype=NETFILTER_CFG"
+    "-a always,exclude -F msgtype=NETFILTER_PKT"
+    "-a always,exclude -F msgtype=PATH"
 
     # AppArmor configuration changes
     "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor/ -F perm=wa -F key=apparmor_changes"
