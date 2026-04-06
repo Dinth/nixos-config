@@ -38,7 +38,6 @@ let
 
   configFile = pkgs.writeText "periphery.toml" ''
     port = ${toString cfg.port}
-    host = "0.0.0.0"
     ssl_enabled = false
     root_directory = "/var/lib/komodo"
     core_public_keys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.corePublicKeys}]

@@ -24,10 +24,15 @@ in
     "kernel.ftrace_enabled" = 0;
   };
   boot.kernelParams = [
-    "ipv6.disable=1"
     "audit_backlog_limit=8192"    # Kernel-side backlog buffer
     "audit_backlog_wait_time=0"   # Drop events instead of blocking when hold queue full
   ];
+  # Disable IPv6 per-interface via sysctl rather than ipv6.disable=1 — the kernel
+  # param removes AF_INET6 entirely, breaking services that bind [::] (e.g. periphery, dhcpcd)
+  boot.kernel.sysctl = {
+    "net.ipv6.conf.all.disable_ipv6"     = 1;
+    "net.ipv6.conf.default.disable_ipv6" = 1;
+  };
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
     lynis # vulnerability scanner
