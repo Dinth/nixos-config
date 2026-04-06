@@ -7,11 +7,10 @@
     ../../secrets/deployment.nix
   ];
   networking.hostName = "r230-nixos";
-  networking = {
-    interfaces.ens18 = {
-      useDHCP = true;
-    };
-  };
+  networking.interfaces.ens18.useDHCP = true;
+  # ipv6.disable=1 removes /proc/sys/net/ipv6 from procfs entirely; dhcpcd probes
+  # that path and fails when it doesn't exist. noipv6 prevents dhcpcd from touching IPv6.
+  networking.dhcpcd.extraConfig = "noipv6";
 
   # TRIM for thin-provisioned Proxmox disks
   services.fstrim.enable = true;

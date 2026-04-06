@@ -25,7 +25,8 @@ in
   };
   boot.kernelParams = [
     "ipv6.disable=1"
-    "audit_backlog_limit=8192"  # Prevent kauditd queue overflow with AppArmor
+    "audit_backlog_limit=8192"    # Kernel-side backlog buffer
+    "audit_backlog_wait_time=0"   # Drop events instead of blocking when hold queue full
   ];
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
