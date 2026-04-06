@@ -15,6 +15,11 @@
     networkConfig.DHCP = "ipv4";
   };
 
+  # Disable systemd-resolved DNS stub listener so AdGuard Home can bind port 53
+  services.resolved.extraConfig = ''
+    DNSStubListener=no
+  '';
+
   # TRIM for thin-provisioned Proxmox disks
   services.fstrim.enable = true;
 
