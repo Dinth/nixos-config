@@ -58,5 +58,11 @@
       group = "users";
       mode = "0644";
     };
+    tailscale-auth-key = {
+      file = ./tailscale-auth-key.age;
+      owner = "michal";
+      group = "users";
+      mode = "0644";
+    };
   };
 }

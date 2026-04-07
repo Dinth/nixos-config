@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "nixos": {
+      "type": "stdio",
+      "command": "/nix/store/3frjkd4gs1nndgj7shwcrvxi1xkzizb1-mcp-nixos-1.0.3/bin/mcp-nixos"
+    }
+  }
+}

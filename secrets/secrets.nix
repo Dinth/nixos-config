@@ -17,4 +17,5 @@ in
   "cloudflare-mdm.age".publicKeys = users ++ systems;
   "cloudflare-cert.age".publicKeys = users ++ systems;
   "lnxlink-mqtt.age".publicKeys = users ++ systems;
+  "tailscale-auth-key.age".publicKeys = users ++ systems;
 }

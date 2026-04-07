@@ -60,7 +60,7 @@
   printers.enable = true;
   opencode.enable = true;
   tailscale.enable = true;
-  # tailscale.authKeyFile = config.age.secrets.tailscale-authkey.path;
+  tailscale.authKeyFile = config.age.secrets.tailscale-auth-key.path;
   weechat.enable = true;
   docker.enable = false;
   yubikey.enable = true;
