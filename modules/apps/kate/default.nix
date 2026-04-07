@@ -96,6 +96,7 @@ in
             <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
               <mime-type type="application/x-plist">
                 <comment>Apple Property List</comment>
+                <sub-class-of type="text/xml"/>
                 <glob pattern="*.plist"/>
               </mime-type>
             </mime-info>
