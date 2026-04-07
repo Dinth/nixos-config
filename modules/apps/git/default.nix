@@ -11,17 +11,13 @@ in
       settings.user.name  = "Michal Gawronski-Kot";
       settings.user.email = "michal@gawronskikot.com";
       settings = {
-#        url = {
-#          "ssh://git@github.com" = {
-#            insteadOf = [ "https://github.com" "gh" ];
-#          };
-#        };
         url = {
+          "ssh://git@github.com" = {
+            insteadOf = "https://github.com";
+          };
           "ssh://git@bitbucket.org" = {
             insteadOf = "https://bitbucket.org";
           };
-        };
-        url = {
           "ssh://git@gitlab.com" = {
             insteadOf = "https://gitlab.com";
           };
