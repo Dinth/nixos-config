@@ -15,12 +15,13 @@ in
         enable = true;
         defaultEditor = true;
 
-      extraLuaConfig = ''
+        extraLuaConfig = ''
         -- ============================================================
         -- mcedit-like neovim configuration (catppuccin theme)
         -- ============================================================
 
         -- Visual
+        vim.opt.termguicolors = true      -- true-colour (required for catppuccin)
         vim.opt.number        = true      -- absolute line numbers
         vim.opt.mouse         = 'a'       -- mouse support
         vim.opt.wrap          = false     -- no word wrap (mcedit default)
@@ -108,7 +109,7 @@ in
 
         -- F5: Copy selection to system clipboard
         vim.keymap.set('v', '<F5>', '"+y',                   opts)
-        vim.keymap.set('n', '<F5>', '<Cmd>normal! yy<CR>',   opts)
+        vim.keymap.set('n', '<F5>', '"+yy',                  opts)
 
         -- F6: Move / cut selection
         vim.keymap.set('v', '<F6>', '"+d', opts)
