@@ -13,14 +13,14 @@ in
         "r230-nixos r230 10.10.1.12" = {
           hostname = "10.10.1.12";
           user = "michal";
-          identityFile = [ "~/.ssh/id_ed25519" ];
+          identityFile = [ config.age.secrets."id-ed25519".path ];
           identitiesOnly = true;
         };
         "*" = {
           identityFile = [
-            "~/.ssh/id_ed25519_sk_rk_2"
-            "~/.ssh/id_ed25519_sk_rk_1"
-            "~/.ssh/id_ed25519_sk_rk_3"
+            config.age.secrets."id-ed25519-sk-rk-2".path
+            config.age.secrets."id-ed25519-sk-rk-1".path
+            config.age.secrets."id-ed25519-sk-rk-3".path
           ];
           identitiesOnly = true;
         };
