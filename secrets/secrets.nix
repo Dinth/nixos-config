@@ -18,4 +18,8 @@ in
   "cloudflare-cert.age".publicKeys = users ++ systems;
   "lnxlink-mqtt.age".publicKeys = users ++ systems;
   "tailscale-auth-key.age".publicKeys = users ++ systems;
+  "id-ed25519-sk-rk-1.age".publicKeys = users ++ systems;
+  "id-ed25519-sk-rk-2.age".publicKeys = users ++ systems;
+  "id-ed25519-sk-rk-3.age".publicKeys = users ++ systems;
+  "id-ed25519.age".publicKeys = users ++ systems;
 }

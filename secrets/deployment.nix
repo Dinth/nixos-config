@@ -40,18 +40,6 @@
       group = "users";
       mode = "0400";
     };
-    cloudflare-mdm = {
-      file = ./cloudflare-mdm.age;
-      owner = "michal";
-      group = "users";
-      mode = "0644";
-    };
-    cloudflare-cert = {
-      file = ./cloudflare-cert.age;
-      owner = "michal";
-      group = "users";
-      mode = "0644";
-    };
     lnxlink-mqtt = {
       file = ./lnxlink-mqtt.age;
       owner = "michal";
@@ -62,7 +50,32 @@
       file = ./tailscale-auth-key.age;
       owner = "michal";
       group = "users";
-      mode = "0644";
+      mode = "0400";
     };
+    id-ed25519-sk-rk-1 = {
+      file = ./id-ed25519-sk-rk-1.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
+    id-ed25519-sk-rk-2 = {
+      file = ./id-ed25519-sk-rk-2.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
+    id-ed25519-sk-rk-3 = {
+      file = ./id-ed25519-sk-rk-3.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
+    id-ed25519 = {
+      file = ./id-ed25519.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
+ 
   };
 }
