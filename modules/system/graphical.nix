@@ -60,7 +60,12 @@ in
     security.rtkit.enable = mkDefault true;
     services.colord.enable = mkDefault true;
     security.polkit.enable = mkDefault true;
-    services.libinput.touchpad.naturalScrolling = mkDefault true;
+    services.libinput.touchpad = {
+      naturalScrolling = mkDefault true;
+      tapping = mkDefault true;
+      disableWhileTyping = mkDefault true;
+      palmDetection = mkDefault true;
+    };
     xdg.portal = {
       enable = true;
     };
