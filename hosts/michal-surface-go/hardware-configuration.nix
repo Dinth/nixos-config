@@ -112,6 +112,12 @@
     # libwacom  # Uncomment to test: Surface Pen uses IPTS not Wacom, likely no benefit
   ];
   powerManagement.powertop.enable = true;
+  # powertop --auto-tune sets all USB devices to autosuspend, which causes
+  # the Type Cover (touchpad) to disconnect with hid-multitouch ENODEV (-19).
+  # Pin the Surface Type Cover to always-on to override powertop's setting.
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="09b5", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
+  '';
   # Hibernation after 30m of sleep
   systemd.sleep.extraConfig = ''
     HibernateDelaySec=30m
