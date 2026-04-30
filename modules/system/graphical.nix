@@ -64,7 +64,7 @@ in
       naturalScrolling = mkDefault true;
       tapping = mkDefault true;
       disableWhileTyping = mkDefault true;
-      palmDetection = mkDefault true;
+      additionalOptions = ''Option "PalmDetection" "true"'';
     };
     xdg.portal = {
       enable = true;
