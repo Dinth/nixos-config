@@ -94,7 +94,7 @@
     '';
   };
   boot.kernelParams = [
-    "systemd.show_status=auto"
+    "systemd.show_status=true"
     "rd.udev.log_level=3"
     "preempt=full"
     "amd_pstate=active" # AMD Active Pstates instead of cpufreq
