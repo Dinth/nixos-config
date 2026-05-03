@@ -118,6 +118,16 @@
   services.udev.extraRules = ''
     ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="09b5", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
   '';
+  # The hid-multitouch driver for the Type Cover touchpad (USB interface 1-7:1.3)
+  # submits a control URB during system suspend, which fails with -EPERM and aborts
+  # the entire suspend. Unbind the interface before sleep and rebind on resume.
+  # The || true handles the case where the Type Cover is detached.
+  powerManagement.powerDownCommands = ''
+    echo 1-7:1.3 > /sys/bus/usb/drivers/usbhid/unbind || true
+  '';
+  powerManagement.resumeCommands = ''
+    echo 1-7:1.3 > /sys/bus/usb/drivers/usbhid/bind || true
+  '';
   # Hibernation after 30m of sleep
   systemd.sleep.extraConfig = ''
     HibernateDelaySec=30m
