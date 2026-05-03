@@ -1,15 +1,10 @@
 name: "Nix Check & Lint"
-
 on:
   push:
-    # Optionally filter branches for push events
-    # branches: [ main, develop ]
-    paths: # Only run if compose files change (check both naming conventions)
+    paths:
       - '**/*.nix'
   pull_request:
-    # Optionally filter branches for push events
-    # branches: [ main, develop ]
-    paths: # Only run if compose files change (check both naming conventions)
+    paths:
       - '**/*.nix'
 jobs:
   check:
@@ -17,22 +12,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v9
-
+        uses: DeterminateSystems/nix-installer-action@main
       - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v2
-
+        uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Check Formatting (Alejandra)
         run: nix run nixpkgs#alejandra -- --check .
-
       - name: Linting (Statix)
         run: nix run nixpkgs#statix -- check .
-
       - name: Check for dead code (Deadnix)
         run: nix run nixpkgs#deadnix -- --fail .
-
       - name: Flake Check
-        # This ensures the flake and all its outputs (NixOS configs) evaluate correctly
         run: nix flake check
