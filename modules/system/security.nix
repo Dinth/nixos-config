@@ -23,7 +23,7 @@ in
     "net.core.bpf_jit_harden" = 2;
     "kernel.ftrace_enabled" = 0;
   };
-  boot.kernelParams = [
+  boot.kernelParams = lib.mkAfter [
     "audit_backlog_limit=8192"    # Kernel-side backlog buffer
     "audit_backlog_wait_time=0"   # Drop events instead of blocking when hold queue full
   ];
