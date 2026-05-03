@@ -28,6 +28,13 @@ in {
       authKeyFile = lib.mkIf (cfg.authKeyFile != null) cfg.authKeyFile;
     };
 
+    # Ensure the autoconnect service waits for an active network connection.
+    # Without this it starts before WiFi is up, loops in NoState for 90s, and times out.
+    systemd.services.tailscaled-autoconnect = lib.mkIf (cfg.authKeyFile != null) {
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+    };
+
     networking.firewall = {
       trustedInterfaces = [ "tailscale0" ];
       allowedUDPPorts = [ config.services.tailscale.port ];
