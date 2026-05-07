@@ -104,8 +104,6 @@
     "thermal.crt=105" # Fix a bug with acpitz reporting overheat on resume from suspend
     "plymouth.use-simpledrm"
     "acpi_enforce_resource=lax"
-    "amdgpu.sched_jobs=64"
-    "amdgpu.ppfeaturemask=0xffffffff" # Enable all power features for better SMU compatibility on resume
     "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during suspend/resume
   ];
   boot.extraModprobeConfig = ''
