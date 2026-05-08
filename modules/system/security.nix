@@ -344,4 +344,22 @@ in {
       Persistent = true;
     };
   };
+  # Workaround for https://github.com/NixOS/nixpkgs/issues/483085
+  # auditctl rejects some rules when AppArmor is enabled; load rule-by-rule
+  # and tolerate individual failures so one bad rule doesn't fail the unit.
+  systemd.services.audit-rules-nixos.serviceConfig.ExecStart = lib.mkForce [
+    ""
+    (pkgs.writeShellScript "load-audit-rules" ''
+      ${lib.getExe' pkgs.audit "auditctl"} -D
+      ${lib.getExe' pkgs.audit "auditctl"} -b ${toString config.security.audit.backlogLimit}
+      ${lib.getExe' pkgs.audit "auditctl"} -f 1
+      ${lib.getExe' pkgs.audit "auditctl"} -r ${toString config.security.audit.rateLimit}
+      ${lib.concatMapStringsSep "\n" (
+        rule: "${lib.getExe' pkgs.audit "auditctl"} ${rule} || true"
+      )
+      config.security.audit.rules}
+      ${lib.getExe' pkgs.audit "auditctl"} -e 1
+      exit 0
+    '')
+  ];
 }
