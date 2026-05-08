@@ -22,17 +22,14 @@ in
     "kernel.unprivileged_bpf_disabled" = 1;
     "net.core.bpf_jit_harden" = 2;
     "kernel.ftrace_enabled" = 0;
-  };
-  boot.kernelParams = lib.mkAfter [
-    "audit_backlog_limit=8192"    # Kernel-side backlog buffer
-    "audit_backlog_wait_time=0"   # Drop events instead of blocking when hold queue full
-  ];
-  # Disable IPv6 per-interface via sysctl rather than ipv6.disable=1 — the kernel
-  # param removes AF_INET6 entirely, breaking services that bind [::] (e.g. periphery, dhcpcd)
-  boot.kernel.sysctl = {
+    # Disable IPv6 per-interface rather than ipv6.disable=1 — the kernel
+    # param removes AF_INET6 entirely, breaking services that bind [::] (e.g. periphery, dhcpcd)
     "net.ipv6.conf.all.disable_ipv6"     = 1;
     "net.ipv6.conf.default.disable_ipv6" = 1;
   };
+  boot.kernelParams = lib.mkAfter [
+    "audit_backlog_wait_time=0"   # Drop events instead of blocking when hold queue full
+  ];
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
     lynis # vulnerability scanner
@@ -51,67 +48,66 @@ in
     tmpfsSize = "50%";  # optional: limit size
     cleanOnBoot = true;  # optional: clean on boot
   };
-  security.audit.enable = true;
-  security.auditd.enable = false;
-  security.audit.rules = [
-    # Rate limit: cap at 200 events/sec to prevent kauditd hold queue overflow
-    "-r 200"
+  security.audit = {
+    enable = true;
+    backlogLimit = 8192;
+    rateLimit = 200;
+    rules = [
+      # Exclude high-volume low-value message types to prevent kauditd queue overflow
+      "-a always,exclude -F msgtype=SERVICE_START"
+      "-a always,exclude -F msgtype=SERVICE_STOP"
+      "-a always,exclude -F msgtype=BPF"
+      "-a always,exclude -F msgtype=PROCTITLE"
+      "-a always,exclude -F msgtype=CWD"
+      # Docker generates these constantly (iptables/netfilter changes, network setup)
+      "-a always,exclude -F msgtype=NETFILTER_CFG"
+      "-a always,exclude -F msgtype=NETFILTER_PKT"
+      "-a always,exclude -F msgtype=PATH"
 
-    # Exclude high-volume low-value message types to prevent kauditd queue overflow
-    "-a always,exclude -F msgtype=SERVICE_START"
-    "-a always,exclude -F msgtype=SERVICE_STOP"
-    "-a always,exclude -F msgtype=BPF"
-    "-a always,exclude -F msgtype=PROCTITLE"
-    "-a always,exclude -F msgtype=CWD"
-    # Docker generates these constantly (iptables/netfilter changes, network setup)
-    "-a always,exclude -F msgtype=NETFILTER_CFG"
-    "-a always,exclude -F msgtype=NETFILTER_PKT"
-    "-a always,exclude -F msgtype=PATH"
+      # AppArmor configuration changes
+      "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor.d/ -F perm=wa -F key=apparmor_changes"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/apparmor.d/ -F perm=wa -F key=apparmor_changes"
 
-    # AppArmor configuration changes
-    "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor/ -F perm=wa -F key=apparmor_changes"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/apparmor/ -F perm=wa -F key=apparmor_changes"
-    "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor.d/ -F perm=wa -F key=apparmor_changes"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/apparmor.d/ -F perm=wa -F key=apparmor_changes"
+      # Kernel module loading
+      "-a always,exit -F arch=b64 -S init_module,finit_module -F key=module_insertion"
+      "-a always,exit -F arch=b32 -S init_module,finit_module -F key=module_insertion"
 
-    # Kernel module loading
-    "-a always,exit -F arch=b64 -S init_module,finit_module -F key=module_insertion"
-    "-a always,exit -F arch=b32 -S init_module,finit_module -F key=module_insertion"
+      # Privilege escalation monitoring
+      "-a always,exit -F arch=b64 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
+      "-a always,exit -F arch=b32 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
 
-    # Privilege escalation monitoring
-    "-a always,exit -F arch=b64 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
-    "-a always,exit -F arch=b32 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
+      # NixOS configuration changes
+      "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
 
-    # NixOS configuration changes
-    "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
+      # Identity files monitoring
+      "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/passwd -F perm=wa -F key=identity"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/passwd -F perm=wa -F key=identity"
+      "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/group -F perm=wa -F key=identity"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/group -F perm=wa -F key=identity"
+      "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/shadow -F perm=wa -F key=identity"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/shadow -F perm=wa -F key=identity"
 
-    # Identity files monitoring
-    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/passwd -F perm=wa -F key=identity"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/passwd -F perm=wa -F key=identity"
-    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/group -F perm=wa -F key=identity"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/group -F perm=wa -F key=identity"
-    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/shadow -F perm=wa -F key=identity"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/shadow -F perm=wa -F key=identity"
+      # Privileged command execution
+      "-a always,exit -F arch=b64 -S execve -F path=/run/wrappers/bin/doas -F key=privileged"
+      "-a always,exit -F arch=b32 -S execve -F path=/run/wrappers/bin/doas -F key=privileged"
 
-    # Privileged command execution
-    "-a always,exit -F arch=b64 -S execve -F path=/run/wrappers/bin/doas -F key=privileged"
-    "-a always,exit -F arch=b32 -S execve -F path=/run/wrappers/bin/doas -F key=privileged"
+      # Network configuration changes
+      "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/hosts -F perm=wa -F key=network_modifications"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/hosts -F perm=wa -F key=network_modifications"
+      "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/resolv.conf -F perm=wa -F key=network_modifications"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/resolv.conf -F perm=wa -F key=network_modifications"
 
-    # Network configuration changes
-    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/hosts -F perm=wa -F key=network_modifications"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/hosts -F perm=wa -F key=network_modifications"
-    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/resolv.conf -F perm=wa -F key=network_modifications"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/resolv.conf -F perm=wa -F key=network_modifications"
+      # Privilege configuration changes
+      "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/doas.conf -F perm=wa -F key=privileged_modifications"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/doas.conf -F perm=wa -F key=privileged_modifications"
 
-    # Privilege configuration changes
-    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/doas.conf -F perm=wa -F key=privileged_modifications"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/doas.conf -F perm=wa -F key=privileged_modifications"
-
-    # SSH configuration changes
-    "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/ssh/sshd_config -F perm=wa -F key=sshd_config"
-    "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/ssh/sshd_config -F perm=wa -F key=sshd_config"
-  ];
+      # SSH configuration changes
+      "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/ssh/sshd_config -F perm=wa -F key=sshd_config"
+      "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/ssh/sshd_config -F perm=wa -F key=sshd_config"
+    ];
+  };
+  security.auditd.enable = true;
   # Allow wheel group to read audit logs
   systemd.tmpfiles.rules = [
     "d /var/log/audit 0750 root wheel - -"
@@ -324,17 +320,6 @@ in
   # Workaround for https://github.com/NixOS/nixpkgs/issues/483085
   systemd.services.audit-rules-nixos.serviceConfig.ExecStart = lib.mkForce [
     ""
-    (pkgs.writeShellScript "load-audit-rules" ''
-
-      ${pkgs.audit}/bin/auditctl -D
-
-      ${lib.concatMapStringsSep "\n" (rule:
-        "${pkgs.audit}/bin/auditctl ${rule}"
-      ) config.security.audit.rules}
-
-      ${pkgs.audit}/bin/auditctl -e 1 || true
-
-      exit 0
-    '')
+    "${pkgs.audit}/bin/auditctl -R /etc/audit/audit.rules"
   ];
 }
