@@ -18,7 +18,7 @@ in
       LC_TIME = "en_GB.UTF-8";
     };
     console = {
-      earlySetup = false;  # Avoid conflict with Plymouth during initrd
+      earlySetup = true;
       font = "ter-v18n";
       packages = [ pkgs.terminus_font ];
       useXkbConfig = true;
