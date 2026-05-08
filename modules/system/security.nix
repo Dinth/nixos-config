@@ -344,9 +344,4 @@ in {
       Persistent = true;
     };
   };
-  # Workaround for https://github.com/NixOS/nixpkgs/issues/483085
-  systemd.services.audit-rules-nixos.serviceConfig.ExecStart = lib.mkForce [
-    ""
-    "${pkgs.audit}/bin/auditctl -R /etc/audit/audit.rules"
-  ];
 }
