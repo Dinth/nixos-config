@@ -252,12 +252,16 @@ in
 
             # ClamAV operational paths
             /var/lib/clamav/** r,
+            /var/lib/quarantine/ rw,
             /var/lib/quarantine/** rw,
             /var/log/clamav/** rw,
             /run/clamav/** rw,
             /etc/clamav/** r,
 
-            # Read access for scanning
+            # Read access for scanning. `/ r,` is required separately —
+            # `/** r,` does not match the root directory itself, and clamonacc
+            # opens an FD on / to anchor *at() syscalls during quarantine moves.
+            / r,
             /** r,
 
             # Deny sensitive modifications
