@@ -18,6 +18,8 @@ in
   config = mkIf cfg.enable {
     services.printing = {
       enable = true;
+      # IPv4-only — IPv6 is disabled per-interface via sysctl, so binding [::1]:631 fails
+      listenAddresses = [ "127.0.0.1:631" ];
       drivers = with pkgs; [
         canon-cups-ufr2
         cups-filters
