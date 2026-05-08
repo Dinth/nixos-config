@@ -111,6 +111,14 @@ in
         interval = "*-*-* 09:00:00";
       };
     };
+    systemd.services.clamav-fangfrisch-init = {
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+    };
+    systemd.services.clamav-fangfrisch = {
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+    };
     systemd.services."clamav-clamonacc" = {
       description = "ClamAV On-Access Scanner";
       documentation = ["man:clamonacc(8)" "man:clamd.conf(5)" "https://docs.clamav.net/"];
