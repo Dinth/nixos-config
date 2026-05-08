@@ -285,14 +285,18 @@ in
   };
   # Run vulnix daily
   systemd.services.vulnix-scan = {
-    script = "${lib.getExe pkgs.vulnix} --system --gc-roots --verbose > /var/log/vulnix.log";
+    script = "${lib.getExe pkgs.vulnix} --system --gc-roots --verbose > /var/log/vulnix.log 2>&1";
     serviceConfig = {
       Type = "oneshot";
       User = "root";
       Nice = 5;
       IOSchedulingClass = 2;
       IOSchedulingPriority = 6;
+      # exit 1 means vulnerabilities found — not a service failure
+      SuccessExitStatus = [ 0 1 ];
     };
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
   };
   systemd.timers.vulnix-scan = {
     wantedBy = [ "timers.target" ];
