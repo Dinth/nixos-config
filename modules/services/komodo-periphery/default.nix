@@ -1,5 +1,9 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.komodo-periphery;
 
@@ -21,7 +25,7 @@ let
     dontUnpack = true;
     dontBuild = true;
 
-    nativeBuildInputs = [ pkgs.makeWrapper ];
+    nativeBuildInputs = [pkgs.makeWrapper];
 
     installPhase = ''
       mkdir -p $out/bin
@@ -29,9 +33,9 @@ let
       chmod +x $out/bin/.periphery-unwrapped
 
       makeWrapper ${pkgs.nix-ld}/libexec/nix-ld $out/bin/periphery \
-        --set NIX_LD_LIBRARY_PATH "${lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.openssl ]}" \
+        --set NIX_LD_LIBRARY_PATH "${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib pkgs.openssl]}" \
         --set NIX_LD "${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2" \
-        --prefix PATH : "${lib.makeBinPath [ pkgs.bash pkgs.openssl pkgs.docker pkgs.git ]}" \
+        --prefix PATH : "${lib.makeBinPath [pkgs.bash pkgs.openssl pkgs.docker pkgs.git]}" \
         --add-flags "$out/bin/.periphery-unwrapped"
     '';
   };
@@ -45,8 +49,7 @@ let
     [logging]
     level = "trace"
   '';
-in
-{
+in {
   options.komodo-periphery = {
     enable = mkOption {
       type = lib.types.bool;
@@ -78,9 +81,9 @@ in
 
     systemd.services.komodo-periphery = {
       description = "Komodo Periphery agent";
-      after = [ "network.target" "docker.service" ];
-      requires = [ "docker.service" ];
-      wantedBy = [ "multi-user.target" ];
+      after = ["network.target" "docker.service"];
+      requires = ["docker.service"];
+      wantedBy = ["multi-user.target"];
 
       environment = {
         DOCKER_HOST = "unix:///run/docker.sock";
@@ -97,6 +100,6 @@ in
       };
     };
 
-    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.port];
   };
 }

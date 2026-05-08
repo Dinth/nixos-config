@@ -1,5 +1,9 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.dashcam-sd;
   primaryUsername = config.primaryUser.name;
@@ -35,8 +39,7 @@ let
       ${pkgs.libnotify}/bin/notify-send -a "Dashcam Backup" "Backup Complete" "No new files to sync"
     fi
   '';
-in
-{
+in {
   options = {
     dashcam-sd = {
       enable = mkOption {
@@ -51,9 +54,9 @@ in
     # System service that triggers when the CAM SD card is mounted
     systemd.services.dashcam-backup = {
       description = "Backup dashcam footage from SD card";
-      after = [ mountUnit ];
-      bindsTo = [ mountUnit ];
-      wantedBy = [ mountUnit ];
+      after = [mountUnit];
+      bindsTo = [mountUnit];
+      wantedBy = [mountUnit];
 
       serviceConfig = {
         Type = "oneshot";

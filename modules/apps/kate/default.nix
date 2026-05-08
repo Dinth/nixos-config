@@ -1,64 +1,76 @@
-{ config, lib, pkgs,...}:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
   customLSPServers = {
     nix = {
-      command = [ "${pkgs.nil}/bin/nil" ];
+      command = ["${pkgs.nil}/bin/nil"];
       url = "https://github.com/oxalica/nil";
       highlightingModeRegex = "^Nix$";
-      rootIndicationFileNames = [ "flake.nix" "flake.lock" "default.nix" ];
+      rootIndicationFileNames = ["flake.nix" "flake.lock" "default.nix"];
       settings = {
         nil = {
-          formatting = { command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ]; };
+          formatting = {command = ["${pkgs.nixfmt-rfc-style}/bin/nixfmt"];};
         };
       };
     };
     yaml = {
-      command = [ "${pkgs.yaml-language-server}/bin/yaml-language-server" "--stdio" ];
+      command = ["${pkgs.yaml-language-server}/bin/yaml-language-server" "--stdio"];
       url = "https://github.com/redhat-developer/yaml-language-server";
       highlightingModeRegex = "^YAML$";
     };
     bash = {
-      command = [ "${pkgs.bash-language-server}/bin/bash-language-server" "start" ];
+      command = ["${pkgs.bash-language-server}/bin/bash-language-server" "start"];
       url = "https://github.com/bash-lsp/bash-language-server";
       highlightingModeRegex = "^Bash$";
     };
     python = {
-      command = [ "${pkgs.python3.withPackages (ps: [ ps.python-lsp-server ps.python-lsp-ruff ])}/bin/pylsp" "--check-parent-process" ];
+      command = ["${pkgs.python3.withPackages (ps: [ps.python-lsp-server ps.python-lsp-ruff])}/bin/pylsp" "--check-parent-process"];
       url = "https://github.com/python-lsp/python-lsp-server";
       highlightingModeRegex = "^Python$";
-      settings = { pylsp = { plugins = { ruff = { enabled = true; }; pycodestyle = { enabled = false; }; }; }; };
+      settings = {
+        pylsp = {
+          plugins = {
+            ruff = {enabled = true;};
+            pycodestyle = {enabled = false;};
+          };
+        };
+      };
     };
     xml = {
-      command = [ "${pkgs.lemminx}/bin/lemminx" ];
+      command = ["${pkgs.lemminx}/bin/lemminx"];
       url = "https://github.com/redhat-developer/vscode-xml";
       highlightingModeRegex = "^XML$";
     };
     json = {
-      command = [ "${pkgs.vscode-json-languageserver}/bin/vscode-json-languageserver" "--stdio" ];
+      command = ["${pkgs.vscode-json-languageserver}/bin/vscode-json-languageserver" "--stdio"];
       url = "https://github.com/microsoft/vscode";
       highlightingModeRegex = "^JSON$";
     };
     php = {
-      command = [ "${pkgs.nodePackages.intelephense}/bin/intelephense" "--stdio" ];
+      command = ["${pkgs.nodePackages.intelephense}/bin/intelephense" "--stdio"];
       url = "https://intelephense.com/";
       highlightingModeRegex = "^PHP$";
     };
   };
-in
-{
+in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
         nil
         yaml-language-server
         bash-language-server
-        (python3.withPackages (ps: [
-            ps.python-lsp-server
-            ps.python-lsp-ruff
-          ]
+        (
+          python3.withPackages (
+            ps: [
+              ps.python-lsp-server
+              ps.python-lsp-ruff
+            ]
           )
         )
         vscode-json-languageserver

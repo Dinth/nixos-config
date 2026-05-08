@@ -1,10 +1,13 @@
-{ config, pkgs, lib,...}:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption mkMerge;
   cfg = config._1password;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     _1password = {
       enable = mkOption {
@@ -17,12 +20,12 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
       programs._1password.enable = true;
-#      environment.systemPackages = with pkgs; [
-#      ];
+      #      environment.systemPackages = with pkgs; [
+      #      ];
     })
     (mkIf (cfg.enable && config.graphical.enable) {
       programs._1password-gui.enable = true;
-      programs._1password-gui.polkitPolicyOwners = [ "${config.primaryUser.name}" ];
+      programs._1password-gui.polkitPolicyOwners = ["${config.primaryUser.name}"];
       home-manager.users.${primaryUsername} = {
         home.file.".config/autostart/1password.desktop".text = ''
           [Desktop Entry]

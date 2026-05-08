@@ -10,7 +10,7 @@
     # model = "opencode/claude-sonnet-4-5";
     # High-level overview only — enough to delegate correctly,
     # no deep Docker/HA detail needed here.
-    knowledge = [ "hosts" ];
+    knowledge = ["hosts"];
     prompt = ''
       You are the Technical Project Manager. Analyze user intent and delegate to specialists. For complex web research, use @procurement. For NixOS configuration, use @nixos-engineer.
     '';
@@ -347,7 +347,7 @@
     # model = "opencode/gpt-5.2-codex";
     # Minimal context — host IPs only in case scripts need to reference
     # the homelab (e.g. a backup script targeting 10.10.1.13)
-    knowledge = [ "hosts" ];
+    knowledge = ["hosts"];
     prompt = ''
       You are an Expert Software Engineer specializing in Bash, Python 3 and PHP 8.3+.
       - BASH: Use 'set -euo pipefail', local variables, and prioritize readability. Always assume `shellcheck` will be run.
@@ -358,7 +358,7 @@
         Prefer JSON API endpoints over HTML parsing when web-extractor finds them.
       - Output ONLY the code and a brief explanation of how to execute it.
     '';
-    skills = [ "coding-standards" ];
+    skills = ["coding-standards"];
     temperature = 0.1;
     topP = 0.1;
     topK = 10;
@@ -462,7 +462,7 @@
     model = "opencode/kimi-k2.5-free";
     # kimi-k2.5 has 256k context and strong tool-call reliability —
     # the best available free model for orchestration.
-    knowledge = [ "hosts" ];
+    knowledge = ["hosts"];
     prompt = ''
       You are the Free-Tier Technical Project Manager.
       Route every task using ONLY the free subagents listed below.
@@ -514,7 +514,7 @@
     model = "opencode/kimi-k2.5-free";
     # kimi-k2.5-free: 256k context, strong structured output and
     # tool-call JSON reliability — best free option for code tasks.
-    knowledge = [ "hosts" ];
+    knowledge = ["hosts"];
     prompt = ''
       You are a free-tier Software Engineer specialising in Bash, Python 3 and PHP 8.3+.
       - BASH: Use 'set -euo pipefail', local variables, prioritise readability.
@@ -526,7 +526,7 @@
         validating output, or filesystem access, say so and suggest escalating to
         @polyglot-coder (paid) via the manager.
     '';
-    skills = [ "coding-standards" ];
+    skills = ["coding-standards"];
     temperature = 0.1;
     topP = 0.1;
     topK = 10;

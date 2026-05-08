@@ -1,11 +1,15 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf getExe getExe';
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
 in {
   config = mkIf cfg.enable {
-    home-manager.users.${primaryUsername} = { config, ... }: {
+    home-manager.users.${primaryUsername} = {config, ...}: {
       catppuccin.fzf = {
         enable = true;
         flavor = "mocha";

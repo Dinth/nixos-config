@@ -1,16 +1,21 @@
-{ config, lib, pkgs, modulesPath, ... }:
 {
-  imports =
-    [ (modulesPath + "/installer/scan/not-detected.nix")
-    ];
-#  hardware.microsoft-surface.kernelVersion = "stable";
-  boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
-  boot.initrd.kernelModules = [ "xhci_pci" "nvme" "usbhid" "i915" ];
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}: {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+  ];
+  #  hardware.microsoft-surface.kernelVersion = "stable";
+  boot.initrd.availableKernelModules = ["xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc"];
+  boot.initrd.kernelModules = ["xhci_pci" "nvme" "usbhid" "i915"];
 
-  boot.kernelModules = [ "kvm-intel" "ipu3-cio2" ];
+  boot.kernelModules = ["kvm-intel" "ipu3-cio2"];
   # ipu3-imgu: Intel IPU3 image processing unit — required for built-in cameras
   boot.resumeDevice = "/dev/nvme0n1p3";
-  boot.extraModulePackages = [ ];
+  boot.extraModulePackages = [];
   boot.kernelParams = [
     # nixos-hardware microsoft-surface-go sets mem_sleep_default=deep via its surface/common
     # module, but S3 deep sleep causes dw9719 camera VCM I2C failure on resume (error -121),
@@ -31,7 +36,7 @@
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/D2E3-5273";
     fsType = "vfat";
-    options = [ "fmask=0077" "dmask=0077" ];
+    options = ["fmask=0077" "dmask=0077"];
   };
   swapDevices = [
     {
@@ -46,20 +51,20 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-#    wireplumber = {
-#      enable = false;
-#      extraConfig = ''
-#        context.modules = [
-#          { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
-#          { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
-#          { name = libwireplumberModule "libspa-libcamera" }
-#        ];
-#      '';
-#    };
+    #    wireplumber = {
+    #      enable = false;
+    #      extraConfig = ''
+    #        context.modules = [
+    #          { name = libwireplumberModule "libpipewire-module-spa-device-factory" }
+    #          { name = libwireplumberModule "libpipewire-module-spa-node-factory" }
+    #          { name = libwireplumberModule "libspa-libcamera" }
+    #        ];
+    #      '';
+    #    };
   };
   hardware.graphics = {
-    enable = true;         # replaces hardware.opengl.enable
-    enable32Bit = true;    # replaces hardware.opengl.driSupport32Bit (if present)
+    enable = true; # replaces hardware.opengl.enable
+    enable32Bit = true; # replaces hardware.opengl.driSupport32Bit (if present)
     extraPackages = with pkgs; [
       intel-media-driver
       intel-vaapi-driver
@@ -84,21 +89,21 @@
   hardware.enableRedistributableFirmware = true;
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.sensor.iio.enable = true;
-#   services.power-profiles-daemon.enable = false;  # Disable conflicting service
-#   services.tlp = {
-#     enable = true;
-#     settings = {
-#       CPU_BOOST_ON_AC = 1;
-#       CPU_BOOST_ON_BAT = 0;
-#       CPU_SCALING_GOVERNOR_ON_AC = "performance";
-#       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-#       START_CHARGE_THRESH_BAT0 = 40;
-#       STOP_CHARGE_THRESH_BAT0 = 80;
-#       RUNTIME_PM_ON_AC = "on";
-#       RUNTIME_PM_ON_BAT = "auto";
-#     };
-#   };
-#  services.thermald.enable = true;
+  #   services.power-profiles-daemon.enable = false;  # Disable conflicting service
+  #   services.tlp = {
+  #     enable = true;
+  #     settings = {
+  #       CPU_BOOST_ON_AC = 1;
+  #       CPU_BOOST_ON_BAT = 0;
+  #       CPU_SCALING_GOVERNOR_ON_AC = "performance";
+  #       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+  #       START_CHARGE_THRESH_BAT0 = 40;
+  #       STOP_CHARGE_THRESH_BAT0 = 80;
+  #       RUNTIME_PM_ON_AC = "on";
+  #       RUNTIME_PM_ON_BAT = "auto";
+  #     };
+  #   };
+  #  services.thermald.enable = true;
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
@@ -106,9 +111,9 @@
   environment.systemPackages = with pkgs; [
     iptsd
     surface-control
-    libcamera   # IPU3 camera stack; test with: cam -l
-    v4l-utils   # v4l2-ctl --list-devices to verify camera nodes appear
-    xournalpp   # Stylus note-taking; works via iptsd without libwacom
+    libcamera # IPU3 camera stack; test with: cam -l
+    v4l-utils # v4l2-ctl --list-devices to verify camera nodes appear
+    xournalpp # Stylus note-taking; works via iptsd without libwacom
     # libwacom  # Uncomment to test: Surface Pen uses IPTS not Wacom, likely no benefit
   ];
   powerManagement.powertop.enable = true;
@@ -142,6 +147,4 @@
     HandleLidSwitch = "suspend-then-hibernate";
   };
   amd_gpu.enable = false;
-
 }
-

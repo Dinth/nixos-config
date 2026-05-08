@@ -1,11 +1,14 @@
-{ config, pkgs, lib,...}:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf;
   inherit (lib) mkOption;
   cfg = config.amd_gpu;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     amd_gpu = {
       enable = mkOption {
@@ -29,4 +32,3 @@ in
     };
   };
 }
-

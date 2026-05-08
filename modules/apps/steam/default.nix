@@ -1,10 +1,13 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.steam;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options.steam = {
     enable = mkOption {
       type = lib.types.bool;
@@ -20,7 +23,7 @@ in
       mangohud
     ];
     systemd.settings.Manager.DefaultLimitNOFILE = 1048576;
-    home-manager.users.${primaryUsername} = { config, ... }: {
+    home-manager.users.${primaryUsername} = {config, ...}: {
       xdg.userDirs.extraConfig.XDG_GAME_DIR = "${config.home.homeDirectory}/Games";
       xdg.mimeApps = {
         defaultApplications."x-scheme-handler/steam" = "steam.desktop";

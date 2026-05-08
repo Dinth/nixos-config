@@ -1,5 +1,9 @@
-{ config, pkgs, lib,...}:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.orcaslicer;
   primaryUsername = config.primaryUser.name;
@@ -14,13 +18,13 @@ in {
     };
   };
   config = mkIf cfg.enable {
-      networking.firewall = {
-        allowedUDPPorts = [
-          2021 # Bambu Printer Discovery
-          1900 # SSDP
-          5353 # mDNS / Avahi
-        ];
-      };
+    networking.firewall = {
+      allowedUDPPorts = [
+        2021 # Bambu Printer Discovery
+        1900 # SSDP
+        5353 # mDNS / Avahi
+      ];
+    };
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
         orca-slicer # Slicer for 3d projects

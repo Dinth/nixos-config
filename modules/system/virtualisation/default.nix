@@ -1,10 +1,13 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption mkMerge;
   cfg = config.virtualisation;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   imports = [
     ./vms
   ];
@@ -32,7 +35,7 @@ in
 
     # Linux-only: libvirt/QEMU/virt-manager
     (mkIf (pkgs.stdenv.isLinux && cfg.enable) {
-      users.groups.libvirtd.members = [ primaryUsername ];
+      users.groups.libvirtd.members = [primaryUsername];
       programs.virt-manager.enable = true;
       virtualisation = {
         libvirtd = {
@@ -56,9 +59,9 @@ in
 
       # Networking configuration for libvirt
       networking = {
-        firewall.allowedTCPPorts = [ 8095 ];
-        firewall.allowedUDPPorts = [ 8095 ];
-        firewall.trustedInterfaces = [ "virbr0" ];
+        firewall.allowedTCPPorts = [8095];
+        firewall.allowedUDPPorts = [8095];
+        firewall.trustedInterfaces = ["virbr0"];
         #        firewall.extraCommands = ''
         #          # PREROUTING: Redirect incoming traffic to the VM
         #          iptables -t nat -A PREROUTING -i enp5s0 -p tcp --dport 8095 -j DNAT --to-destination 192.168.122.132:8095

@@ -27,127 +27,143 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-#     nix-darwin = {
-#       url = "github:nix-darwin/nix-darwin/master";
-#       inputs.nixpkgs.follows = "nixpkgs";
-#     };
+    #     nix-darwin = {
+    #       url = "github:nix-darwin/nix-darwin/master";
+    #       inputs.nixpkgs.follows = "nixpkgs";
+    #     };
   };
 
-  outputs =
-    inputs@{ self, nixpkgs, home-manager, plasma-manager, catppuccin, agenix, nixos-hardware, nixvirt, llm-agents, ... }:
-    let
-      system = "x86_64-linux";
-      # Overlay to use llm-agents.nix packages for claude-code, opencode, and rtk.
-      # Call each package directly from the flake source rather than via
-      # llm-agents.packages.${system}, which uses blueprint and eagerly evaluates
-      # the entire package set — including the broken `apm` package that fails
-      # with nixos-25.11's buildPythonApplication.
-      llmAgentsOverlay = final: prev:
-        let
-          callPkg = path: final.callPackage (llm-agents + path) {};
-          wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
-          versionCheckHomeHook = callPkg "/packages/versionCheckHomeHook/package.nix";
-        in {
-          claude-code = final.callPackage (llm-agents + "/packages/claude-code/package.nix") { inherit wrapBuddy; };
-          opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") { inherit wrapBuddy versionCheckHomeHook; };
-          rtk = callPkg "/packages/rtk/package.nix";
-        };
-    in
-    {
-      nixosConfigurations = {
-        dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = { machineType = "desktop"; inherit catppuccin home-manager; };
-          modules = [
-            ./libs
-            ./modules
-            ./hosts/dinth-nixos-desktop/configuration.nix
-            agenix.nixosModules.default
-            catppuccin.nixosModules.catppuccin
-            nixvirt.nixosModules.default
-            home-manager.nixosModules.home-manager
-            {
-              nixpkgs.overlays = [ llmAgentsOverlay ];
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default ];
-            }
-          ];
-        };
-        r230-nixos = nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = { machineType = "server"; inherit catppuccin home-manager; };
-          modules = [
-            ./libs
-            ./modules
-            ./hosts/r230-nixos/configuration.nix
-            agenix.nixosModules.default
-            catppuccin.nixosModules.catppuccin
-            nixvirt.nixosModules.default
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ agenix.homeManagerModules.default ];
-            }
-          ];
-        };
-        michal-surface-go = nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = { machineType = "tablet"; inherit catppuccin home-manager; };
-            modules = [
-              ./libs
-              ./modules
-              ./hosts/michal-surface-go/configuration.nix
-              agenix.nixosModules.default
-              catppuccin.nixosModules.catppuccin
-              nixos-hardware.nixosModules.microsoft-surface-go
-              home-manager.nixosModules.home-manager
-              {
-                nixpkgs.overlays = [ llmAgentsOverlay ];
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = true;
-                home-manager.backupFileExtension = "backup";
-                home-manager.sharedModules = [ plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default ];
-              }
-            ];
-          };
-        };
-
-      # Flake checks - run with: nix flake check
-      checks.x86_64-linux = {
-        # Verify each host configuration evaluates successfully
-        dinth-nixos-desktop = self.nixosConfigurations.dinth-nixos-desktop.config.system.build.toplevel;
-        michal-surface-go = self.nixosConfigurations.michal-surface-go.config.system.build.toplevel;
-        r230-nixos = self.nixosConfigurations.r230-nixos.config.system.build.toplevel;
-      };
-
-# Doesnt work
-#       darwinConfigurations = {
-#         michal-macbook-pro = nix-darwin.lib.darwinSystem {
-#           system = "aarch64-darwin";
-#           specialArgs = { machineType = "laptop"; };
-#           modules = [
-#             ./libs
-#             ./modules
-#             ./hosts/michal-macbook-pro/configuration.nix
-#             agenix.nixosModules.default
-# #            catppuccin.nixosModules.catppuccin
-#             home-manager.darwinModules.home-manager
-#             {
-#               home-manager.useGlobalPkgs = true;
-#               home-manager.useUserPackages = true;
-#               home-manager.verbose = true;
-#               home-manager.users.michal = {
-#                 imports = [
-#                   catppuccin.homeModules.catppuccin
-#                 ];
-#               };
-#             }
-#           ];
-#         };
-#       };
+  outputs = inputs @ {
+    self,
+    nixpkgs,
+    home-manager,
+    plasma-manager,
+    catppuccin,
+    agenix,
+    nixos-hardware,
+    nixvirt,
+    llm-agents,
+    ...
+  }: let
+    system = "x86_64-linux";
+    # Overlay to use llm-agents.nix packages for claude-code, opencode, and rtk.
+    # Call each package directly from the flake source rather than via
+    # llm-agents.packages.${system}, which uses blueprint and eagerly evaluates
+    # the entire package set — including the broken `apm` package that fails
+    # with nixos-25.11's buildPythonApplication.
+    llmAgentsOverlay = final: prev: let
+      callPkg = path: final.callPackage (llm-agents + path) {};
+      wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
+      versionCheckHomeHook = callPkg "/packages/versionCheckHomeHook/package.nix";
+    in {
+      claude-code = final.callPackage (llm-agents + "/packages/claude-code/package.nix") {inherit wrapBuddy;};
+      opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") {inherit wrapBuddy versionCheckHomeHook;};
+      rtk = callPkg "/packages/rtk/package.nix";
     };
+  in {
+    nixosConfigurations = {
+      dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = {
+          machineType = "desktop";
+          inherit catppuccin home-manager;
+        };
+        modules = [
+          ./libs
+          ./modules
+          ./hosts/dinth-nixos-desktop/configuration.nix
+          agenix.nixosModules.default
+          catppuccin.nixosModules.catppuccin
+          nixvirt.nixosModules.default
+          home-manager.nixosModules.home-manager
+          {
+            nixpkgs.overlays = [llmAgentsOverlay];
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "backup";
+            home-manager.sharedModules = [plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
+          }
+        ];
+      };
+      r230-nixos = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = {
+          machineType = "server";
+          inherit catppuccin home-manager;
+        };
+        modules = [
+          ./libs
+          ./modules
+          ./hosts/r230-nixos/configuration.nix
+          agenix.nixosModules.default
+          catppuccin.nixosModules.catppuccin
+          nixvirt.nixosModules.default
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "backup";
+            home-manager.sharedModules = [agenix.homeManagerModules.default];
+          }
+        ];
+      };
+      michal-surface-go = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = {
+          machineType = "tablet";
+          inherit catppuccin home-manager;
+        };
+        modules = [
+          ./libs
+          ./modules
+          ./hosts/michal-surface-go/configuration.nix
+          agenix.nixosModules.default
+          catppuccin.nixosModules.catppuccin
+          nixos-hardware.nixosModules.microsoft-surface-go
+          home-manager.nixosModules.home-manager
+          {
+            nixpkgs.overlays = [llmAgentsOverlay];
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "backup";
+            home-manager.sharedModules = [plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
+          }
+        ];
+      };
+    };
+
+    # Flake checks - run with: nix flake check
+    checks.x86_64-linux = {
+      # Verify each host configuration evaluates successfully
+      dinth-nixos-desktop = self.nixosConfigurations.dinth-nixos-desktop.config.system.build.toplevel;
+      michal-surface-go = self.nixosConfigurations.michal-surface-go.config.system.build.toplevel;
+      r230-nixos = self.nixosConfigurations.r230-nixos.config.system.build.toplevel;
+    };
+
+    # Doesnt work
+    #       darwinConfigurations = {
+    #         michal-macbook-pro = nix-darwin.lib.darwinSystem {
+    #           system = "aarch64-darwin";
+    #           specialArgs = { machineType = "laptop"; };
+    #           modules = [
+    #             ./libs
+    #             ./modules
+    #             ./hosts/michal-macbook-pro/configuration.nix
+    #             agenix.nixosModules.default
+    # #            catppuccin.nixosModules.catppuccin
+    #             home-manager.darwinModules.home-manager
+    #             {
+    #               home-manager.useGlobalPkgs = true;
+    #               home-manager.useUserPackages = true;
+    #               home-manager.verbose = true;
+    #               home-manager.users.michal = {
+    #                 imports = [
+    #                   catppuccin.homeModules.catppuccin
+    #                 ];
+    #               };
+    #             }
+    #           ];
+    #         };
+    #       };
+  };
 }

@@ -1,11 +1,14 @@
-{ config, pkgs, lib,...}:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf;
   inherit (lib) mkOption;
   cfg = config.logitech;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     logitech = {
       enable = mkOption {
@@ -25,14 +28,14 @@ in
     ];
     systemd.services.logiops = {
       description = "An unofficial userspace driver for HID++ Logitech devices";
-      wantedBy = [ "graphical.target" ];
-      after = [ "multi-user.target" ];
+      wantedBy = ["graphical.target"];
+      after = ["multi-user.target"];
       serviceConfig = {
         ExecStart = "${lib.getExe pkgs.logiops}";
         Restart = "on-failure";
         RestartSec = "3";
       };
-      restartTriggers = [ config.environment.etc."logid.cfg".source ];
+      restartTriggers = [config.environment.etc."logid.cfg".source];
     };
     environment.etc."logid.cfg".source = ./logid.cfg;
 
@@ -48,4 +51,3 @@ in
     };
   };
 }
-

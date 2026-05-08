@@ -1,10 +1,12 @@
-{ config, lib,...}:
-let
+{
+  config,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf;
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername}.programs.ssh = {
       enable = true;
@@ -13,7 +15,7 @@ in
         "r230-nixos r230 10.10.1.12" = {
           hostname = "10.10.1.12";
           user = "michal";
-          identityFile = [ config.age.secrets."id-ed25519".path ];
+          identityFile = [config.age.secrets."id-ed25519".path];
           identitiesOnly = true;
         };
         "*" = {

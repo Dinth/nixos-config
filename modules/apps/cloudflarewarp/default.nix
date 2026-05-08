@@ -1,10 +1,13 @@
-{ config, lib, pkgs, ...}:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.cloudflarewarp;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     cloudflarewarp = {
       enable = mkOption {
@@ -20,7 +23,7 @@ in
       "d /var/lib/cloudflare-warp 0755 root root -"
       "L /var/lib/cloudflare-warp/mdm.xml - - - - ${config.age.secrets.cloudflare-mdm.path}"
     ];
-    security.pki.certificateFiles = [ ./cloudflare-warp.pem ];
+    security.pki.certificateFiles = [./cloudflare-warp.pem];
 
     # Global CA bundle environment variables for WARP TLS inspection
     # These ensure all tools (Python, Node.js, curl, etc.) use the system CA bundle

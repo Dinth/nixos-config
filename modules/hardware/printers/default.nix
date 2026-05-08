@@ -1,11 +1,14 @@
-{ config, pkgs, lib,...}:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf;
   inherit (lib) mkOption;
   cfg = config.printers;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     printers = {
       enable = mkOption {
@@ -19,7 +22,7 @@ in
     services.printing = {
       enable = true;
       # IPv4-only — IPv6 is disabled per-interface via sysctl, so binding [::1]:631 fails
-      listenAddresses = [ "127.0.0.1:631" ];
+      listenAddresses = ["127.0.0.1:631"];
       drivers = with pkgs; [
         canon-cups-ufr2
         cups-filters
@@ -50,14 +53,14 @@ in
       ensureDefaultPrinter = "Canon_MF270_Series";
     };
     hardware.sane.enable = true;
-    hardware.sane.extraBackends = [ pkgs.sane-airscan ];
+    hardware.sane.extraBackends = [pkgs.sane-airscan];
     services.saned.enable = true;
 
     # Make ensure-printers service fault-tolerant - don't fail boot if printer is unreachable
     systemd.services.ensure-printers = {
       serviceConfig = {
         # Don't fail if printer is asleep/offline during boot
-        SuccessExitStatus = [ 0 1 ];
+        SuccessExitStatus = [0 1];
         Restart = "on-failure";
         RestartSec = "30s";
       };
@@ -67,9 +70,8 @@ in
         StartLimitIntervalSec = 180;
       };
       # Run after network is online
-      after = [ "network-online.target" "cups.service" ];
-      wants = [ "network-online.target" ];
+      after = ["network-online.target" "cups.service"];
+      wants = ["network-online.target"];
     };
   };
 }
-

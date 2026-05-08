@@ -4,10 +4,9 @@ let
   michal-surface-go = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOgUEaVYhvpUJMCyycsqmilyZMfVHOK/EFh4nlNaC9yi";
   r230-nixos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEHxcwQf5t5dnvgvNX7bCN0t9jmuBBG3YC6Z0fsryusW";
 
-  users = [ michal ];
-  systems = [ dinth-nixos-desktop michal-surface-go r230-nixos ];
-in
-{
+  users = [michal];
+  systems = [dinth-nixos-desktop michal-surface-go r230-nixos];
+in {
   "michal-password.age".publicKeys = users ++ systems;
   "chrome-enrolment.age".publicKeys = systems;
   "wifi-password.age".publicKeys = systems;

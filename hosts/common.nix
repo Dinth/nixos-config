@@ -1,17 +1,21 @@
-{ config, pkgs, lib, machineType ? "desktop", ... }:
-let
-  inherit (lib) mkDefault mkIf;
-in
 {
+  config,
+  pkgs,
+  lib,
+  machineType ? "desktop",
+  ...
+}: let
+  inherit (lib) mkDefault mkIf;
+in {
   # Server remote deployment settings (no TTY available)
   security.doas.extraRules = mkIf (machineType == "server") (lib.mkForce [
     {
-      users = [ config.primaryUser.name ];
+      users = [config.primaryUser.name];
       noPass = true;
       keepEnv = true;
     }
   ]);
-  nix.settings.trusted-users = mkIf (machineType == "server") [ "root" config.primaryUser.name ];
+  nix.settings.trusted-users = mkIf (machineType == "server") ["root" config.primaryUser.name];
 
   nixpkgs = {
     config = {

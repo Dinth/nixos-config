@@ -1,5 +1,9 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.tailscale;
 in {
@@ -24,22 +28,25 @@ in {
   config = mkIf cfg.enable {
     services.tailscale = {
       enable = true;
-      useRoutingFeatures = if cfg.exitNode then "both" else "client";
+      useRoutingFeatures =
+        if cfg.exitNode
+        then "both"
+        else "client";
       authKeyFile = lib.mkIf (cfg.authKeyFile != null) cfg.authKeyFile;
     };
 
     # Ensure the autoconnect service waits for an active network connection.
     # Without this it starts before WiFi is up, loops in NoState for 90s, and times out.
     systemd.services.tailscaled-autoconnect = lib.mkIf (cfg.authKeyFile != null) {
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
     };
 
     networking.firewall = {
-      trustedInterfaces = [ "tailscale0" ];
-      allowedUDPPorts = [ config.services.tailscale.port ];
+      trustedInterfaces = ["tailscale0"];
+      allowedUDPPorts = [config.services.tailscale.port];
     };
 
-    environment.systemPackages = [ pkgs.tailscale ];
+    environment.systemPackages = [pkgs.tailscale];
   };
 }

@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   environment.systemPackages = with pkgs; [
     ragenix
   ];
@@ -76,6 +79,5 @@
       group = "users";
       mode = "0400";
     };
- 
   };
 }

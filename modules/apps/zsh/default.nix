@@ -1,5 +1,9 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf getExe getExe';
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
@@ -7,13 +11,12 @@ in {
   config = mkIf cfg.enable {
     programs.zsh.enable = true;
 
-    home-manager.users.${primaryUsername} = { config, ... }: {
-      home.sessionVariables.LS_COLORS =
-        lib.removeSuffix "\n" (builtins.readFile (
-          pkgs.runCommand "generate-ls-colors" {} ''
-            ${getExe pkgs.vivid} generate catppuccin-mocha > $out
-          ''
-        ));
+    home-manager.users.${primaryUsername} = {config, ...}: {
+      home.sessionVariables.LS_COLORS = lib.removeSuffix "\n" (builtins.readFile (
+        pkgs.runCommand "generate-ls-colors" {} ''
+          ${getExe pkgs.vivid} generate catppuccin-mocha > $out
+        ''
+      ));
       programs.zsh = {
         enable = true;
         enableCompletion = true;
@@ -143,37 +146,37 @@ in {
           ''}
 
           ${lib.optionalString (
-            lib.any (tool: lib.hasAttr tool pkgs) ["wl-clipboard" "xclip" "xsel"]
-          ) ''
-            function pbcopy() {
-              local content
-              content="$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
+              lib.any (tool: lib.hasAttr tool pkgs) ["wl-clipboard" "xclip" "xsel"]
+            ) ''
+              function pbcopy() {
+                local content
+                content="$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
 
-              ${lib.optionalString (lib.hasAttr "wl-clipboard" pkgs) ''
+                ${lib.optionalString (lib.hasAttr "wl-clipboard" pkgs) ''
                 if command -v ${getExe' pkgs.wl-clipboard "wl-copy"} &>/dev/null; then
                   echo -n "$content" | ${getExe' pkgs.wl-clipboard "wl-copy"}
                   return $?
                 fi
               ''}
 
-              ${lib.optionalString (lib.hasAttr "xclip" pkgs) ''
+                ${lib.optionalString (lib.hasAttr "xclip" pkgs) ''
                 if ${getExe pkgs.xclip} -version &>/dev/null 2>&1; then
                   echo -n "$content" | ${getExe pkgs.xclip} -selection clipboard
                   return $?
                 fi
               ''}
 
-              ${lib.optionalString (lib.hasAttr "xsel" pkgs) ''
+                ${lib.optionalString (lib.hasAttr "xsel" pkgs) ''
                 if ${getExe pkgs.xsel} --version &>/dev/null 2>&1; then
                   echo -n "$content" | ${getExe pkgs.xsel} -ib
                   return $?
                 fi
               ''}
 
-              echo "pbcopy: No clipboard utility found (wl-clipboard, xclip, or xsel)" >&2
-              return 1
-            }
-          ''}
+                echo "pbcopy: No clipboard utility found (wl-clipboard, xclip, or xsel)" >&2
+                return 1
+              }
+            ''}
 
         '';
       };

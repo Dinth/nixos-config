@@ -1,10 +1,13 @@
-{ config, pkgs, lib,...}:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption mkMerge;
   cfg = config.yubikey;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     yubikey = {
       enable = mkOption {

@@ -4,15 +4,12 @@
   pkgs,
   machineType ? "",
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkOption mkDefault;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
   inherit (config) specialArgs;
-
-in
-{
+in {
   options = {
     kde = {
       enable = mkOption {
@@ -28,8 +25,7 @@ in
       General.GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.5";
     };
     services.desktopManager.plasma6.enable = mkDefault true;
-    environment.systemPackages =
-      with pkgs;
+    environment.systemPackages = with pkgs;
       [
         kdePackages.korganizer
         kdePackages.kontact
@@ -64,7 +60,7 @@ in
         maliit-framework
       ];
     xdg.portal = {
-      extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
+      extraPortals = [pkgs.kdePackages.xdg-desktop-portal-kde];
       config.common.default = "kde";
     };
     services.desktopManager.plasma6.enableQt5Integration = true;
@@ -164,9 +160,9 @@ in
             }
           ];
           options = [
-            "kpdl:dot"                  # Numpad decimal key produces dot, not comma
-            "compose:rwin"              # Right Super as Compose key
-            "terminate:ctrl_alt_bksp"   # Ctrl+Alt+Backspace kills session
+            "kpdl:dot" # Numpad decimal key produces dot, not comma
+            "compose:rwin" # Right Super as Compose key
+            "terminate:ctrl_alt_bksp" # Ctrl+Alt+Backspace kills session
           ];
         };
         workspace = {
@@ -196,10 +192,10 @@ in
                   favoritesPortedToKAstats = true;
                 };
               }
-  
+
               # --- Applet 4: Pager (Virtual Desktop Switcher) ---
-              { name = "org.kde.plasma.pager"; }
-  
+              {name = "org.kde.plasma.pager";}
+
               # --- Applet 5: Icon-Only Task Manager ---
               {
                 name = "org.kde.plasma.icontasks";
@@ -211,10 +207,10 @@ in
                   ];
                 };
               }
-  
+
               # --- Applet 6: Margins Separator (Spacer) ---
-              { name = "org.kde.plasma.marginsseparator"; }
-  
+              {name = "org.kde.plasma.marginsseparator";}
+
               # --- Applet 7: System Tray ---
               {
                 name = "org.kde.plasma.systemtray";
@@ -270,9 +266,9 @@ in
                   fontWeight = 400;
                 };
               }
-  
+
               # --- Applet 20: Show Desktop ---
-              { name = "org.kde.plasma.showdesktop"; }
+              {name = "org.kde.plasma.showdesktop";}
             ];
           }
         ];
@@ -281,8 +277,14 @@ in
           # --- CPU ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 0; };
-            size = { width = 352; height = 224; };
+            position = {
+              horizontal = 1696;
+              vertical = 0;
+            };
+            size = {
+              width = 352;
+              height = 224;
+            };
             config = {
               CurrentPreset = "org.kde.plasma.systemmonitor";
               Appearance = {
@@ -303,8 +305,14 @@ in
           # --- Memory ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 224; };
-            size = { width = 352; height = 224; };
+            position = {
+              horizontal = 1696;
+              vertical = 224;
+            };
+            size = {
+              width = 352;
+              height = 224;
+            };
             config = {
               CurrentPreset = "org.kde.plasma.systemmonitor";
               Appearance = {
@@ -326,8 +334,14 @@ in
           # --- GPU ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 448; };
-            size = { width = 352; height = 208; };
+            position = {
+              horizontal = 1696;
+              vertical = 448;
+            };
+            size = {
+              width = 352;
+              height = 208;
+            };
             config = {
               CurrentPreset = "org.kde.plasma.systemmonitor";
               Appearance = {
@@ -349,8 +363,14 @@ in
           # --- SSD ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 656; };
-            size = { width = 352; height = 224; };
+            position = {
+              horizontal = 1696;
+              vertical = 656;
+            };
+            size = {
+              width = 352;
+              height = 224;
+            };
             config = {
               CurrentPreset = "org.kde.plasma.systemmonitor";
               Appearance = {
@@ -372,8 +392,14 @@ in
           # --- Network ---
           {
             name = "org.kde.plasma.systemmonitor";
-            position = { horizontal = 1696; vertical = 880; };
-            size = { width = 352; height = 224; };
+            position = {
+              horizontal = 1696;
+              vertical = 880;
+            };
+            size = {
+              width = 352;
+              height = 224;
+            };
             config = {
               CurrentPreset = "org.kde.plasma.systemmonitor";
               Appearance = {
@@ -399,16 +425,21 @@ in
               "translatedScreencastsFolder" = "Screencasts";
             };
           };
-          "kwinrc" = {
-            "Xwayland"."Scale" = if (machineType == "tablet") then 1.5 else 1.25;
-            "NightColor" = {
-              "Active" = true;
-              "NightTemperature" = 4800;
+          "kwinrc" =
+            {
+              "Xwayland"."Scale" =
+                if (machineType == "tablet")
+                then 1.5
+                else 1.25;
+              "NightColor" = {
+                "Active" = true;
+                "NightTemperature" = 4800;
+              };
+            }
+            // lib.optionalAttrs (machineType == "tablet") {
+              # Surface Go internal panel — enable auto-rotation via iio-sensor-proxy
+              "Output-DSI-1"."AutoRotate" = true;
             };
-          } // lib.optionalAttrs (machineType == "tablet") {
-            # Surface Go internal panel — enable auto-rotation via iio-sensor-proxy
-            "Output-DSI-1"."AutoRotate" = true;
-          };
           "ktrashrc" = {
             "/home/${config.primaryUser.name}/.local/share/Trash" = {
               "Days" = 7;
@@ -453,21 +484,24 @@ in
               "View Style" = "DetailTree";
             };
           };
-          "kcminputrc" = {
-            "Keyboard"."NumLock" = 0;
-          } // lib.optionalAttrs (machineType == "tablet") {
-            "Mouse"."cursorSize" = 36;
-          };
-          "kded6rc" = {
-            "Module-browserintegrationreminder"."autoload" = false;
-            "Module-device_automounter"."autoload" = false;
-          } // lib.optionalAttrs (machineType == "tablet") {
-            # Enable orientation sensor kded module for screen auto-rotation
-            "Module-orientationsensor"."autoload" = true;
-          };
+          "kcminputrc" =
+            {
+              "Keyboard"."NumLock" = 0;
+            }
+            // lib.optionalAttrs (machineType == "tablet") {
+              "Mouse"."cursorSize" = 36;
+            };
+          "kded6rc" =
+            {
+              "Module-browserintegrationreminder"."autoload" = false;
+              "Module-device_automounter"."autoload" = false;
+            }
+            // lib.optionalAttrs (machineType == "tablet") {
+              # Enable orientation sensor kded module for screen auto-rotation
+              "Module-orientationsensor"."autoload" = true;
+            };
           "baloofilerc"."General" = {
-            "exclude filters" =
-              "*~,*.part,*.o,*.la,*.lo,*.loT,*.moc,moc_*.cpp,qrc_*.cpp,ui_*.h,cmake_install.cmake,CMakeCache.txt,CTestTestfile.cmake,libtool,config.status,confdefs.h,autom4te,conftest,confstat,Makefile.am,*.gcode,.ninja_deps,.ninja_log,build.ninja,*.csproj,*.m4,*.rej,*.gmo,*.pc,*.omf,*.aux,*.tmp,*.po,*.vm*,*.nvram,*.rcore,*.swp,*.swap,lzo,litmain.sh,*.orig,.histfile.*,.xsession-errors*,*.map,*.so,*.a,*.db,*.qrc,*.ini,*.init,*.img,*.vdi,*.vbox*,vbox.log,*.qcow2,*.vmdk,*.vhd,*.vhdx,*.sql,*.sql.gz,*.ytdl,*.tfstate*,*.class,*.pyc,*.pyo,*.elc,*.qmlc,*.jsc,*.fastq,*.fq,*.gb,*.fasta,*.fna,*.gbff,*.faa,po,CVS,.svn,.git,_darcs,.bzr,.hg,CMakeFiles,CMakeTmp,CMakeTmpQmake,.moc,.obj,.pch,.uic,.npm,.yarn,.yarn-cache,__pycache__,node_modules,node_packages,nbproject,.terraform,.venv,venv,core-dumps,lost+found";
+            "exclude filters" = "*~,*.part,*.o,*.la,*.lo,*.loT,*.moc,moc_*.cpp,qrc_*.cpp,ui_*.h,cmake_install.cmake,CMakeCache.txt,CTestTestfile.cmake,libtool,config.status,confdefs.h,autom4te,conftest,confstat,Makefile.am,*.gcode,.ninja_deps,.ninja_log,build.ninja,*.csproj,*.m4,*.rej,*.gmo,*.pc,*.omf,*.aux,*.tmp,*.po,*.vm*,*.nvram,*.rcore,*.swp,*.swap,lzo,litmain.sh,*.orig,.histfile.*,.xsession-errors*,*.map,*.so,*.a,*.db,*.qrc,*.ini,*.init,*.img,*.vdi,*.vbox*,vbox.log,*.qcow2,*.vmdk,*.vhd,*.vhdx,*.sql,*.sql.gz,*.ytdl,*.tfstate*,*.class,*.pyc,*.pyo,*.elc,*.qmlc,*.jsc,*.fastq,*.fq,*.gb,*.fasta,*.fna,*.gbff,*.faa,po,CVS,.svn,.git,_darcs,.bzr,.hg,CMakeFiles,CMakeTmp,CMakeTmpQmake,.moc,.obj,.pch,.uic,.npm,.yarn,.yarn-cache,__pycache__,node_modules,node_packages,nbproject,.terraform,.venv,venv,core-dumps,lost+found";
             "exclude filters version" = 9;
           };
           "dolphinrc" = {
@@ -492,8 +526,7 @@ in
               "Places Icons Static Size" = 22;
             };
             "Notification Messages"."warnAboutRisksBeforeActingAsAdmin" = false;
-            "PreviewSettings"."Plugins" =
-              "appimagethumbnail,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,mobithumbnail,opendocumentthumbnail,gsthumbnail,rawthumbnail,svgthumbnail,ffmpegthumbs";
+            "PreviewSettings"."Plugins" = "appimagethumbnail,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,mobithumbnail,opendocumentthumbnail,gsthumbnail,rawthumbnail,svgthumbnail,ffmpegthumbs";
             "VersionControl"."enabledPlugins" = "Git";
           };
         };

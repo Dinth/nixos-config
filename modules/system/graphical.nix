@@ -1,11 +1,14 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption mkDefault;
   cfg = config.graphical;
   primaryUsername = config.primaryUser.name;
   primaryEmail = config.primaryUser.email;
-in
-{
+in {
   options = {
     graphical = {
       enable = mkOption {

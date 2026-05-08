@@ -1,13 +1,16 @@
-{ config, pkgs, lib, catppuccin, ... }:
-
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ../common.nix
-      ../../secrets/deployment.nix
-    ];
-
+  config,
+  pkgs,
+  lib,
+  catppuccin,
+  ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+    ../common.nix
+    ../../secrets/deployment.nix
+  ];
 
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
@@ -36,10 +39,10 @@
     fullName = "Michal Gawronski-Kot";
     email = "michal@gawronskikot.com";
     publicKeys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINnJL7HYauYQWLSdKDZwGJBj/OWu+rBZEcaxS/Dn/Wtq"
-    "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHw58iDAXminEmYKnzUjRzMhpR7rvULZZUZ0izMdiuhSAAAABHNzaDo="
-    "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIK+KGs2KSEQaHkzK+awc4QXMKu6kMn10F7cZ4raPcQJKAAAABHNzaDo="
-    "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIMOPDiAQbAD53X2neUh/vbIv7pRx2+qkZ7Ti9PH+CJ1yAAAABHNzaDo="
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINnJL7HYauYQWLSdKDZwGJBj/OWu+rBZEcaxS/Dn/Wtq"
+      "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHw58iDAXminEmYKnzUjRzMhpR7rvULZZUZ0izMdiuhSAAAABHNzaDo="
+      "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIK+KGs2KSEQaHkzK+awc4QXMKu6kMn10F7cZ4raPcQJKAAAABHNzaDo="
+      "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIMOPDiAQbAD53X2neUh/vbIv7pRx2+qkZ7Ti9PH+CJ1yAAAABHNzaDo="
     ];
   };
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -47,11 +50,11 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" "input" ];
+    extraGroups = ["networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" "input"];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {
-    imports = [ catppuccin.homeModules.catppuccin ];
+    imports = [catppuccin.homeModules.catppuccin];
     home = {
       stateVersion = "25.05";
       username = config.primaryUser.name;
@@ -90,8 +93,8 @@
       "echo_interval=10"
       "uid=${toString config.users.users.${config.primaryUser.name}.uid}"
       "gid=${toString config.users.groups.users.gid}"
-      "_netdev"  # marks as network filesystem
-      "nofail"   # don't block boot if mount fails
+      "_netdev" # marks as network filesystem
+      "nofail" # don't block boot if mount fails
       "vers=3.0"
       "x-systemd.automount"
       "x-systemd.requires=network-online.target"

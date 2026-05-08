@@ -1,6 +1,9 @@
-{ config, pkgs, catppuccin, ... }:
-
 {
+  config,
+  pkgs,
+  catppuccin,
+  ...
+}: {
   imports = [
     ./hardware-configuration.nix
     ../common.nix
@@ -45,11 +48,11 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = [ "networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" ];
+    extraGroups = ["networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp"];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {
-    imports = [ catppuccin.homeModules.catppuccin ];
+    imports = [catppuccin.homeModules.catppuccin];
     home = {
       stateVersion = "25.05";
       username = config.primaryUser.name;
@@ -70,10 +73,10 @@
   weechat.enable = false;
   docker = {
     enable = true;
-    tcpClients = [ "10.10.1.11" ];
+    tcpClients = ["10.10.1.11"];
   };
   komodo-periphery = {
     enable = true;
-    corePublicKeys = [ "MCowBQYDK2VuAyEAfIXxIx7Ls5qTL3fODOxzXc0b+7AA0h0KQA5Dj0YDmXk=" ];
+    corePublicKeys = ["MCowBQYDK2VuAyEAfIXxIx7Ls5qTL3fODOxzXc0b+7AA0h0KQA5Dj0YDmXk="];
   };
 }

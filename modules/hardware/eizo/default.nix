@@ -1,10 +1,13 @@
-{ config, pkgs, lib,...}:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.eizo;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     eizo = {
       enable = mkOption {
@@ -28,7 +31,7 @@ in
     hardware.i2c.enable = true;
 
     # Add primary user to i2c group for DDC control
-    users.users.${primaryUsername}.extraGroups = [ "i2c" ];
+    users.users.${primaryUsername}.extraGroups = ["i2c"];
 
     # Install ICC profile to system color directory
     environment.etc = mkIf (cfg.iccProfile != null) {

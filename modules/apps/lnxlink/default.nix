@@ -1,5 +1,9 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption types;
   cfg = config.lnxlink;
   primaryUsername = config.primaryUser.name;
@@ -18,45 +22,45 @@ let
     };
 
     postPatch = ''
-      sed -i"" -E 's@requires = .*@requires = ["setuptools", "wheel"]@g' pyproject.toml
-      sed -i"" '/asyncio/d' pyproject.toml
+            sed -i"" -E 's@requires = .*@requires = ["setuptools", "wheel"]@g' pyproject.toml
+            sed -i"" '/asyncio/d' pyproject.toml
 
-      # Fix log file location - use ~/.local/state/lnxlink instead of config directory
-      substituteInPlace lnxlink/files_setup.py \
-        --replace-fail 'config_dir = os.path.dirname(os.path.realpath(config_path))' \
-                       'config_dir = os.path.expanduser("~/.local/state/lnxlink"); os.makedirs(config_dir, exist_ok=True)'
+            # Fix log file location - use ~/.local/state/lnxlink instead of config directory
+            substituteInPlace lnxlink/files_setup.py \
+              --replace-fail 'config_dir = os.path.dirname(os.path.realpath(config_path))' \
+                             'config_dir = os.path.expanduser("~/.local/state/lnxlink"); os.makedirs(config_dir, exist_ok=True)'
 
-      # Replace GNOME-specific keep_alive with systemd-inhibit version (works on KDE)
-      cat > lnxlink/modules/keep_alive.py << 'EOF'
-"""Prevent system sleep using systemd-inhibit (works on KDE, GNOME, etc.)"""
-import subprocess
-from shutil import which
+            # Replace GNOME-specific keep_alive with systemd-inhibit version (works on KDE)
+            cat > lnxlink/modules/keep_alive.py << 'EOF'
+      """Prevent system sleep using systemd-inhibit (works on KDE, GNOME, etc.)"""
+      import subprocess
+      from shutil import which
 
-class Addon:
-    def __init__(self, lnxlink):
-        self.name = "Keep Alive"
-        self.inhibit_proc = None
-        if which("systemd-inhibit") is None:
-            raise SystemError("systemd-inhibit not found")
+      class Addon:
+          def __init__(self, lnxlink):
+              self.name = "Keep Alive"
+              self.inhibit_proc = None
+              if which("systemd-inhibit") is None:
+                  raise SystemError("systemd-inhibit not found")
 
-    def exposed_controls(self):
-        return {"Keep Alive": {"type": "switch", "icon": "mdi:sleep-off"}}
+          def exposed_controls(self):
+              return {"Keep Alive": {"type": "switch", "icon": "mdi:sleep-off"}}
 
-    def get_info(self):
-        if self.inhibit_proc and self.inhibit_proc.poll() is None:
-            return True
-        return False
+          def get_info(self):
+              if self.inhibit_proc and self.inhibit_proc.poll() is None:
+                  return True
+              return False
 
-    def start_control(self, topic, data):
-        if data.lower() == "off" and self.inhibit_proc:
-            self.inhibit_proc.terminate()
-            self.inhibit_proc = None
-        elif data.lower() == "on" and not self.get_info():
-            self.inhibit_proc = subprocess.Popen(
-                ["systemd-inhibit", "--what=idle:sleep", "--who=LNXlink",
-                 "--why=Keep Alive", "--mode=block", "sleep", "infinity"],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-EOF
+          def start_control(self, topic, data):
+              if data.lower() == "off" and self.inhibit_proc:
+                  self.inhibit_proc.terminate()
+                  self.inhibit_proc = None
+              elif data.lower() == "on" and not self.get_info():
+                  self.inhibit_proc = subprocess.Popen(
+                      ["systemd-inhibit", "--what=idle:sleep", "--who=LNXlink",
+                       "--why=Keep Alive", "--mode=block", "sleep", "infinity"],
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+      EOF
     '';
 
     nativeBuildInputs = with pkgs.python3Packages; [
@@ -113,8 +117,7 @@ EOF
         "$TEMPLATE" > "$CONFIG"
     chmod 600 "$CONFIG"
   '';
-in
-{
+in {
   options = {
     lnxlink = {
       enable = mkOption {
@@ -153,12 +156,12 @@ in
       pciutils
     ];
 
-    home-manager.users.${primaryUsername} = { config, ... }: {
+    home-manager.users.${primaryUsername} = {config, ...}: {
       systemd.user.services.lnxlink = {
         Unit = {
           Description = "LNXlink";
-          After = [ "network-online.target" ];
-          Wants = [ "network-online.target" ];
+          After = ["network-online.target"];
+          Wants = ["network-online.target"];
         };
 
         Service = {
@@ -175,7 +178,7 @@ in
           LockPersonality = true;
         };
 
-        Install.WantedBy = [ "default.target" ];
+        Install.WantedBy = ["default.target"];
       };
 
       xdg.configFile."lnxlink/config.yaml.template".text = ''

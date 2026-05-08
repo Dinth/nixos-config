@@ -1,9 +1,12 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.brio4k;
-in
-{
+in {
   options = {
     brio4k = {
       enable = mkOption {
@@ -17,9 +20,9 @@ in
   config = mkIf cfg.enable {
     # V4L2 utilities for camera control
     environment.systemPackages = with pkgs; [
-      v4l-utils      # v4l2-ctl for command-line camera control
-      cameractrls    # GUI for webcam settings (supports Brio presets)
-      ffmpeg         # For camera testing/capture
+      v4l-utils # v4l2-ctl for command-line camera control
+      cameractrls # GUI for webcam settings (supports Brio presets)
+      ffmpeg # For camera testing/capture
     ];
 
     # Ensure uvcvideo module is loaded with proper settings
@@ -29,7 +32,7 @@ in
     '';
 
     # Ensure camera portal is available for applications
-    xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gtk];
 
     # udev rule for Logitech Brio 4K - ensure proper permissions
     services.udev.extraRules = ''

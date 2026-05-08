@@ -1,14 +1,16 @@
-{ config, lib,...}:
-let
+{
+  config,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf;
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername}.programs.git = {
       enable = true;
-      settings.user.name  = "Michal Gawronski-Kot";
+      settings.user.name = "Michal Gawronski-Kot";
       settings.user.email = "michal@gawronskikot.com";
       settings = {
         url = {

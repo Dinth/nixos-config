@@ -1,5 +1,9 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf;
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
@@ -7,7 +11,7 @@ let
   # 1. Standard config - flat colored segments (no Powerline arrows for Konsole compatibility)
   normalSettings = lib.mkMerge [
     (builtins.fromTOML (builtins.readFile
-      "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
+        "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
     {
       palette = lib.mkForce "catppuccin_mocha";
 
@@ -100,11 +104,10 @@ let
     };
   };
 
-
   tomlFormat = pkgs.formats.toml {};
 in {
   config = mkIf cfg.enable {
-    home-manager.users.${primaryUsername} = { config, ... }: {
+    home-manager.users.${primaryUsername} = {config, ...}: {
       programs.starship = {
         enable = true;
         settings = normalSettings;

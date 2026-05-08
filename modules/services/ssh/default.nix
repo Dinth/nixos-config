@@ -1,9 +1,12 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.ssh;
-in
-{
+in {
   options = {
     ssh = {
       enable = mkOption {

@@ -1,8 +1,11 @@
-{ config, lib, pkgs, ... }:
-let
-  inherit (lib) mkIf;
-in
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  inherit (lib) mkIf;
+in {
   config = mkIf pkgs.stdenv.isLinux {
     time.timeZone = "Europe/London";
     i18n.defaultLocale = "en_GB.UTF-8";
@@ -20,7 +23,7 @@ in
     console = {
       earlySetup = true;
       font = "ter-v18n";
-      packages = [ pkgs.terminus_font ];
+      packages = [pkgs.terminus_font];
       useXkbConfig = true;
     };
     # Base layout for TTY (inherited via console.useXkbConfig)

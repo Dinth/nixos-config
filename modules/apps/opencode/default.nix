@@ -3,13 +3,11 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkOption;
   cfg = config.opencode;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     opencode = {
       enable = mkOption {
@@ -328,7 +326,7 @@ in
                 (lib.getExe pkgs.phpactor)
                 "language-server"
               ];
-              extensions = [ ".php" ];
+              extensions = [".php"];
             };
             bash = {
               command = [
@@ -345,11 +343,11 @@ in
                 (lib.getExe pkgs.pyright)
                 "--stdio"
               ];
-              extensions = [ ".py" ];
+              extensions = [".py"];
             };
             xml = {
-              command = [ (lib.getExe pkgs.lemminx) ];
-              extensions = [ ".xml" ];
+              command = [(lib.getExe pkgs.lemminx)];
+              extensions = [".xml"];
             };
           };
           formatter = {
@@ -358,7 +356,7 @@ in
                 (lib.getExe pkgs.nixfmt-rfc-style)
                 "$FILE"
               ];
-              extensions = [ ".nix" ];
+              extensions = [".nix"];
             };
             jsonc = {
               command = [
@@ -367,7 +365,7 @@ in
                 "json"
                 "$FILE"
               ];
-              extensions = [ ".json" ];
+              extensions = [".json"];
             };
             djlint = {
               command = [
@@ -400,7 +398,7 @@ in
                 "format"
                 "$FILE"
               ];
-              extensions = [ ".py" ];
+              extensions = [".py"];
             };
           };
           mcp = {
@@ -436,7 +434,7 @@ in
             nixos = {
               enabled = true;
               type = "local";
-              command = [ (lib.getExe pkgs.mcp-nixos) ];
+              command = [(lib.getExe pkgs.mcp-nixos)];
               timeout = 15000;
             };
           };

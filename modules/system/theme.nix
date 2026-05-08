@@ -1,14 +1,17 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption types;
   cfg = config.theme;
   primaryUsername = config.primaryUser.name;
-in
-{
+in {
   options = {
     theme = {
       flavor = mkOption {
-        type = types.enum [ "latte" "frappe" "macchiato" "mocha" ];
+        type = types.enum ["latte" "frappe" "macchiato" "mocha"];
         default = "mocha";
         description = "Catppuccin flavor to use across the system.";
       };

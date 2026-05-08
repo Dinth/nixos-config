@@ -1,17 +1,43 @@
-{ config, lib, pkgs, machineType ? "", ... }:
-let
-  primaryUsername = config.primaryUser.name;
-in
 {
+  config,
+  lib,
+  pkgs,
+  machineType ? "",
+  ...
+}: let
+  primaryUsername = config.primaryUser.name;
+in {
   boot.blacklistedKernelModules = [
     # Obscure network protocols
-    "ax25" "netrom" "rose"
+    "ax25"
+    "netrom"
+    "rose"
     # Obscure filesystems
-    "adfs" "affs" "bfs" "befs" "cramfs" "efs" "exofs" "freevxfs"
-    "gfs2" "hfs" "hpfs" "jfs" "minix" "nilfs2" "omfs" "qnx4" "qnx6"
-    "sysv" "ufs"
+    "adfs"
+    "affs"
+    "bfs"
+    "befs"
+    "cramfs"
+    "efs"
+    "exofs"
+    "freevxfs"
+    "gfs2"
+    "hfs"
+    "hpfs"
+    "jfs"
+    "minix"
+    "nilfs2"
+    "omfs"
+    "qnx4"
+    "qnx6"
+    "sysv"
+    "ufs"
     # Network/Other
-    "ksmbd" "tipc" "sctp" "dccp" "rds"
+    "ksmbd"
+    "tipc"
+    "sctp"
+    "dccp"
+    "rds"
   ];
   boot.kernel.sysctl = {
     "kernel.kptr_restrict" = 2;
@@ -24,18 +50,18 @@ in
     "kernel.ftrace_enabled" = 0;
     # Disable IPv6 per-interface rather than ipv6.disable=1 — the kernel
     # param removes AF_INET6 entirely, breaking services that bind [::] (e.g. periphery, dhcpcd)
-    "net.ipv6.conf.all.disable_ipv6"     = 1;
+    "net.ipv6.conf.all.disable_ipv6" = 1;
     "net.ipv6.conf.default.disable_ipv6" = 1;
   };
   boot.kernelParams = lib.mkAfter [
-    "audit_backlog_wait_time=0"   # Drop events instead of blocking when hold queue full
+    "audit_backlog_wait_time=0" # Drop events instead of blocking when hold queue full
   ];
   environment.systemPackages = with pkgs; [
     doas-sudo-shim
     lynis # vulnerability scanner
     clamav # AV scanner
     vulnix # Nix derivations vulnerability scanner
-#    aide
+    #    aide
   ];
   services.journald.extraConfig = ''
     SystemMaxFileSize=200M
@@ -45,8 +71,8 @@ in
   '';
   boot.tmp = {
     useTmpfs = true;
-    tmpfsSize = "50%";  # optional: limit size
-    cleanOnBoot = true;  # optional: clean on boot
+    tmpfsSize = "50%"; # optional: limit size
+    cleanOnBoot = true; # optional: clean on boot
   };
   security.audit = {
     enable = true;
@@ -117,9 +143,9 @@ in
     description = "AppArmor Desktop Notifications";
     enable = true;
 
-    after = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
-    partOf = [ "graphical-session.target" ];
+    after = ["graphical-session.target"];
+    wantedBy = ["graphical-session.target"];
+    partOf = ["graphical-session.target"];
 
     unitConfig.ConditionPathExists = "/var/log/audit/audit.log";
 
@@ -135,7 +161,7 @@ in
   security.apparmor = {
     enable = true;
     killUnconfinedConfinables = false;
-    packages = with pkgs; [ apparmor-utils apparmor-profiles ];
+    packages = with pkgs; [apparmor-utils apparmor-profiles];
     policies = {
       # Google Chrome - web browser
       "google-chrome" = {
@@ -290,13 +316,13 @@ in
       IOSchedulingClass = 2;
       IOSchedulingPriority = 6;
       # exit 1 means vulnerabilities found — not a service failure
-      SuccessExitStatus = [ 0 1 ];
+      SuccessExitStatus = [0 1];
     };
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
   };
   systemd.timers.vulnix-scan = {
-    wantedBy = [ "timers.target" ];
+    wantedBy = ["timers.target"];
     timerConfig = {
       OnCalendar = "daily";
       Persistent = true;
@@ -312,7 +338,7 @@ in
     };
   };
   systemd.timers.lynis-scan = {
-    wantedBy = [ "timers.target" ];
+    wantedBy = ["timers.target"];
     timerConfig = {
       OnCalendar = "Weekly";
       Persistent = true;

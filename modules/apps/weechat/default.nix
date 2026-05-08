@@ -1,26 +1,32 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   inherit (lib) mkIf mkOption types optionals;
   cfg = config.weechat;
   graphical = config.graphical;
   primaryUsername = config.primaryUser.name;
   weechatCustom = pkgs.weechat.override {
-    configure = { availablePlugins, ... }: {
+    configure = {availablePlugins, ...}: {
       plugins = with availablePlugins; [
-        (python.withPackages (ps: with ps; [ websocket-client ]))
+        (python.withPackages (ps: with ps; [websocket-client]))
       ];
-      scripts = with pkgs.weechatScripts; [
-        wee-slack
-        weechat-autosort
-        colorize_nicks
-        buffer_autoset
-        multiline
-        weechat-grep
-        weechat-go
-        url_hint
-      ] ++ optionals graphical.enable [
-        weechat-notify-send
-      ];
+      scripts = with pkgs.weechatScripts;
+        [
+          wee-slack
+          weechat-autosort
+          colorize_nicks
+          buffer_autoset
+          multiline
+          weechat-grep
+          weechat-go
+          url_hint
+        ]
+        ++ optionals graphical.enable [
+          weechat-notify-send
+        ];
       init = ''
         /mouse enable
         /set weechat.look.mouse on
@@ -77,9 +83,8 @@ let
       '';
     };
   };
-  aspellDicts = pkgs.aspellWithDicts (d: [ d.en d.en-computers d.pl ]);
-in
-{
+  aspellDicts = pkgs.aspellWithDicts (d: [d.en d.en-computers d.pl]);
+in {
   options = {
     weechat = {
       enable = mkOption {
@@ -100,20 +105,20 @@ in
         aspellDicts
       ];
 
-    xdg.configFile."autostart/weechat.desktop".text = ''
-      [Desktop Entry]
-      Type=Application
-      Version=1.0
-      Name=WeeChat
-      GenericName=IRC Client
-      Comment=Fast, light and extensible chat client
-      Exec=${pkgs.kdePackages.konsole}/bin/konsole -e ${weechatCustom}/bin/weechat
-      Terminal=false
-      Categories=Network;IRCClient;
-      Icon=weechat
-      StartupNotify=false
-      X-KDE-autostart-phase=1
-    '';
+      xdg.configFile."autostart/weechat.desktop".text = ''
+        [Desktop Entry]
+        Type=Application
+        Version=1.0
+        Name=WeeChat
+        GenericName=IRC Client
+        Comment=Fast, light and extensible chat client
+        Exec=${pkgs.kdePackages.konsole}/bin/konsole -e ${weechatCustom}/bin/weechat
+        Terminal=false
+        Categories=Network;IRCClient;
+        Icon=weechat
+        StartupNotify=false
+        X-KDE-autostart-phase=1
+      '';
 
       home.file.".weechat/weemoji.json".source = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/wee-slack/wee-slack/master/weemoji.json";

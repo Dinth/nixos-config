@@ -1,9 +1,12 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption mkMerge;
   cfg = config.clamav;
-in
-{
+in {
   options = {
     clamav = {
       enable = mkOption {
@@ -35,15 +38,14 @@ in
       };
     };
   };
-  config =
-  let
+  config = let
     allNormalUsers = lib.attrsets.filterAttrs (username: config: config.isNormalUser) config.users.users;
-    allACScanHomeDirs = builtins.concatMap (
-      dir: lib.attrsets.mapAttrsToList (username: config: config.home + "/" + dir) allNormalUsers
-    )
-    cfg.accessScanning.homeDirectories;
-  in
-  {
+    allACScanHomeDirs =
+      builtins.concatMap (
+        dir: lib.attrsets.mapAttrsToList (username: config: config.home + "/" + dir) allNormalUsers
+      )
+      cfg.accessScanning.homeDirectories;
+  in {
     clamav.accessScanning.directories = allACScanHomeDirs;
     services.clamav = {
       daemon = {
@@ -86,8 +88,8 @@ in
           DatabaseDirectory = "/var/lib/clamav";
           CompressLocalDatabase = false;
         };
-          interval = "daily";
-          frequency = 1;
+        interval = "daily";
+        frequency = 1;
       };
       fangfrisch = {
         enable = true;
@@ -112,12 +114,12 @@ in
       };
     };
     systemd.services.clamav-fangfrisch-init = {
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
     };
     systemd.services.clamav-fangfrisch = {
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
     };
     systemd.services."clamav-clamonacc" = {
       description = "ClamAV On-Access Scanner";
@@ -155,7 +157,7 @@ in
       "d /var/lib/quarantine 0755 root root - -"
     ];
     environment.variables = {
-      CLAMAV_ONACCESS_FLAGS = "--fanotify";  # Avoid legacy inotify
+      CLAMAV_ONACCESS_FLAGS = "--fanotify"; # Avoid legacy inotify
     };
   };
 }

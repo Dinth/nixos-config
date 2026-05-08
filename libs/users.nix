@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{lib, ...}: {
   options.primaryUser = lib.mkOption {
     type = lib.types.submodule {
       options = {

@@ -7,8 +7,7 @@
   pkgs,
   modulesPath,
   ...
-}:
-{
+}: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
@@ -27,7 +26,7 @@
     "sr_mod"
     "hid_generic"
   ];
-  boot.initrd.kernelModules = [ ];
+  boot.initrd.kernelModules = [];
   boot.kernelModules = [
     "kvm-amd"
     "k10temp"
@@ -51,8 +50,7 @@
     ];
   };
 
-  boot.initrd.luks.devices."luks-4110bc56-975a-4d51-b39e-9452ea0294f7".device =
-    "/dev/disk/by-uuid/4110bc56-975a-4d51-b39e-9452ea0294f7";
+  boot.initrd.luks.devices."luks-4110bc56-975a-4d51-b39e-9452ea0294f7".device = "/dev/disk/by-uuid/4110bc56-975a-4d51-b39e-9452ea0294f7";
 
   environment.etc = {
     "sysconfig/lm_sensors".text = ''
@@ -158,7 +156,7 @@
   systemd.tpm2.enable = true;
   services.irqbalance.enable = true;
   # Grant irqbalance permission to set IRQ affinity (blocked by kernel hardening)
-  systemd.services.irqbalance.serviceConfig.AmbientCapabilities = [ "CAP_SYS_NICE" ];
+  systemd.services.irqbalance.serviceConfig.AmbientCapabilities = ["CAP_SYS_NICE"];
   services.fwupd.enable = true;
   services.fstrim.enable = true;
   services.pulseaudio.enable = false;
@@ -203,7 +201,7 @@
         {
           name = "libpipewire-module-protocol-pulse";
           args = {
-            server.address = [ "unix:native" ];
+            server.address = ["unix:native"];
           };
         }
       ];
@@ -229,7 +227,7 @@
         "monitor.alsa.rules" = [
           {
             matches = [
-              { "device.product.name" = "Starship/Matisse HD Audio Controller"; }
+              {"device.product.name" = "Starship/Matisse HD Audio Controller";}
             ];
             actions = {
               update-props = {
@@ -248,7 +246,7 @@
         "monitor.alsa.rules" = [
           {
             matches = [
-              { "node.name" = "~alsa_output.*"; }
+              {"node.name" = "~alsa_output.*";}
             ];
             actions = {
               update-props = {
@@ -270,7 +268,7 @@
         "monitor.alsa.rules" = [
           {
             matches = [
-              { "media.class" = "Audio/Sink"; }
+              {"media.class" = "Audio/Sink";}
             ];
             actions = {
               update-props = {
@@ -287,7 +285,7 @@
         "monitor.alsa.rules" = [
           {
             matches = [
-              { "device.product.name" = "Yeti Stereo Microphone"; }
+              {"device.product.name" = "Yeti Stereo Microphone";}
             ];
             actions = {
               update-props = {

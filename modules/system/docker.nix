@@ -1,11 +1,14 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib) mkIf mkOption mkForce;
   cfg = config.docker;
   primaryUsername = config.primaryUser.name;
   tcpEnabled = cfg.tcpClients != [];
-in
-{
+in {
   options = {
     docker = {
       enable = mkOption {
@@ -17,7 +20,7 @@ in
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "IP addresses allowed to reach Docker's TCP socket on port 2375.";
-        example = [ "10.10.1.11" ];
+        example = ["10.10.1.11"];
       };
     };
   };
@@ -27,7 +30,7 @@ in
       daemon.settings = {
         # Keep fd:// for socket activation (docker.service requires docker.socket),
         # then append TCP if tcpClients are set. mkForce overrides the module default.
-        hosts = mkForce ([ "fd://" ] ++ lib.optionals tcpEnabled [ "tcp://0.0.0.0:2375" ]);
+        hosts = mkForce (["fd://"] ++ lib.optionals tcpEnabled ["tcp://0.0.0.0:2375"]);
         log-driver = "json-file";
         log-opts = {
           max-size = "10m";
@@ -40,10 +43,10 @@ in
     # Allow only the specified IPs to reach port 2375; all others are dropped by default
     networking.firewall.extraInputRules = lib.mkIf tcpEnabled (
       lib.concatMapStrings
-        (ip: "ip saddr ${ip} tcp dport 2375 accept\n")
-        cfg.tcpClients
+      (ip: "ip saddr ${ip} tcp dport 2375 accept\n")
+      cfg.tcpClients
     );
 
-    users.users.${primaryUsername}.extraGroups = [ "docker" ];
+    users.users.${primaryUsername}.extraGroups = ["docker"];
   };
 }
