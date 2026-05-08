@@ -157,14 +157,11 @@ in
             include <abstractions/vulkan>
             include <abstractions/X>
 
-            capability sys_admin,
-            capability sys_chroot,
-            capability sys_ptrace,
+            capability sys_chroot,   # chrome-sandbox: chroot for renderer filesystem isolation
+            capability sys_ptrace,   # chrome-sandbox: sandbox supervision (ptrace_scope=2 requires CAP_SYS_PTRACE)
 
             network inet stream,
-            network inet6 stream,
             network inet dgram,
-            network inet6 dgram,
             network netlink raw,
 
             /nix/store/** r,
