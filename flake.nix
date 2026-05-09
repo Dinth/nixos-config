@@ -78,10 +78,12 @@
           home-manager.nixosModules.home-manager
           {
             nixpkgs.overlays = [llmAgentsOverlay];
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "backup";
-            home-manager.sharedModules = [plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              backupFileExtension = "backup";
+              sharedModules = [plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
+            };
           }
         ];
       };
@@ -100,10 +102,12 @@
           nixvirt.nixosModules.default
           home-manager.nixosModules.home-manager
           {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "backup";
-            home-manager.sharedModules = [agenix.homeManagerModules.default];
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              backupFileExtension = "backup";
+              sharedModules = [agenix.homeManagerModules.default];
+            };
           }
         ];
       };
@@ -123,10 +127,12 @@
           home-manager.nixosModules.home-manager
           {
             nixpkgs.overlays = [llmAgentsOverlay];
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "backup";
-            home-manager.sharedModules = [plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              backupFileExtension = "backup";
+              sharedModules = [plasma-manager.homeModules.plasma-manager agenix.homeManagerModules.default];
+            };
           }
         ];
       };

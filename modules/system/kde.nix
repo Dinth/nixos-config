@@ -20,11 +20,20 @@ in {
     };
   };
   config = mkIf cfg.enable {
-    services.displayManager.sddm.wayland.enable = mkDefault true;
-    services.displayManager.sddm.settings = lib.optionalAttrs (machineType == "tablet") {
-      General.GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.5";
+    services = {
+      displayManager.sddm = {
+        wayland.enable = mkDefault true;
+        settings = lib.optionalAttrs (machineType == "tablet") {
+          General.GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.5";
+        };
+      };
+      desktopManager.plasma6 = {
+        enable = mkDefault true;
+        enableQt5Integration = true;
+      };
+      blueman.enable = false; # Use KDE Bluetooth instead
+      accounts-daemon.enable = true;
     };
-    services.desktopManager.plasma6.enable = mkDefault true;
     environment.systemPackages = with pkgs;
       [
         kdePackages.korganizer
@@ -63,12 +72,11 @@ in {
       extraPortals = [pkgs.kdePackages.xdg-desktop-portal-kde];
       config.common.default = "kde";
     };
-    services.desktopManager.plasma6.enableQt5Integration = true;
-    services.blueman.enable = false; # Use KDE Bluetooth instead
-    services.accounts-daemon.enable = true;
-    programs.partition-manager.enable = true;
-    programs.kde-pim.kontact = true;
-    programs.kdeconnect.enable = true;
+    programs = {
+      partition-manager.enable = true;
+      kde-pim.kontact = true;
+      kdeconnect.enable = true;
+    };
     qt = {
       enable = true;
       platformTheme = "kde";

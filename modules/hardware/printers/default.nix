@@ -19,42 +19,50 @@ in {
     };
   };
   config = mkIf cfg.enable {
-    services.printing = {
-      enable = true;
-      # IPv4-only — IPv6 is disabled per-interface via sysctl, so binding [::1]:631 fails
-      listenAddresses = ["127.0.0.1:631"];
-      drivers = with pkgs; [
-        canon-cups-ufr2
-        cups-filters
-      ];
-      browsing = true;
-      extraConf = ''
-        DefaultPaperSize A4
-      '';
+    services = {
+      printing = {
+        enable = true;
+        # IPv4-only — IPv6 is disabled per-interface via sysctl, so binding [::1]:631 fails
+        listenAddresses = ["127.0.0.1:631"];
+        drivers = with pkgs; [
+          canon-cups-ufr2
+          cups-filters
+        ];
+        browsing = true;
+        extraConf = ''
+          DefaultPaperSize A4
+        '';
+        cups-pdf.enable = false;
+      };
+      avahi.publish = {
+        enable = true;
+        userServices = true;
+      };
+      saned.enable = true;
     };
-    services.printing.cups-pdf.enable = false;
-    services.avahi.publish.enable = true;
-    services.avahi.publish.userServices = true;
-    hardware.printers = {
-      ensurePrinters = [
-        {
-          name = "Canon_MF270_Series";
-          location = "Wickhay";
-          # Wait up to 60s for printer to wake from sleep
-          # If still fails, try: "beh:/3/10/ipp://10.10.10.40/ipp" (retries 3x, 10s apart - may cause duplicates)
-          deviceUri = "ipp://10.10.10.40/ipp?contimeout=60";
-          model = "everywhere";
-          ppdOptions = {
-            PageSize = "A4";
-            Duplex = "DuplexNoTumble";
-          };
-        }
-      ];
-      ensureDefaultPrinter = "Canon_MF270_Series";
+    hardware = {
+      printers = {
+        ensurePrinters = [
+          {
+            name = "Canon_MF270_Series";
+            location = "Wickhay";
+            # Wait up to 60s for printer to wake from sleep
+            # If still fails, try: "beh:/3/10/ipp://10.10.10.40/ipp" (retries 3x, 10s apart - may cause duplicates)
+            deviceUri = "ipp://10.10.10.40/ipp?contimeout=60";
+            model = "everywhere";
+            ppdOptions = {
+              PageSize = "A4";
+              Duplex = "DuplexNoTumble";
+            };
+          }
+        ];
+        ensureDefaultPrinter = "Canon_MF270_Series";
+      };
+      sane = {
+        enable = true;
+        extraBackends = [pkgs.sane-airscan];
+      };
     };
-    hardware.sane.enable = true;
-    hardware.sane.extraBackends = [pkgs.sane-airscan];
-    services.saned.enable = true;
 
     # Make ensure-printers service fault-tolerant - don't fail boot if printer is unreachable
     systemd.services.ensure-printers = {
