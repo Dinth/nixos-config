@@ -355,9 +355,9 @@ in {
       ${lib.getExe' pkgs.audit "auditctl"} -f 1
       ${lib.getExe' pkgs.audit "auditctl"} -r ${toString config.security.audit.rateLimit}
       ${lib.concatMapStringsSep "\n" (
-        rule: "${lib.getExe' pkgs.audit "auditctl"} ${rule} || true"
-      )
-      config.security.audit.rules}
+          rule: "${lib.getExe' pkgs.audit "auditctl"} ${rule} || true"
+        )
+        config.security.audit.rules}
       ${lib.getExe' pkgs.audit "auditctl"} -e 1
       exit 0
     '')
