@@ -58,7 +58,8 @@
       "plymouth.use-simpledrm"
       "acpi_enforce_resource=lax"
       "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during suspend/resume
-      "amdgpu.runpm=0" # Keep GPU in D0 during sleep; prevents MODE1 reset failure on resume (Navi22)
+      "amdgpu.runpm=0" # Keep GPU in D0 during runtime idle; prevents entering D3 between frames
+      "mem_sleep_default=s2idle" # Use s2idle instead of S3: GPU stays powered, avoids MODE1 reset on Navi22 resume
     ];
     extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
