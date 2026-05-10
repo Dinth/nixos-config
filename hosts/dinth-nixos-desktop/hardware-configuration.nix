@@ -57,9 +57,8 @@
       "thermal.crt=105" # Fix a bug with acpitz reporting overheat on resume from suspend
       "plymouth.use-simpledrm"
       "acpi_enforce_resource=lax"
-      "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during suspend/resume
+      "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during runtime
       "amdgpu.runpm=0" # Keep GPU in D0 during runtime idle; prevents entering D3 between frames
-      "mem_sleep_default=s2idle" # Use s2idle instead of S3: GPU stays powered, avoids MODE1 reset on Navi22 resume
     ];
     extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
@@ -327,6 +326,26 @@
     tpm2.enable = true;
     # Grant irqbalance permission to set IRQ affinity (blocked by kernel hardening)
     services.irqbalance.serviceConfig.AmbientCapabilities = ["CAP_SYS_NICE"];
+
+    # Navi22 (RX 6700 XT) resume workaround: the amdgpu resume() path calls RunDcBtc
+    # (SMU msg 36) which times out on every wake. Unbinding before sleep forces a fresh
+    # probe() on rebind, bypassing the broken resume path entirely.
+    services.amdgpu-sleep-workaround = {
+      description = "Unbind/rebind amdgpu around S3 to bypass Navi22 RunDcBtc SMU timeout";
+      before = ["sleep.target"];
+      wantedBy = ["sleep.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = pkgs.writeShellScript "amdgpu-unbind" ''
+          echo 0000:0c:00.0 > /sys/bus/pci/drivers/amdgpu/unbind
+        '';
+        ExecStop = pkgs.writeShellScript "amdgpu-rebind" ''
+          sleep 2
+          echo 0000:0c:00.0 > /sys/bus/pci/drivers/amdgpu/bind
+        '';
+      };
+    };
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
