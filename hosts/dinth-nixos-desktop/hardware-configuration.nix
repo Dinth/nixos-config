@@ -76,6 +76,15 @@
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
+    # Navi22 (RX 6700 XT): RunDcBtc SMU calibration times out on every resume.
+    # sienna_cichlid_run_btc() propagates the -ETIMEDOUT which wedges the full
+    # amdgpu resume path. This patch makes it non-fatal so resume proceeds.
+    kernelPatches = [
+      {
+        name = "navi22-dcbtc-resume-fix";
+        patch = ./navi22-dcbtc-resume-fix.patch;
+      }
+    ];
   };
 
   fileSystems."/" = {
@@ -326,26 +335,6 @@
     tpm2.enable = true;
     # Grant irqbalance permission to set IRQ affinity (blocked by kernel hardening)
     services.irqbalance.serviceConfig.AmbientCapabilities = ["CAP_SYS_NICE"];
-
-    # Navi22 (RX 6700 XT) resume workaround: the amdgpu resume() path calls RunDcBtc
-    # (SMU msg 36) which times out on every wake. Unbinding before sleep forces a fresh
-    # probe() on rebind, bypassing the broken resume path entirely.
-    services.amdgpu-sleep-workaround = {
-      description = "Unbind/rebind amdgpu around S3 to bypass Navi22 RunDcBtc SMU timeout";
-      before = ["sleep.target"];
-      wantedBy = ["sleep.target"];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = pkgs.writeShellScript "amdgpu-unbind" ''
-          echo 0000:0c:00.0 > /sys/bus/pci/drivers/amdgpu/unbind
-        '';
-        ExecStop = pkgs.writeShellScript "amdgpu-rebind" ''
-          sleep 2
-          echo 0000:0c:00.0 > /sys/bus/pci/drivers/amdgpu/bind
-        '';
-      };
-    };
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
