@@ -1,6 +1,6 @@
 --- a/drivers/gpu/drm/amd/pm/swsmu/smu11/sienna_cichlid_ppt.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/smu11/sienna_cichlid_ppt.c
-@@ -1,10 +1,10 @@
+@@ -2576,10 +2576,10 @@
  static int sienna_cichlid_run_btc(struct smu_context *smu)
  {
  	int res;
