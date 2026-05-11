@@ -77,14 +77,20 @@
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
     # Navi22 (RX 6700 XT): RunDcBtc SMU calibration times out on every resume.
-    # sienna_cichlid_run_btc() propagates the -ETIMEDOUT which wedges the full
-    # amdgpu resume path. This patch makes it non-fatal so resume proceeds.
-    kernelPatches = [
-      {
-        name = "navi22-dcbtc-resume-fix";
-        patch = ./navi22-dcbtc-resume-fix.patch;
-      }
-    ];
+    # sienna_cichlid_run_btc() propagates -ETIMEDOUT which wedges amdgpu resume.
+    # sed matches by text content so this survives kernel micro-version bumps.
+    kernelPackages = pkgs.linuxPackagesFor (pkgs.linuxPackages_latest.kernel.overrideAttrs (old: {
+      postPatch =
+        (old.postPatch or "")
+        + ''
+          if [ -f drivers/gpu/drm/amd/pm/swsmu/smu11/sienna_cichlid_ppt.c ]; then
+            sed -i 's/"RunDcBtc failed!\\n"/"RunDcBtc failed, ignoring\\n"/' \
+              drivers/gpu/drm/amd/pm/swsmu/smu11/sienna_cichlid_ppt.c
+            sed -i '/static int sienna_cichlid_run_btc/,/^}/{s/\treturn res;/\treturn 0;/}' \
+              drivers/gpu/drm/amd/pm/swsmu/smu11/sienna_cichlid_ppt.c
+          fi
+        '';
+    }));
   };
 
   fileSystems."/" = {
