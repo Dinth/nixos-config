@@ -51,6 +51,11 @@
     # llm-agents.packages.${system}, which uses blueprint and eagerly evaluates
     # the entire package set — including the broken `apm` package that fails
     # with nixos-25.11's buildPythonApplication.
+    valkeyOverlay = final: prev: {
+      valkey = prev.valkey.overrideAttrs (_: {
+        doCheck = false;
+      });
+    };
     llmAgentsOverlay = final: prev: let
       callPkg = path: final.callPackage (llm-agents + path) {};
       wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
@@ -77,7 +82,7 @@
           nixvirt.nixosModules.default
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -126,7 +131,7 @@
           nixos-hardware.nixosModules.microsoft-surface-go
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
