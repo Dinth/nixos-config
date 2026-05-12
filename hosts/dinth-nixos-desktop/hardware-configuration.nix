@@ -59,6 +59,7 @@
       "acpi_enforce_resource=lax"
       "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during runtime
       "amdgpu.runpm=0" # Keep GPU in D0 during runtime idle; prevents entering D3 between frames
+      "amdgpu.sg_display=0" # Disable scatter-gather display to prevent DC state corruption across sleep cycles on Navi22
       "no_console_suspend" # TEMPORARY: keep console alive during suspend to diagnose second-sleep hang
       "panic=300" # TEMPORARY: wait 5 min before reboot on panic so we can read the backtrace
     ];
