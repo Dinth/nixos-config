@@ -22,7 +22,7 @@ in {
     # System-level catppuccin (plymouth, etc.)
     catppuccin.plymouth = mkIf config.graphical.enable {
       enable = true;
-      flavor = cfg.flavor;
+      inherit (cfg) flavor;
     };
 
     # Home Manager catppuccin

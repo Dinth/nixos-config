@@ -6,7 +6,7 @@
 }: let
   inherit (lib) mkIf mkOption types optionals;
   cfg = config.weechat;
-  graphical = config.graphical;
+  inherit (config) graphical;
   primaryUsername = config.primaryUser.name;
   weechatCustom = pkgs.weechat.override {
     configure = {availablePlugins, ...}: {

@@ -4,7 +4,8 @@
   pkgs,
   home-manager,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkOption;
   cfg = config.opencode;
   primaryUsername = config.primaryUser.name;
@@ -39,7 +40,7 @@
       };
       grafana = {
         url = "http://10.10.1.13:5133/mcp";
-        transport = "http";
+        transport = "streamable-http";
       };
       unifi = {
         url = "http://10.10.1.13:5134/sse";
@@ -198,7 +199,7 @@
     };
   };
 
-  claudeSettingsFile = pkgs.runCommand "claude-code-settings.json" {} ''
+  claudeSettingsFile = pkgs.runCommand "claude-code-settings.json" { } ''
     ${lib.getExe pkgs.jq} '.' \
       ${pkgs.writeText "claude-settings-raw.json" (builtins.toJSON claudeSettings)} \
       > $out
@@ -224,7 +225,8 @@
 
     exit 0
   '';
-in {
+in
+{
   config = mkIf cfg.enable {
     programs.nix-ld = {
       enable = true;
@@ -256,7 +258,7 @@ in {
       # symlink. Claude Code does a write-test on settings.json at startup;
       # a read-only symlink causes the entire permission system to fall back
       # to asking for everything (upstream issue #3575).
-      home.activation.claudeCodeSettings = home-manager.lib.hm.dag.entryAfter ["writeBoundary"] ''
+      home.activation.claudeCodeSettings = home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         $DRY_RUN_CMD rm -f "$HOME/.claude/settings.json"
         $DRY_RUN_CMD install -m 600 ${claudeSettingsFile} "$HOME/.claude/settings.json"
       '';
