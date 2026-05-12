@@ -60,6 +60,7 @@
       "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during runtime
       "amdgpu.runpm=0" # Keep GPU in D0 during runtime idle; prevents entering D3 between frames
       "no_console_suspend" # TEMPORARY: keep console alive during suspend to diagnose second-sleep hang
+      "panic=300" # TEMPORARY: wait 5 min before reboot on panic so we can read the backtrace
     ];
     extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
