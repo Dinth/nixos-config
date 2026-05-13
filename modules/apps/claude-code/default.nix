@@ -322,7 +322,7 @@
   # Catppuccin-ish ANSI palette.
   statusLineScript = pkgs.writeShellApplication {
     name = "claude-statusline.sh";
-    runtimeInputs = with pkgs; [jq git coreutils rtk];
+    runtimeInputs = with pkgs; [jq git coreutils sqlite];
     text = ''
       input=$(cat)
 
@@ -395,22 +395,59 @@
       [ -n "$rl_5h" ] && line2+=$(fmt_rl "$rl_5h" "5h")
       [ -n "$rl_7d" ] && line2+=$(fmt_rl "$rl_7d" "7d")
 
-      # RTK token-savings segment. Shown only when rtk has tracking data;
-      # silent otherwise so a fresh install doesn't carry a stub label.
-      # jq does the K / M formatting so we stay portable.
-      rtk_json=$(rtk gain --format json 2>/dev/null || echo "{}")
-      rtk_segment=$(jq -r '
-        .summary // {} |
-        if (.total_commands // 0) > 0 then
-          (.total_saved // 0) as $s |
-          (.avg_savings_pct // 0 | floor) as $p |
-          ( if   $s >= 1000000 then "\((($s / 100000) | floor) / 10)M"
-            elif $s >= 1000    then "\((($s / 100)    | floor) / 10)K"
-            else "\($s)"
-            end ) as $f |
-          "\($p)% • \($f)t"
-        else "" end
-      ' <<<"$rtk_json")
+      # RTK savings segment: "RTK -49% (587t) / -36% (3.2Kt)"
+      # First pair = current Claude session (since cost.total_duration_ms ago).
+      # Second pair = all-time across every Claude session.
+      # Whole segment hidden when rtk has no history yet (fresh install).
+      fmt_tokens() {
+        local n=$1
+        if   [ "$n" -ge 1000000 ]; then printf '%d.%dM' $((n / 1000000)) $(((n / 100000) % 10))
+        elif [ "$n" -ge 1000 ];    then printf '%d.%dK' $((n / 1000))    $(((n / 100)    % 10))
+        else                            printf '%d'      "$n"
+        fi
+      }
+      fmt_pair() {
+        local pct=$1 saved=$2 sign=""
+        [ "$pct" -gt 0 ] && sign="-"
+        printf '%s%d%% (%st)' "$sign" "$pct" "$(fmt_tokens "$saved")"
+      }
+      rtk_db="''${XDG_DATA_HOME:-$HOME/.local/share}/rtk/history.db"
+      rtk_segment=""
+      if [ -f "$rtk_db" ]; then
+        dur_ms=$(jq -r '.cost.total_duration_ms // 0' <<<"$input")
+        dur_s=$((dur_ms / 1000))
+        # Discard sc (session command count) — present in SELECT so the row
+        # shape stays symmetric but unused downstream.
+        # rtk stores timestamps as ISO 8601 with `T` separator and nanoseconds
+        # (e.g. 2026-05-13T14:52:51.331824182+00:00). sqlite's datetime('now')
+        # returns the canonical form `2026-05-13 17:58:16`. Naive string
+        # comparison on the raw column treats every row as "after now" because
+        # 'T' (0x54) > ' ' (0x20). Wrap the column in datetime() so both sides
+        # normalize before comparing. The idx_timestamp index is skipped, but
+        # the table is tiny (rtk-rewrite events only) so the cost is trivial.
+        rtk_row=$(sqlite3 "$rtk_db" "
+          WITH sess AS (
+            SELECT COUNT(*) c, COALESCE(SUM(saved_tokens),0) s,
+                   COALESCE(CAST(AVG(savings_pct) AS INT),0) p
+            FROM commands
+            WHERE datetime(timestamp) >= datetime('now', '-' || $dur_s || ' seconds')
+          ),
+          allt AS (
+            SELECT COUNT(*) c, COALESCE(SUM(saved_tokens),0) s,
+                   COALESCE(CAST(AVG(savings_pct) AS INT),0) p
+            FROM commands
+          )
+          SELECT s.s, s.p, a.c, a.s, a.p FROM sess s, allt a;
+        " 2>/dev/null) || rtk_row=""
+        if [ -n "$rtk_row" ]; then
+          IFS='|' read -r ss sp ac as ap <<<"$rtk_row" || true
+          if [ "''${ac:-0}" -gt 0 ]; then
+            sess_str=$(fmt_pair "''${sp:-0}" "''${ss:-0}")
+            allt_str=$(fmt_pair "''${ap:-0}" "''${as:-0}")
+            rtk_segment="$sess_str / $allt_str"
+          fi
+        fi
+      fi
       [ -n "$rtk_segment" ] && line2+="  ''${MAUVE}RTK ''${rtk_segment}''${RST}"
 
       printf '%s\n%s' "$line1" "$line2"
