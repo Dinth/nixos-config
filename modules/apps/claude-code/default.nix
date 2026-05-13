@@ -70,16 +70,24 @@
       MAX_MCP_OUTPUT_TOKENS = "50000";
       # Give slow MCP servers more time to start.
       MCP_TIMEOUT = "10000";
+      # Record RTK hook rewrite outcomes locally so `rtk hook-audit` and
+      # `rtk gain` / `rtk cc-economics` can show what was saved. Local
+      # audit data only, no telemetry.
+      RTK_HOOK_AUDIT = "1";
     };
 
     hooks = {
+      # RTK ships a first-class Claude Code PreToolUse handler that reads
+      # the documented hook payload from stdin and emits the canonical
+      # hookSpecificOutput response shape. Calling `rtk hook claude`
+      # directly is the supported integration — no wrapper script needed.
       PreToolUse = [
         {
           matcher = "Bash";
           hooks = [
             {
               type = "command";
-              command = toString rtkHookScript;
+              command = "${lib.getExe pkgs.rtk} hook claude";
             }
           ];
         }
@@ -404,27 +412,6 @@
       "Claude finished" \
       "''${label:-session} done" \
       2>/dev/null || true
-  '';
-
-  # RTK rewrite hook script for Claude Code
-  rtkHookScript = pkgs.writeShellScript "rtk-rewrite-hook.sh" ''
-    # Read the tool input JSON from environment
-    COMMAND=$(echo "$CLAUDE_TOOL_INPUT" | ${lib.getExe pkgs.jq} -r '.command // empty')
-
-    if [ -z "$COMMAND" ]; then
-      exit 0
-    fi
-
-    # Try to rewrite the command through RTK
-    REWRITTEN=$(${lib.getExe pkgs.rtk} rewrite "$COMMAND" 2>/dev/null) || exit 0
-
-    # If rtk gave us a rewritten command, output the modified tool input
-    if [ -n "$REWRITTEN" ]; then
-      echo "$CLAUDE_TOOL_INPUT" | ${lib.getExe pkgs.jq} --arg cmd "$REWRITTEN" '.command = $cmd'
-      exit 0
-    fi
-
-    exit 0
   '';
 in {
   config = mkIf cfg.enable {
