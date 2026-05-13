@@ -307,6 +307,8 @@
       effort=$(jq -r '.effort.level // empty'                          <<<"$input")
       thinking=$(jq -r 'if .thinking.enabled then "↯" else "" end'     <<<"$input")
       vim_mode=$(jq -r '.vim.mode // empty'                            <<<"$input")
+      rl_5h=$(jq -r '.rate_limits.five_hour.used_percentage // empty'  <<<"$input")
+      rl_7d=$(jq -r '.rate_limits.seven_day.used_percentage // empty'  <<<"$input")
 
       pct=''${pct_raw%.*}
       pct=''${pct:-0}
@@ -352,6 +354,20 @@
       [ -n "$vim_mode" ] && line1+="  ''${DIM}[''${vim_mode}]''${RST}"
 
       line2="''${TEAL}''${bar}''${RST} ''${DIM}''${pct}%''${RST}  ''${YELLOW}\$''${cost_fmt}''${RST}"
+
+      fmt_rl() {
+        local pct=$1 label=$2 color
+        pct=''${pct%.*}
+        pct=''${pct:-0}
+        if   [ "$pct" -ge 90 ]; then color=$'\e[38;5;174m'   # rose
+        elif [ "$pct" -ge 70 ]; then color=$'\e[38;5;179m'   # peach
+        else                         color=$'\e[38;5;108m'   # green
+        fi
+        printf '  %s%s: %d%%%s' "$color" "$label" "$pct" "$RST"
+      }
+
+      [ -n "$rl_5h" ] && line2+=$(fmt_rl "$rl_5h" "5h")
+      [ -n "$rl_7d" ] && line2+=$(fmt_rl "$rl_7d" "7d")
 
       printf '%s\n%s' "$line1" "$line2"
     '';
