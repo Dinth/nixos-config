@@ -84,6 +84,16 @@
           ];
         }
       ];
+      Stop = [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = toString stopNotifyScript;
+            }
+          ];
+        }
+      ];
     };
 
     permissions = {
@@ -169,7 +179,9 @@
         "Bash(lsblk:*)"
         "Bash(lsusb:*)"
         "Bash(lspci:*)"
-        "Bash(env:*)"
+        # `Bash(env:*)` moved to `ask` — bare `env` dumps the entire process
+        # environment which can include MCP auth tokens (HOMEASSISTANT_MCP_URL,
+        # any future ragenix-injected vars). The transcript would record them.
         # Network read-only
         "Bash(ip addr:*)"
         "Bash(ip route:*)"
@@ -253,12 +265,17 @@
         # GitHub write
         "Bash(gh pr create:*)"
         "Bash(gh issue create:*)"
+        # See note above re: env-var disclosure in transcripts.
+        "Bash(env:*)"
       ];
 
-      # Project-relative deny patterns need the `./` prefix to match.
+      # Project-relative deny patterns need the `./` prefix to match. Nested
+      # globs catch .env files in subdirectories (packages/api/.env, etc.).
       deny = [
         "Read(./.env)"
         "Read(./.env.*)"
+        "Read(./**/.env)"
+        "Read(./**/.env.*)"
         "Read(./**/secrets/**)"
         "Read(./**/*.key)"
         "Read(./**/*.pem)"
@@ -373,6 +390,22 @@
     '';
   };
 
+  # Desktop notification when Claude finishes a turn. The hook payload on
+  # stdin gives session_id + cwd; we include cwd so notifications across
+  # parallel sessions are distinguishable. Failures are swallowed (no DBus
+  # in headless / cron contexts).
+  stopNotifyScript = pkgs.writeShellScript "claude-stop-notify.sh" ''
+    cwd=$(${lib.getExe pkgs.jq} -r '.cwd // empty' 2>/dev/null) || cwd=""
+    label=''${cwd##*/}
+    ${lib.getExe' pkgs.libnotify "notify-send"} \
+      --app-name='Claude Code' \
+      --icon=utilities-terminal \
+      --urgency=low \
+      "Claude finished" \
+      "''${label:-session} done" \
+      2>/dev/null || true
+  '';
+
   # RTK rewrite hook script for Claude Code
   rtkHookScript = pkgs.writeShellScript "rtk-rewrite-hook.sh" ''
     # Read the tool input JSON from environment
@@ -421,6 +454,12 @@ in {
       ];
       # Global Claude Code instructions
       home.file.".claude/CLAUDE.md".source = ./CLAUDE.md;
+      # User-scope subagents — invoked by main Claude via the Agent tool with
+      # subagent_type matching the `name:` field in each frontmatter.
+      home.file.".claude/agents" = {
+        source = ./agents;
+        recursive = true;
+      };
       # Install settings.json as a real mutable file instead of a Nix store
       # symlink. Claude Code does a write-test on settings.json at startup;
       # a read-only symlink causes the entire permission system to fall back
