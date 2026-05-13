@@ -48,6 +48,20 @@
     # buys nothing but extra regressions.
     autoUpdatesChannel = "stable";
 
+    editorMode = "vim";
+
+    # Suppress the periodic "rate this session" survey.
+    feedbackSurveyRate = 0;
+
+    statusLine = {
+      type = "command";
+      command = lib.getExe statusLineScript;
+      padding = 1;
+      # The statusline script renders vim.mode itself; suppress the duplicate
+      # `-- INSERT --` indicator below the prompt.
+      hideVimModeIndicator = true;
+    };
+
     # Global per-session environment for Claude Code itself.
     env = {
       # Defer MCP tool schemas to keep context lean.
@@ -277,6 +291,71 @@
     ${lib.getExe' pkgs.coreutils "mv"} "$TMP" "$CLAUDE_JSON"
     ${lib.getExe' pkgs.coreutils "chmod"} 600 "$CLAUDE_JSON"
   '';
+
+  # Two-line status bar: model + dir + git branch on line 1,
+  # context-usage bar + cost on line 2. Catppuccin-ish ANSI palette.
+  statusLineScript = pkgs.writeShellApplication {
+    name = "claude-statusline.sh";
+    runtimeInputs = with pkgs; [jq git coreutils];
+    text = ''
+      input=$(cat)
+
+      model=$(jq -r '.model.display_name // .model.id // "?"'         <<<"$input")
+      dir=$(jq   -r '.workspace.current_dir // .cwd // "."'            <<<"$input")
+      pct_raw=$(jq -r '.context_window.used_percentage // 0'           <<<"$input")
+      cost=$(jq -r '.cost.total_cost_usd // 0'                         <<<"$input")
+      effort=$(jq -r '.effort.level // empty'                          <<<"$input")
+      thinking=$(jq -r 'if .thinking.enabled then "↯" else "" end'     <<<"$input")
+      vim_mode=$(jq -r '.vim.mode // empty'                            <<<"$input")
+
+      pct=''${pct_raw%.*}
+      pct=''${pct:-0}
+
+      short_dir=''${dir/#$HOME/\~}
+
+      branch=""
+      dirty=""
+      if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        branch=$(git -C "$dir" branch --show-current 2>/dev/null || true)
+        if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
+          dirty="*"
+        fi
+      fi
+
+      cost_fmt=$(printf '%.2f' "$cost")
+
+      BW=12
+      filled=$((pct * BW / 100))
+      [ "$filled" -gt "$BW" ] && filled=$BW
+      empty=$((BW - filled))
+      bar=""
+      for ((i=0;i<filled;i++)); do bar+="▓"; done
+      for ((i=0;i<empty;i++));  do bar+="░"; done
+
+      RST=$'\e[0m'
+      DIM=$'\e[2m'
+      B=$'\e[1m'
+      MAUVE=$'\e[38;5;141m'
+      BLUE=$'\e[38;5;75m'
+      TEAL=$'\e[38;5;73m'
+      GREEN=$'\e[38;5;108m'
+      YELLOW=$'\e[38;5;179m'
+
+      branch_color=$GREEN
+      [ -n "$dirty" ] && branch_color=$YELLOW
+
+      line1="''${MAUVE}''${B}''${model}''${RST}"
+      [ -n "$effort" ]   && line1+=" ''${DIM}(''${effort})''${RST}"
+      [ -n "$thinking" ] && line1+=" ''${MAUVE}''${thinking}''${RST}"
+      line1+="  ''${BLUE}''${short_dir}''${RST}"
+      [ -n "$branch" ]   && line1+="  ''${branch_color}⎇ ''${branch}''${dirty}''${RST}"
+      [ -n "$vim_mode" ] && line1+="  ''${DIM}[''${vim_mode}]''${RST}"
+
+      line2="''${TEAL}''${bar}''${RST} ''${DIM}''${pct}%''${RST}  ''${YELLOW}\$''${cost_fmt}''${RST}"
+
+      printf '%s\n%s' "$line1" "$line2"
+    '';
+  };
 
   # RTK rewrite hook script for Claude Code
   rtkHookScript = pkgs.writeShellScript "rtk-rewrite-hook.sh" ''
