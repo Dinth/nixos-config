@@ -318,10 +318,11 @@
   '';
 
   # Two-line status bar: model + dir + git branch on line 1,
-  # context-usage bar + cost on line 2. Catppuccin-ish ANSI palette.
+  # context-usage bar + cost (+ rate limits + RTK savings) on line 2.
+  # Catppuccin-ish ANSI palette.
   statusLineScript = pkgs.writeShellApplication {
     name = "claude-statusline.sh";
-    runtimeInputs = with pkgs; [jq git coreutils];
+    runtimeInputs = with pkgs; [jq git coreutils rtk];
     text = ''
       input=$(cat)
 
@@ -393,6 +394,24 @@
 
       [ -n "$rl_5h" ] && line2+=$(fmt_rl "$rl_5h" "5h")
       [ -n "$rl_7d" ] && line2+=$(fmt_rl "$rl_7d" "7d")
+
+      # RTK token-savings segment. Shown only when rtk has tracking data;
+      # silent otherwise so a fresh install doesn't carry a stub label.
+      # jq does the K / M formatting so we stay portable.
+      rtk_json=$(rtk gain --format json 2>/dev/null || echo "{}")
+      rtk_segment=$(jq -r '
+        .summary // {} |
+        if (.total_commands // 0) > 0 then
+          (.total_saved // 0) as $s |
+          (.avg_savings_pct // 0 | floor) as $p |
+          ( if   $s >= 1000000 then "\((($s / 100000) | floor) / 10)M"
+            elif $s >= 1000    then "\((($s / 100)    | floor) / 10)K"
+            else "\($s)"
+            end ) as $f |
+          "\($p)% • \($f)t"
+        else "" end
+      ' <<<"$rtk_json")
+      [ -n "$rtk_segment" ] && line2+="  ''${MAUVE}RTK ''${rtk_segment}''${RST}"
 
       printf '%s\n%s' "$line1" "$line2"
     '';
