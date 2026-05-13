@@ -38,6 +38,7 @@
       "k10temp"
       "it87"
       "amdgpu"
+      "efi_pstore" # TEMPORARY: load EFI pstore backend so panic dmesg is persisted into EFI vars
     ];
     extraModulePackages = [
       config.boot.kernelPackages.r8125
@@ -62,6 +63,7 @@
       "amdgpu.sg_display=0" # Disable scatter-gather display to prevent DC state corruption across sleep cycles on Navi22
       "no_console_suspend" # TEMPORARY: keep console alive during suspend to diagnose second-sleep hang
       "panic=300" # TEMPORARY: wait 5 min before reboot on panic so we can read the backtrace
+      "pstore.backend=efi" # TEMPORARY: persist panic dmesg into EFI vars so we can recover backtrace after auto-reboot
     ];
     extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
