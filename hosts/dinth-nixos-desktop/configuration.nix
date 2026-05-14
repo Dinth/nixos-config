@@ -34,6 +34,7 @@
   # cloudflarewarp.enable = true;
   lnxlink.enable = true;
   lnxlink.mqtt.secretsFile = config.age.secrets.lnxlink-mqtt.path;
+  services.networkMounts.smb.vm = true;
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
@@ -70,7 +71,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-    cifs-utils
     pciutils
     usbutils
     ffmpeg # multimedia framework
@@ -80,29 +80,6 @@
     nixos-anywhere
   ];
 
-  fileSystems."/mnt/VM" = {
-    device = "//10.10.1.19/VM";
-    fsType = "cifs";
-    options = [
-      "credentials=/run/agenix/nas-vm-creds"
-      "rw"
-      "noserverino"
-      "actimeo=1"
-      "noperm"
-      "cache=none"
-      "echo_interval=10"
-      "uid=${toString config.users.users.${config.primaryUser.name}.uid}"
-      "gid=${toString config.users.groups.users.gid}"
-      "_netdev" # marks as network filesystem
-      "nofail" # don't block boot if mount fails
-      "vers=3.0"
-      "x-systemd.automount"
-      "x-systemd.requires=network-online.target"
-      "x-systemd.after=network-online.target"
-      "x-systemd.idle-timeout=60"
-      "x-systemd.mount-timeout=30s"
-    ];
-  };
   services.dbus = {
     enable = true;
     implementation = "broker";

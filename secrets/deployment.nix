@@ -37,6 +37,12 @@
       group = "users";
       mode = "0400";
     };
+    smb-haos-creds = {
+      file = ./smb-haos-creds.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
     opencode-gemini = {
       file = ./opencode-gemini.age;
       owner = "michal";
