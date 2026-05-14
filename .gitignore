@@ -6,3 +6,6 @@ result-*
 .direnv
 
 *kate-swp
+
+# Claude Code agent worktrees
+.claude/worktrees/
