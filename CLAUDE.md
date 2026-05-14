@@ -97,7 +97,7 @@ Reference in configs: `config.age.secrets.<name>.path` or `/run/agenix/<name>`
 
 After completing a task (which may involve multiple file edits):
 1. Validate syntax (for .nix files: `nix-instantiate --parse`)
-2. Format all Nix files: `nix run nixpkgs#alejandra -- .`
+2. Format all Nix files: `rtk nix run nixpkgs#alejandra -- .`
 3. Stage all related changes and commit — do NOT wait for user to ask
 
 ```bash
