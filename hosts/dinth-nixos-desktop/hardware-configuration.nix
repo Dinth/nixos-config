@@ -166,6 +166,14 @@
   services = {
     udev.extraRules = ''
       KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", MODE="0660", GROUP="users", TAG+="uaccess"
+
+      # Restrict USB remote-wakeup to keyboard + mouse only. Steam Controller
+      # (28de:1142) and ITE motherboard MCU (048d:8297) were observed asserting
+      # wake during S3, causing spurious resumes that left amdgpu in a degraded
+      # state and crashed the next resume.
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{power/wakeup}="disabled"
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3434", ATTR{idProduct}=="d030", ATTR{power/wakeup}="enabled"
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c52b", ATTR{power/wakeup}="enabled"
     '';
     #  thermald.enable = true;
     hardware.bolt.enable = true;
