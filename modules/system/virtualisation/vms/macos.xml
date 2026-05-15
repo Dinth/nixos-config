@@ -1,13 +1,13 @@
 <domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
-  <name>macOS Catalina</name>
-  <uuid>d06d502a-904a-4b34-847d-debf1a3d76c7</uuid>
-  <memory unit='KiB'>2097152</memory>
-  <currentMemory unit='KiB'>2097152</currentMemory>
+  <name>macOS Sonoma</name>
+  <uuid>27cf0300-d4b2-485b-ade0-82e328ebd018</uuid>
+  <memory unit='KiB'>8388608</memory>
+  <currentMemory unit='KiB'>8388608</currentMemory>
   <vcpu placement='static'>4</vcpu>
   <os>
-    <type arch='x86_64' machine='pc-q35-10.0'>hvm</type>
-    <loader readonly='yes' type='pflash' format='raw'>/home/michal/VMs/Catalina/firmware/OVMF_CODE.fd</loader>
-    <nvram format='raw'>/home/michal/VMs/Catalina/firmware/OVMF_VARS-1024x768.fd</nvram>
+    <type arch='x86_64' machine='pc-q35-10.1'>hvm</type>
+    <loader readonly='yes' type='pflash' format='raw'>/home/michal/VMs/Sonoma/OVMF_CODE.fd</loader>
+    <nvram format='raw'>/home/michal/VMs/Sonoma/OVMF_VARS.fd</nvram>
     <boot dev='hd'/>
   </os>
   <features>
@@ -32,43 +32,54 @@
     <suspend-to-disk enabled='no'/>
   </pm>
   <devices>
-    <emulator>/run/current-system/sw/bin/qemu-system-x86_64</emulator>
+    <emulator>/run/libvirt/nix-emulators/qemu-system-x86_64</emulator>
     <disk type='file' device='disk'>
-      <driver name='qemu' type='qcow2'/>
-      <source file='/home/michal/VMs/Catalina/ESP.qcow2'/>
+      <driver name='qemu' type='qcow2' cache='writeback' discard='unmap'/>
+      <source file='/home/michal/VMs/Sonoma/OpenCore.qcow2'/>
       <target dev='sda' bus='sata'/>
+      <boot order='1'/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
     <disk type='file' device='disk'>
       <driver name='qemu' type='raw'/>
-      <source file='/home/michal/VMs/Catalina/BaseSystem.img'/>
+      <source file='/home/michal/VMs/Sonoma/BaseSystem.img'/>
       <target dev='sdb' bus='sata'/>
+      <boot order='2'/>
       <address type='drive' controller='0' bus='0' target='0' unit='1'/>
     </disk>
-    <controller type='usb' index='0' model='ich9-ehci1'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x1d' function='0x7'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci1'>
-      <master startport='0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x1d' function='0x0' multifunction='on'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci2'>
-      <master startport='2'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x1d' function='0x1'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci3'>
-      <master startport='4'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x1d' function='0x2'/>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='writeback' discard='unmap'/>
+      <source file='/home/michal/VMs/Sonoma/mac_hdd.qcow2'/>
+      <target dev='sdc' bus='sata'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='2'/>
+    </disk>
+    <controller type='usb' index='0' model='qemu-xhci' ports='15'>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x00' function='0x0'/>
     </controller>
     <controller type='sata' index='0'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
     </controller>
     <controller type='pci' index='0' model='pcie-root'/>
+    <controller type='pci' index='1' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='1' port='0x10'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='2' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='2' port='0x11'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x1'/>
+    </controller>
+    <controller type='pci' index='3' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='3' port='0x12'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x2'/>
+    </controller>
     <interface type='network'>
-      <mac address='52:54:00:92:d4:7b'/>
+      <mac address='52:54:00:9d:e3:a4'/>
       <source network='default'/>
-      <model type='e1000-82545em'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+      <model type='vmxnet3'/>
+      <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
     </interface>
     <serial type='pty'>
       <target type='isa-serial' port='0'>
@@ -78,7 +89,7 @@
     <console type='pty'>
       <target type='serial' port='0'/>
     </console>
-    <input type='mouse' bus='usb'>
+    <input type='tablet' bus='usb'>
       <address type='usb' bus='0' port='1'/>
     </input>
     <input type='keyboard' bus='usb'>
@@ -95,7 +106,7 @@
     </sound>
     <audio id='1' type='spice'/>
     <video>
-      <model type='qxl' ram='65536' vram='65536' vgamem='16384' heads='1' primary='yes'/>
+      <model type='vga' vram='16384' heads='1' primary='yes'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
     </video>
     <redirdev bus='usb' type='spicevmc'>
@@ -108,12 +119,11 @@
     <memballoon model='none'/>
   </devices>
   <qemu:commandline>
-    <qemu:arg value='-cpu'/>
-    <qemu:arg value='Penryn,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check'/>
     <qemu:arg value='-device'/>
     <qemu:arg value='isa-applesmc,osk=ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc'/>
     <qemu:arg value='-smbios'/>
     <qemu:arg value='type=2'/>
+    <qemu:arg value='-cpu'/>
+    <qemu:arg value='Haswell-noTSX-IBRS,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+avx2,+aes,+xsave,+xsaveopt,+bmi1,+bmi2,+smep,+fma,+movbe,+rdrand,+f16c,check'/>
   </qemu:commandline>
 </domain>
-
