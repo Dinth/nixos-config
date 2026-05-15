@@ -8,8 +8,11 @@
   inherit (lib) mkIf mkOption mkMerge;
   cfg = config.services.networkMounts;
   primaryUsername = config.primaryUser.name;
-  primaryUid = toString config.users.users.${primaryUsername}.uid;
-  primaryGid = toString config.users.groups.users.gid;
+  # NixOS first normal user is uid 1000 / gid 100 by convention.
+  # users.users.<name>.uid is null unless explicitly pinned, which trips
+  # FUSE's strict option parser (fuse: invalid parameter in option `uid=').
+  primaryUid = "1000";
+  primaryGid = "100";
 
   isWorkstation = machineType == "desktop" || machineType == "tablet";
 
