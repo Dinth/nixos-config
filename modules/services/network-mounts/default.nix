@@ -50,7 +50,7 @@ in {
     smb.haosConfig = mkOption {
       type = lib.types.bool;
       default = isWorkstation;
-      description = "Mount //10.10.1.11/config at /mnt/haos-config.";
+      description = "Mount //10.10.1.11/config at /mnt/haos.";
     };
     sftp.omv = mkOption {
       type = lib.types.bool;
@@ -71,7 +71,7 @@ in {
       };
     })
     (mkIf cfg.smb.haosConfig {
-      fileSystems."/mnt/haos-config" = {
+      fileSystems."/mnt/haos" = {
         device = "//10.10.1.11/config";
         fsType = "cifs";
         options = cifsOptions "/run/agenix/smb-haos-creds";
