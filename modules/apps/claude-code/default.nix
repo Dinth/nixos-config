@@ -74,6 +74,9 @@
       # `rtk gain` / `rtk cc-economics` can show what was saved. Local
       # audit data only, no telemetry.
       RTK_HOOK_AUDIT = "1";
+      # Disable TUI mouse capture so Konsole's right-click context menu
+      # (and native selection) keeps working. Keyboard scroll still works.
+      CLAUDE_CODE_DISABLE_MOUSE = "1";
     };
 
     hooks = {
