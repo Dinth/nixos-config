@@ -172,8 +172,10 @@
       # wake during S3, causing spurious resumes that left amdgpu in a degraded
       # state and crashed the next resume.
       ACTION=="add", SUBSYSTEM=="usb", ATTR{power/wakeup}="disabled"
-      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3434", ATTR{idProduct}=="d030", ATTR{power/wakeup}="enabled"  # Keychron Link (keyboard)
-      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c52b", ATTR{power/wakeup}="enabled"  # Logitech Unifying receiver (mouse)
+      # Keychron Link (keyboard)
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3434", ATTR{idProduct}=="d030", ATTR{power/wakeup}="enabled"
+      # Logitech Unifying receiver (mouse)
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c52b", ATTR{power/wakeup}="enabled"
     '';
     #  thermald.enable = true;
     hardware.bolt.enable = true;
