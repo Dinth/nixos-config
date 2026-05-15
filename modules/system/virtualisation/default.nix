@@ -45,6 +45,9 @@ in {
           };
           hooks.qemu."qemu-hook-pf" = ./qemu-hook-pf.sh;
         };
+        # NixVirt declarative domain management; without this the
+        # nixvirt.service is never emitted and declared XMLs are ignored.
+        libvirt.enable = true;
         spiceUSBRedirection.enable = true;
       };
       home-manager.users.${primaryUsername}.dconf.settings = {
