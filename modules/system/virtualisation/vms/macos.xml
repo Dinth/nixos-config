@@ -123,6 +123,6 @@
     <qemu:arg value='-smbios'/>
     <qemu:arg value='type=2'/>
     <qemu:arg value='-cpu'/>
-    <qemu:arg value='Haswell-noTSX-IBRS,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+avx2,+aes,+xsave,+xsaveopt,+bmi1,+bmi2,+smep,+fma,+movbe,+rdrand,+f16c,check'/>
+    <qemu:arg value='Haswell-noTSX,-hle,-rtm,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check'/>
   </qemu:commandline>
 </domain>
