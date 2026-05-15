@@ -72,14 +72,35 @@ in {
           -- ============================================================
           local opts = { noremap = true, silent = true }
 
+          -- Show a brief status message (visible in any mode; not swallowed by silent maps)
+          local function echo_msg(msg, hl)
+            vim.api.nvim_echo({ { msg, hl or 'ModeMsg' } }, false, {})
+          end
+
+          -- Save the current buffer, prompting for a name if it's unnamed.
+          local function save_file()
+            if vim.fn.expand('%') == "" then
+              local name = vim.fn.input('Save as: ', "", 'file')
+              if name == "" then return end
+              local ok_sa, err_sa = pcall(vim.cmd, 'saveas ' .. vim.fn.fnameescape(name))
+              if not ok_sa then echo_msg('  Save failed: ' .. tostring(err_sa), 'ErrorMsg') return end
+            end
+            local ok, err = pcall(vim.cmd, 'write')
+            if ok then
+              echo_msg('  Saved: ' .. vim.fn.expand('%') .. '  (' .. vim.fn.line('$') .. ' lines)')
+            else
+              echo_msg('  Save failed: ' .. tostring(err), 'ErrorMsg')
+            end
+          end
+
           -- F1: Help
           vim.keymap.set({ 'n', 'i', 'v' }, '<F1>', function()
             vim.cmd('stopinsert')
             vim.cmd('help')
           end, opts)
 
-          -- F2: Save
-          vim.keymap.set({ 'n', 'i', 'v' }, '<F2>', '<Cmd>w<CR>', opts)
+          -- F2: Save (with explicit feedback so it works the same in insert mode)
+          vim.keymap.set({ 'n', 'i', 'v' }, '<F2>', save_file, opts)
 
           -- Shift-F2: Save as
           vim.keymap.set({ 'n', 'i' }, '<S-F2>', function()
@@ -150,7 +171,7 @@ in {
           end, opts)
 
           -- Ctrl+S: Save
-          vim.keymap.set({ 'n', 'i', 'v' }, '<C-s>', '<Cmd>w<CR>', opts)
+          vim.keymap.set({ 'n', 'i', 'v' }, '<C-s>', save_file, opts)
 
           -- Ctrl+Z: Undo (mcedit)
           vim.keymap.set('n', '<C-z>', 'u',      opts)
