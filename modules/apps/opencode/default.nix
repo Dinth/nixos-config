@@ -212,6 +212,7 @@ in {
               "type*" = "allow";
               "date*" = "allow";
               "uptime*" = "allow";
+              "uuidgen*" = "allow";
               "df*" = "allow";
               "du*" = "allow";
               "free*" = "allow";
