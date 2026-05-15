@@ -89,7 +89,7 @@
     <interface type='network'>
       <mac address='52:54:00:9d:e3:a4'/>
       <source network='default'/>
-      <model type='vmxnet3'/>
+      <model type='e1000-82545em'/>
       <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
     </interface>
     <serial type='pty'>
