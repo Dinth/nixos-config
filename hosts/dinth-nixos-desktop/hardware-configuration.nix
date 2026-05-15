@@ -64,6 +64,9 @@
       "no_console_suspend" # TEMPORARY: keep console alive during suspend to diagnose second-sleep hang
       "panic=300" # TEMPORARY: wait 5 min before reboot on panic so we can read the backtrace
       "pstore.backend=efi" # TEMPORARY: persist panic dmesg into EFI vars so we can recover backtrace after auto-reboot
+      "nmi_watchdog=1" # TEMPORARY: arm NMI watchdog (prerequisite for hardlockup_panic)
+      "softlockup_panic=1" # TEMPORARY: convert >20s kernel-side stalls into panic so pstore captures them
+      "hardlockup_panic=1" # TEMPORARY: convert CPU-stuck-with-irqs-off hangs into panic so pstore captures them
     ];
     extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
