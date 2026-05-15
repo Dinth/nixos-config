@@ -32,18 +32,6 @@
     "x-systemd.idle-timeout=60"
     "x-systemd.mount-timeout=30s"
   ];
-
-  sshfsArgs = mountPoint:
-    lib.concatStringsSep " " [
-      "${lib.getExe pkgs.sshfs} root@10.10.1.13:/ ${mountPoint}"
-      "-o IdentityFile=${config.age.secrets.id-ed25519.path}"
-      "-o IdentitiesOnly=yes"
-      "-o reconnect"
-      "-o ServerAliveInterval=15"
-      "-o ServerAliveCountMax=3"
-      "-o StrictHostKeyChecking=accept-new"
-      "-o UserKnownHostsFile=%h/.ssh/known_hosts"
-    ];
 in {
   options.services.networkMounts = {
     enable = mkOption {
@@ -64,7 +52,7 @@ in {
     sftp.omv = mkOption {
       type = lib.types.bool;
       default = isWorkstation;
-      description = "sshfs 10.10.1.13:/ at ~/mnt/omv.";
+      description = "sshfs root@10.10.1.13:/ at /mnt/omv.";
     };
   };
 
@@ -87,30 +75,33 @@ in {
       };
     })
     (mkIf cfg.sftp.omv {
+      system.fsPackages = [pkgs.sshfs];
       systemd.tmpfiles.rules = [
-        "d /home/${primaryUsername}/mnt 0755 ${primaryUsername} users -"
-        "d /home/${primaryUsername}/mnt/omv 0755 ${primaryUsername} users -"
+        "d /root/.ssh 0700 root root -"
       ];
-      home-manager.users.${primaryUsername} = {
-        home.packages = [pkgs.sshfs];
-        systemd.user.services.sshfs-omv = {
-          Unit = {
-            Description = "sshfs: 10.10.1.13:/ -> %h/mnt/omv";
-            After = ["network-online.target"];
-            Wants = ["network-online.target"];
-            StartLimitIntervalSec = 300;
-            StartLimitBurst = 3;
-          };
-          Service = {
-            Type = "forking";
-            ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %h/mnt/omv";
-            ExecStart = sshfsArgs "%h/mnt/omv";
-            ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u %h/mnt/omv";
-            Restart = "on-failure";
-            RestartSec = 15;
-          };
-          Install.WantedBy = ["default.target"];
-        };
+      fileSystems."/mnt/omv" = {
+        device = "root@10.10.1.13:/";
+        fsType = "fuse.sshfs";
+        options = [
+          "IdentityFile=${config.age.secrets.id-ed25519.path}"
+          "IdentitiesOnly=yes"
+          "allow_other"
+          "default_permissions"
+          "uid=${primaryUid}"
+          "gid=${primaryGid}"
+          "reconnect"
+          "ServerAliveInterval=15"
+          "ServerAliveCountMax=3"
+          "StrictHostKeyChecking=accept-new"
+          "UserKnownHostsFile=/root/.ssh/known_hosts"
+          "_netdev"
+          "nofail"
+          "x-systemd.automount"
+          "x-systemd.requires=network-online.target"
+          "x-systemd.after=network-online.target"
+          "x-systemd.idle-timeout=300"
+          "x-systemd.mount-timeout=30s"
+        ];
       };
     })
   ]);
