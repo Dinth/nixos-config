@@ -17,10 +17,16 @@ in {
   };
   config = mkIf cfg.enable {
     hardware.steam-hardware.enable = true;
-    programs.steam.enable = true;
+    programs.steam = {
+      enable = true;
+      gamescopeSession.enable = true;
+      extraCompatPackages = [pkgs.proton-ge-bin];
+      protontricks.enable = true;
+    };
     programs.gamemode.enable = true;
     environment.systemPackages = with pkgs; [
       mangohud
+      goverlay
     ];
     systemd.settings.Manager.DefaultLimitNOFILE = 1048576;
     home-manager.users.${primaryUsername} = {config, ...}: {
