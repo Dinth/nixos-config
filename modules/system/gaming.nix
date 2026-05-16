@@ -34,11 +34,17 @@ in {
       capSysNice = true;
     };
 
-    # vm.max_map_count: many EAC/BattlEye titles (Hogwarts Legacy, Star Citizen)
-    # crash with the kernel default of 1048576.
-    boot.kernel.sysctl."vm.max_map_count" = 2147483642;
-    # split_lock_mitigate=1 (default) throttles games doing atomic split-lock ops.
-    boot.kernelParams = ["split_lock_mitigate=0"];
+    # Allow processes in the gamemode group to renice down to -10 (matches
+    # general.renice above). Without this, gamemoded logs:
+    #   "RLIMIT_NICE is <= 20, unable to use setpriority safely"
+    security.pam.loginLimits = [
+      {
+        domain = "@gamemode";
+        item = "nice";
+        type = "-";
+        value = "-10";
+      }
+    ];
 
     environment.systemPackages = with pkgs; [
       (lutris.override {
@@ -65,6 +71,7 @@ in {
       })
       heroic
       protontricks
+      protonplus
       winetricks
       umu-launcher
       wineWowPackages.staging

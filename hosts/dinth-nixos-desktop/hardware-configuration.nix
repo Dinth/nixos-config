@@ -67,6 +67,7 @@
       "nmi_watchdog=1" # TEMPORARY: arm NMI watchdog (prerequisite for hardlockup_panic)
       "softlockup_panic=1" # TEMPORARY: convert >20s kernel-side stalls into panic so pstore captures them
       "hardlockup_panic=1" # TEMPORARY: convert CPU-stuck-with-irqs-off hangs into panic so pstore captures them
+      "split_lock_mitigate=0" # Disable split-lock throttling; recovers FPS in Wine/Proton games doing atomic split-lock ops
     ];
     extraModprobeConfig = ''
       options it87 ignore_resource_conflict=1
@@ -77,7 +78,7 @@
     '';
     kernel.sysctl = {
       "vm.swappiness" = 10;
-      "vm.max_map_count" = 524288; # 64GB ram,
+      "vm.max_map_count" = 2147483642; # 64GB RAM + EAC/BattlEye titles (Hogwarts Legacy, Star Citizen) need this raised from the kernel default
       "vm.vfs_cache_pressure" = 50; # more memory for filesystem data
       "vm.dirty_ratio" = 30;
       "vm.dirty_background_ratio" = 15;
