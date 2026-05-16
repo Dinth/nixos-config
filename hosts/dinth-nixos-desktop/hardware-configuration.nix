@@ -67,6 +67,7 @@
       "nmi_watchdog=1" # TEMPORARY: arm NMI watchdog (prerequisite for hardlockup_panic)
       "softlockup_panic=1" # TEMPORARY: convert >20s kernel-side stalls into panic so pstore captures them
       "hardlockup_panic=1" # TEMPORARY: convert CPU-stuck-with-irqs-off hangs into panic so pstore captures them
+      "netconsole=6666@10.10.10.10/enp5s0,6666@10.10.1.13/d0:94:66:4e:fe:59" # TEMPORARY: stream printk to OMV tmux listener so we capture suspend/resume hangs
       "split_lock_mitigate=0" # Disable split-lock throttling; recovers FPS in Wine/Proton games doing atomic split-lock ops
     ];
     extraModprobeConfig = ''
