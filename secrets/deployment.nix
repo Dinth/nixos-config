@@ -85,5 +85,11 @@
       group = "users";
       mode = "0400";
     };
+    id-ed25519-passphrase = {
+      file = ./id-ed25519-passphrase.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
   };
 }
