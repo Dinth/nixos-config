@@ -345,6 +345,7 @@
         "WebSearch"
         "WebFetch"
         "mcp__nixos__home_manager_options_by_prefix"
+        "mcp__grafana__query_loki_logs"
       ];
 
       ask = [
