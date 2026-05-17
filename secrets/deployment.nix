@@ -91,5 +91,11 @@
       group = "users";
       mode = "0400";
     };
+    ha-mcp-url = {
+      file = ./ha-mcp-url.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
   };
 }

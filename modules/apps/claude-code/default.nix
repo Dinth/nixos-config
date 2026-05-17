@@ -15,11 +15,11 @@
   # Project-scope servers live in .mcp.json at each project root.
   globalMcpServers = {
     grafana = {
-      type = "sse";
+      type = "http";
       url = "http://10.10.1.13:5133/mcp";
     };
     unifi = {
-      type = "sse";
+      type = "http";
       url = "http://10.10.1.13:5134/mcp";
     };
   };
@@ -614,6 +614,15 @@ in {
         ruff
         rtk # Rust Token Killer - reduces LLM token consumption
       ];
+      # Export HOMEASSISTANT_MCP_URL for Claude Code's project-scope .mcp.json
+      # in ~/Documents/nixos-config. The URL contains a private auth key so it
+      # lives in ragenix; read at shell startup so it's available whenever
+      # `claude` is launched from a zsh session.
+      programs.zsh.initContent = lib.mkAfter ''
+        if [ -r "${config.age.secrets.ha-mcp-url.path}" ]; then
+          export HOMEASSISTANT_MCP_URL="$(< "${config.age.secrets.ha-mcp-url.path}")"
+        fi
+      '';
       # Global Claude Code instructions
       home.file.".claude/CLAUDE.md".source = ./CLAUDE.md;
       # User-scope subagents — invoked by main Claude via the Agent tool with
