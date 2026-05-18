@@ -48,5 +48,19 @@ in {
     );
 
     users.users.${primaryUsername}.extraGroups = ["docker"];
+
+    # Dedicated unprivileged service account for container processes and
+    # docker-adjacent services (e.g. Komodo Periphery). Fixed UID/GID so that
+    # bind-mounted data under /opt/docker survives rebuilds and matches the
+    # ${DOCKER_PUID}/${DOCKER_PGID} convention used in compose stacks.
+    users.users.docker = {
+      isSystemUser = true;
+      group = "docker";
+      uid = 911;
+      description = "Docker service account";
+      home = "/var/lib/docker-user";
+      createHome = false;
+    };
+    users.groups.docker.gid = 911;
   };
 }
