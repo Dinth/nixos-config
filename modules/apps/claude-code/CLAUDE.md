@@ -6,15 +6,14 @@
 |----------|----|------|----|
 | `dinth-nixos-desktop` | local | Primary workstation | NixOS |
 | `michal-surface-go` | local | Mobile workstation | NixOS |
-| `omv` / `r230-nixos` | `10.10.1.13` | Primary server — all Docker stacks, NAS storage | OpenMediaVault (Debian-based) |
+| `omv` / `r720-omv` | `10.10.1.13` | Primary server — most Docker stacks, NAS storage | OpenMediaVault (Debian-based) |
+| `r230-nixos` | `10.10.1.12` | Secondary server — Docker stacks on NixOS | NixOS |
 | `homeassistant` | `10.10.1.11` | Home automation hub | Home Assistant OS (HAOS) |
 
-Note: `omv` is the network/service name; `r230-nixos` is the NixOS hostname for the same machine (Dell PowerEdge R230).
-
 ### Key Facts
-- All Docker stacks run on `10.10.1.13` unless explicitly stated otherwise.
+- Most Docker stacks run on `10.10.1.13` (`omv`); `r230-nixos` at `10.10.1.12` is a separate NixOS host that also runs containers.
 - Home Assistant on `10.10.1.11` is a **native HAOS install — not a Docker container**.
-- Only `dinth-nixos-desktop` and `michal-surface-go` run NixOS.
+- NixOS hosts: `dinth-nixos-desktop`, `michal-surface-go`, `r230-nixos`.
 - Ollama (local LLM inference) runs on `10.10.1.13:11434`.
 
 ### Services
