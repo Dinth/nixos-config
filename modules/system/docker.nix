@@ -50,9 +50,9 @@ in {
     users.users.${primaryUsername}.extraGroups = ["docker"];
 
     # Dedicated unprivileged service account for container processes and
-    # docker-adjacent services (e.g. Komodo Periphery). Fixed UID/GID so that
-    # bind-mounted data under /opt/docker survives rebuilds and matches the
-    # ${DOCKER_PUID}/${DOCKER_PGID} convention used in compose stacks.
+    # docker-adjacent services (e.g. Komodo Periphery). Fixed UID so that
+    # bind-mounted data under /opt/docker survives rebuilds. The docker group
+    # GID is left at the NixOS default (131) set by virtualisation.docker.
     users.users.docker = {
       isSystemUser = true;
       group = "docker";
@@ -61,6 +61,5 @@ in {
       home = "/var/lib/docker-user";
       createHome = false;
     };
-    users.groups.docker.gid = 911;
   };
 }
