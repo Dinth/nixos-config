@@ -20,6 +20,7 @@ in {
         };
         "*" = {
           identityFile = [
+            config.age.secrets."id-ed25519".path
             config.age.secrets."id-ed25519-sk-rk-2".path
             config.age.secrets."id-ed25519-sk-rk-1".path
             config.age.secrets."id-ed25519-sk-rk-3".path
