@@ -270,6 +270,7 @@
         "Bash(rtk find:*)"
         "Bash(rtk grep:*)"
         "Bash(rtk rg:*)"
+        "Bash(rtk read:*)"
         "Bash(rtk cat:*)"
         "Bash(rtk head:*)"
         "Bash(rtk tail:*)"
