@@ -164,6 +164,7 @@
         "Bash(stat:*)"
         "Bash(tree:*)"
         "Bash(eza:*)"
+        "Bash(diff:*)"
         "Bash(mkdir:*)"
         "Bash(chmod:*)"
         # systemd / journal read-only
@@ -282,6 +283,7 @@
         "Bash(rtk stat:*)"
         "Bash(rtk tree:*)"
         "Bash(rtk eza:*)"
+        "Bash(rtk diff:*)"
         "Bash(rtk mkdir:*)"
         "Bash(rtk chmod:*)"
         # systemd / journal read-only
