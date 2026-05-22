@@ -371,6 +371,54 @@
         "mcp__grafana__get_annotations"
         "mcp__grafana__get_annotation_tags"
         "mcp__grafana__generate_deeplink"
+        # Home Assistant MCP — read-only queries only. All ha_call_service,
+        # ha_set_*, ha_config_set_*, ha_config_remove_*, ha_remove_*,
+        # ha_bulk_control, ha_restart, ha_reload_core, ha_backup_*,
+        # ha_manage_*, ha_update_device, ha_hacs_add_repository /
+        # ha_hacs_download, ha_import_blueprint, ha_call_event,
+        # ha_delete_helpers_integrations, ha_report_issue intentionally
+        # omitted so they still prompt.
+        "mcp__homeassistant__ha_get_overview"
+        "mcp__homeassistant__ha_get_state"
+        "mcp__homeassistant__ha_get_entity"
+        "mcp__homeassistant__ha_get_entity_exposure"
+        "mcp__homeassistant__ha_get_device"
+        "mcp__homeassistant__ha_get_integration"
+        "mcp__homeassistant__ha_get_zone"
+        "mcp__homeassistant__ha_get_todo"
+        "mcp__homeassistant__ha_get_addon"
+        "mcp__homeassistant__ha_get_blueprint"
+        "mcp__homeassistant__ha_get_camera_image"
+        "mcp__homeassistant__ha_get_history"
+        "mcp__homeassistant__ha_get_logs"
+        "mcp__homeassistant__ha_get_system_health"
+        "mcp__homeassistant__ha_get_updates"
+        "mcp__homeassistant__ha_get_automation_traces"
+        "mcp__homeassistant__ha_get_helper_schema"
+        "mcp__homeassistant__ha_get_operation_status"
+        "mcp__homeassistant__ha_get_skill_home_assistant_best_practices"
+        "mcp__homeassistant__ha_search_entities"
+        "mcp__homeassistant__ha_deep_search"
+        "mcp__homeassistant__ha_list_floors_areas"
+        "mcp__homeassistant__ha_list_resources"
+        "mcp__homeassistant__ha_list_services"
+        "mcp__homeassistant__ha_read_resource"
+        "mcp__homeassistant__ha_check_config"
+        "mcp__homeassistant__ha_eval_template"
+        "mcp__homeassistant__ha_config_get_automation"
+        "mcp__homeassistant__ha_config_get_calendar_events"
+        "mcp__homeassistant__ha_config_get_category"
+        "mcp__homeassistant__ha_config_get_dashboard"
+        "mcp__homeassistant__ha_config_get_label"
+        "mcp__homeassistant__ha_config_get_scene"
+        "mcp__homeassistant__ha_config_get_script"
+        "mcp__homeassistant__ha_config_list_areas"
+        "mcp__homeassistant__ha_config_list_dashboard_resources"
+        "mcp__homeassistant__ha_config_list_floors"
+        "mcp__homeassistant__ha_config_list_groups"
+        "mcp__homeassistant__ha_config_list_helpers"
+        "mcp__homeassistant__ha_hacs_search"
+        "mcp__homeassistant__ha_hacs_repository_info"
       ];
 
       ask = [
