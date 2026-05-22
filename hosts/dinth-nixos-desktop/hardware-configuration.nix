@@ -181,6 +181,17 @@
       ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3434", ATTR{idProduct}=="d030", ATTR{power/wakeup}="enabled"
       # Logitech Unifying receiver (mouse)
       ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c52b", ATTR{power/wakeup}="enabled"
+
+      # Disable runtime PM on the JHL7540 Titan Ridge xHCI controller and the
+      # Genesys Logic front-panel hub it feeds. Symptom: every few hours the
+      # kernel logs "xHC error in resume, USBSTS 0x401, Reinit" followed by
+      # "root hub lost power or was reset" and "usb 1-5-port4: cannot reset
+      # (err = -32)", which eventually leaves the YubiKey on the front panel
+      # permanently disconnected until reboot. Pinning power/control=on stops
+      # the controller from entering the broken runtime-suspend path.
+      ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x15ec", ATTR{power/control}="on"
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="05e3", ATTR{idProduct}=="0610", ATTR{power/control}="on"
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="1050", ATTR{power/control}="on"
     '';
     #  thermald.enable = true;
     hardware.bolt.enable = true;
