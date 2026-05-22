@@ -1,5 +1,14 @@
 # Network Hosts & Topology
 
+## LAN subnets
+The LAN is `10.10.0.0/16`, segmented into:
+
+| Subnet | Purpose |
+|--------|---------|
+| `10.10.0.0/24` | Network equipment (router, switches, APs) |
+| `10.10.1.0/24` | Servers |
+| `10.10.10.0/24` | Workstations, mobile devices, DHCP pool |
+
 | Hostname | IP | Role | OS |
 |----------|----|------|----|
 | `dinth-nixos-desktop` | local | Primary workstation — runs OpenCode | NixOS |
