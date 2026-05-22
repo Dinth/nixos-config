@@ -10,6 +10,8 @@ The LAN is `10.10.0.0/16`, segmented into:
 | `10.10.0.0/24` | Network equipment (router, switches, APs) |
 | `10.10.1.0/24` | Servers |
 | `10.10.10.0/24` | Workstations, mobile devices, DHCP pool |
+| `10.10.25.0/24` | Generic IoT devices |
+| `10.10.30.0/24` | CCTV cameras |
 
 | Hostname | IP | Role | OS |
 |----------|----|------|----|
