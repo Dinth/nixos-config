@@ -346,8 +346,29 @@
         "WebSearch"
         "WebFetch"
         "mcp__nixos__home_manager_options_by_prefix"
+        # Grafana MCP — read-only queries only. Write/manage tools
+        # (alerting_manage_*, create_annotation, update_annotation,
+        # update_dashboard) deliberately omitted so they still prompt.
+        "mcp__grafana__query_prometheus"
+        "mcp__grafana__query_prometheus_histogram"
+        "mcp__grafana__list_prometheus_label_names"
+        "mcp__grafana__list_prometheus_label_values"
+        "mcp__grafana__list_prometheus_metric_names"
+        "mcp__grafana__list_prometheus_metric_metadata"
         "mcp__grafana__query_loki_logs"
         "mcp__grafana__query_loki_stats"
+        "mcp__grafana__query_loki_patterns"
+        "mcp__grafana__list_loki_label_names"
+        "mcp__grafana__list_loki_label_values"
+        "mcp__grafana__search_dashboards"
+        "mcp__grafana__search_folders"
+        "mcp__grafana__get_dashboard_by_uid"
+        "mcp__grafana__get_dashboard_summary"
+        "mcp__grafana__get_dashboard_property"
+        "mcp__grafana__get_dashboard_panel_queries"
+        "mcp__grafana__get_annotations"
+        "mcp__grafana__get_annotation_tags"
+        "mcp__grafana__generate_deeplink"
       ];
 
       ask = [
