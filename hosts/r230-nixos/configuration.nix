@@ -48,7 +48,10 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = ["networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp"];
+    # Headless server: only the wheel group is needed. `docker` is added
+    # automatically by modules/system/docker.nix. NetworkManager isn't used
+    # (this host runs systemd-networkd), so its group is dropped too.
+    extraGroups = ["wheel"];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {
