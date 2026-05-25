@@ -124,8 +124,15 @@ in {
 
 
           ${lib.optionalString (lib.hasAttr "zoxide" pkgs) ''
+            # cd → z, but only for fuzzy queries. Anything that looks
+            # like a path (contains /, starts with ., or is `-` / empty)
+            # goes through builtin cd so typos surface as real errors
+            # instead of silently teleporting somewhere via zoxide
+            # fuzzy-match (e.g. `cd /etc/typo` shouldn't drop you in
+            # the Trash because of a partial substring hit).
             function cd() {
-              if [[ -n "$MC_SID" ]]; then
+              [[ -n "$MC_SID" ]] && { builtin cd "$@"; return; }
+              if [[ $# -eq 0 || "$1" == "-" || "$1" == */* || "$1" == "." || "$1" == ".." ]]; then
                 builtin cd "$@"
               else
                 z "$@"
