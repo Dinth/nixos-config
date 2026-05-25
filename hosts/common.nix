@@ -28,8 +28,7 @@ in {
     then pkgs.linuxPackages
     else pkgs.linuxPackages_latest
   );
-  boot.tmp.useTmpfs = true;
-  boot.tmp.cleanOnBoot = true;
+  # boot.tmp is fully configured in modules/system/security.nix (with tmpfsSize).
   services.fwupd.enable = true;
   services.earlyoom = {
     enable = true;

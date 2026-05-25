@@ -104,7 +104,9 @@
           ./hosts/r230-nixos/configuration.nix
           agenix.nixosModules.default
           catppuccin.nixosModules.catppuccin
-          nixvirt.nixosModules.default
+          # nixvirt is not imported here — r230 runs no VMs and the
+          # virtualisation module gates NixVirt-only options behind
+          # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
             home-manager = {

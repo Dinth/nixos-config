@@ -74,7 +74,7 @@
   };
 
   services = {
-    fwupd.enable = true;
+    # services.fwupd is enabled in hosts/common.nix.
     fstrim.enable = true;
     pipewire = {
       enable = true;
