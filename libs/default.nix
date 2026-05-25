@@ -4,6 +4,7 @@
   ...
 }: {
   imports = [
+    ./agent-permissions.nix
     ./users.nix
   ];
 }

@@ -137,167 +137,27 @@ in {
             "@mohak34/opencode-notifier@latest"
             "rtk-for-opencode@latest" # Rust Token Killer - reduces token consumption by 60-90%
           ];
-          permission = {
-            bash = {
-              # Allow non-destructive git commands with wildcards
-              "git status*" = "allow";
-              "git log*" = "allow";
-              "git diff*" = "allow";
-              "git show*" = "allow";
-              "git branch*" = "allow";
-              "git remote*" = "allow";
-              "git config --get*" = "allow";
-              "git config --list*" = "allow";
-              "git config --global*" = "ask";
-              "git config*" = "ask";
-              "git rev-parse*" = "allow";
-              "git ls-files*" = "allow";
-              "git ls-remote*" = "allow";
-              "git describe*" = "allow";
-              "git tag --list*" = "allow";
-              "git blame*" = "allow";
-              "git shortlog*" = "allow";
-              "git reflog*" = "allow";
-              "git add*" = "ask";
-
-              # Safe Nix commands
-              "nix search*" = "allow";
-              "nix eval*" = "allow";
-              "nix show-config*" = "allow";
-              "nix flake show*" = "allow";
-              "nix flake check*" = "allow";
-              "nix flake info*" = "allow";
-              "nix flake metadata*" = "allow";
-              "nix log*" = "allow";
-              "nix-instantiate --parse*" = "allow";
-              "nix-instantiate --show-trace*" = "allow";
-              "nh search*" = "allow";
-
-              # Safe file system operations
-              "ls*" = "allow";
-              "pwd*" = "allow";
-              "find*" = "allow";
-              "grep*" = "allow";
-              "rg*" = "allow";
-              "cat*" = "allow";
-              "head*" = "allow";
-              "tail*" = "allow";
-              "less*" = "allow";
-              "wc*" = "allow";
-              "sort*" = "allow";
-              "uniq*" = "allow";
-              "file*" = "allow";
-              "stat*" = "allow";
-              "tree*" = "allow";
-              "eza*" = "allow";
-              "mkdir*" = "allow";
-              "chmod*" = "allow";
-
-              # Safe system info commands
-              "systemctl list-units*" = "allow";
-              "systemctl list-unit-files*" = "allow";
-              "systemctl list-timers*" = "allow";
-              "systemctl status*" = "allow";
-              "systemctl is-active*" = "allow";
-              "systemctl is-enabled*" = "allow";
-              "systemctl show*" = "allow";
-              "journalctl*" = "allow";
-              "dmesg*" = "allow";
-              "env*" = "allow";
-              "uname*" = "allow";
-              "hostname*" = "allow";
-              "whoami*" = "allow";
-              "id*" = "allow";
-              "which*" = "allow";
-              "type*" = "allow";
-              "date*" = "allow";
-              "uptime*" = "allow";
-              "uuidgen*" = "allow";
-              "df*" = "allow";
-              "du*" = "allow";
-              "free*" = "allow";
-              "lsblk*" = "allow";
-              "lsusb*" = "allow";
-              "lspci*" = "allow";
-
-              # Network info (read-only)
-              "ip addr*" = "allow";
-              "ip route*" = "allow";
-              "ip link*" = "allow";
-              "ss*" = "allow";
-
-              # Process info (read-only)
-              "ps*" = "allow";
-              "pgrep*" = "allow";
-
-              # Audio system (read-only)
-              "pactl list*" = "allow";
-              "pw-top*" = "allow";
-
-              # Potentially destructive git commands
-              "git reset*" = "ask";
-              "git commit*" = "ask";
-              "git push*" = "ask";
-              "git pull*" = "ask";
-              "git merge*" = "ask";
-              "git rebase*" = "ask";
-              "git checkout*" = "ask";
-              "git switch*" = "ask";
-              "git stash*" = "ask";
-
-              # File deletion and modification
-              "rm*" = "ask";
-              "mv*" = "ask";
-              "cp*" = "ask";
-
-              # System control operations
-              "systemctl start*" = "ask";
-              "systemctl stop*" = "ask";
-              "systemctl restart*" = "ask";
-              "systemctl reload*" = "ask";
-              "systemctl enable*" = "ask";
-              "systemctl disable*" = "ask";
-
-              # Network operations
-              "curl*" = "ask";
-              "wget*" = "ask";
-              "ping*" = "ask";
-              "ssh*" = "ask";
-              "scp*" = "ask";
-              "rsync*" = "ask";
-
-              # Package management
-              "sudo*" = "ask";
-              "nixos-rebuild*" = "ask";
-
-              # Process management
-              "kill*" = "ask";
-              "killall*" = "ask";
-              "pkill*" = "ask";
-
-              # Docker management (read-only)
-              "docker ps*" = "allow";
-              "docker logs*" = "allow";
-              "docker inspect*" = "allow";
-              "docker images*" = "allow";
-              "docker stats*" = "allow";
-              "docker version*" = "allow";
-              "docker info*" = "allow";
-              "docker network ls*" = "allow";
-              "docker network inspect*" = "allow";
-              "docker volume ls*" = "allow";
-              "docker volume inspect*" = "allow";
-              # Docker management (mutations)
-              "docker compose*" = "ask";
-
-              # GitHub CLI (read-only)
-              "gh pr list*" = "allow";
-              "gh pr view*" = "allow";
-              "gh issue list*" = "allow";
-              "gh issue view*" = "allow";
-              "gh repo view*" = "allow";
-              "gh api*" = "allow";
-            };
+          # Bash patterns generated from libs/agent-permissions.nix.
+          # Each base command produces two glob entries — the literal
+          # spelling and the `rtk <cmd>` mirror — so RTK's PreToolUse
+          # rewrite still hits the right rule.
+          permission = let
+            bashFromList = decision: cmds:
+              lib.listToAttrs (lib.concatMap (cmd: [
+                  {
+                    name = "${cmd}*";
+                    value = decision;
+                  }
+                  {
+                    name = "rtk ${cmd}*";
+                    value = decision;
+                  }
+                ])
+                cmds);
+          in {
+            bash =
+              bashFromList "ask" config.agentPermissions.askBash
+              // bashFromList "allow" config.agentPermissions.readOnlyBash;
             edit = "ask";
             read = "allow";
             context_info = "allow";
