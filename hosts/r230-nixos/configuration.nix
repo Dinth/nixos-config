@@ -82,4 +82,10 @@
     enable = true;
     corePublicKeys = ["MCowBQYDK2VuAyEAfIXxIx7Ls5qTL3fODOxzXc0b+7AA0h0KQA5Dj0YDmXk="];
   };
+  # node_exporter + systemd_exporter for Prometheus on omv. smartctl
+  # left off — r230 is a Proxmox VM, no real disks to read SMART from.
+  prometheus-exporters = {
+    enable = true;
+    scrapeAllowFrom = ["10.10.1.13"];
+  };
 }
