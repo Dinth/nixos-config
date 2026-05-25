@@ -142,13 +142,20 @@ in {
       killUnconfinedConfinables = false;
       packages = with pkgs; [apparmor-utils apparmor-profiles];
       policies = {
-        # Google Chrome - web browser
+        # Google Chrome - web browser.
+        #
+        # Demoted from enforce → complain: the previous attach path
+        # (/bin/.google-chrome-stable-wrapped) no longer exists in the
+        # current nixpkgs build (the wrapped binary moved to share/
+        # google/chrome/google-chrome), so this profile has been a no-op.
+        # Stay in complain until we collect ALLOWED/DENIED data against
+        # the corrected attach path, then re-enforce.
         "google-chrome" = {
-          state = "enforce";
+          state = "complain";
           profile = ''
             abi <abi/4.0>,
             include <tunables/global>
-            ${lib.getBin pkgs.google-chrome}/bin/.google-chrome-stable-wrapped flags=(enforce) {
+            ${lib.getBin pkgs.google-chrome}/share/google/chrome/google-chrome flags=(complain) {
               include <abstractions/base>
               include <abstractions/audio>
               include <abstractions/dbus-session-strict>
@@ -168,10 +175,14 @@ in {
               network inet stream,
               network inet dgram,
               network netlink raw,
+              network unix stream,     # renderer/sandbox IPC
 
               /nix/store/** r,
               /nix/store/*/lib/** mr,
               /nix/store/*/bin/** rix,
+              # Chrome ships its .so files and chrome-sandbox under share/
+              /nix/store/*-google-chrome-*/share/google/chrome/** mr,
+              /nix/store/*-google-chrome-*/share/google/chrome/chrome-sandbox rix,
 
               owner @{HOME}/.config/google-chrome/** rwk,
               owner @{HOME}/.cache/google-chrome/** rwk,
@@ -182,6 +193,7 @@ in {
               /dev/dri/** rw,
               /sys/devices/** r,
               /proc/@{pid}/** r,
+              /proc/sys/kernel/yama/ptrace_scope r,
               /etc/machine-id r,
               /run/user/@{uid}/** rw,
 
@@ -193,13 +205,20 @@ in {
           '';
         };
 
-        # Electron apps (Discord, Slack, VSCode, etc.) - common attack vector
+        # Electron apps shipped via pkgs.electron (e.g. Signal-desktop).
+        #
+        # The attach path was wrong in two ways: (1) the real binary lives
+        # under the electron-unwrapped derivation, not electron; (2) it
+        # moved from /lib/electron/ to /libexec/electron/. With the old
+        # glob the profile attached to nothing, so this was a no-op too.
+        # Discord doesn't go through this — it bundles its own Electron
+        # at opt/Discord/.Discord-wrapped and has its own profile below.
         "electron-common" = {
-          state = "complain"; # Complain mode - Electron apps vary widely
+          state = "complain";
           profile = ''
             abi <abi/4.0>,
             include <tunables/global>
-            /nix/store/*-electron-*/lib/electron/electron flags=(complain) {
+            /nix/store/*-electron-unwrapped-*/libexec/electron/electron flags=(complain) {
               include <abstractions/base>
               include <abstractions/audio>
               include <abstractions/fonts>
@@ -211,9 +230,14 @@ in {
 
               network inet stream,
               network inet6 stream,
+              network unix stream,
 
               /nix/store/** r,
               /nix/store/*/lib/** mr,
+              # electron-unwrapped ships chrome-sandbox, helper apps and
+              # most .so files under libexec/electron, not lib/.
+              /nix/store/*-electron-unwrapped-*/libexec/electron/** mr,
+              /nix/store/*-electron-unwrapped-*/libexec/electron/chrome-sandbox rix,
 
               owner @{HOME}/.config/** rwk,
               owner @{HOME}/.cache/** rwk,
@@ -222,6 +246,51 @@ in {
               /dev/shm/** rw,
               /dev/dri/** rw,
               /proc/@{pid}/** r,
+              /proc/sys/kernel/yama/ptrace_scope r,
+              /run/user/@{uid}/** rw,
+
+              deny @{HOME}/.ssh/** rwx,
+              deny @{HOME}/.gnupg/** rwx,
+            }
+          '';
+        };
+
+        # Discord - bundles its own Electron at opt/Discord/.Discord-wrapped
+        # rather than reusing pkgs.electron, so it needs its own attach.
+        "discord" = {
+          state = "complain";
+          profile = ''
+            abi <abi/4.0>,
+            include <tunables/global>
+            /nix/store/*-discord-*/opt/Discord/.Discord-wrapped flags=(complain) {
+              include <abstractions/base>
+              include <abstractions/audio>
+              include <abstractions/fonts>
+              include <abstractions/freedesktop.org>
+              include <abstractions/mesa>
+              include <abstractions/nameservice>
+              include <abstractions/ssl_certs>
+              include <abstractions/X>
+
+              network inet stream,
+              network inet6 stream,
+              network unix stream,
+
+              /nix/store/** r,
+              /nix/store/*/lib/** mr,
+              # Discord's bundled Electron lives entirely under opt/Discord.
+              /nix/store/*-discord-*/opt/Discord/** mr,
+              /nix/store/*-discord-*/opt/Discord/chrome-sandbox rix,
+
+              owner @{HOME}/.config/discord/** rwk,
+              owner @{HOME}/.config/discordcanary/** rwk,
+              owner @{HOME}/.cache/** rwk,
+              owner @{HOME}/Downloads/** rw,
+
+              /dev/shm/** rw,
+              /dev/dri/** rw,
+              /proc/@{pid}/** r,
+              /proc/sys/kernel/yama/ptrace_scope r,
               /run/user/@{uid}/** rw,
 
               deny @{HOME}/.ssh/** rwx,
