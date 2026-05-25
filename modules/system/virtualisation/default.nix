@@ -1,12 +1,17 @@
 {
   config,
+  options,
   lib,
   pkgs,
   ...
 }: let
-  inherit (lib) mkIf mkOption mkMerge;
+  inherit (lib) mkIf mkOption mkMerge optionalAttrs;
   cfg = config.virtualisation;
   primaryUsername = config.primaryUser.name;
+  # Same guard as ./vms — hosts without nixvirt.nixosModules.default in
+  # their flake module list don't declare options.virtualisation.libvirt,
+  # so referencing it (even inside `mkIf false`) breaks evaluation.
+  hasNixVirt = options ? virtualisation && options.virtualisation ? libvirt;
 in {
   imports = [
     ./vms
@@ -37,19 +42,22 @@ in {
     (mkIf (pkgs.stdenv.isLinux && cfg.enable) {
       users.groups.libvirtd.members = [primaryUsername];
       programs.virt-manager.enable = true;
-      virtualisation = {
-        libvirtd = {
-          enable = true;
-          qemu = {
-            swtpm.enable = true;
+      virtualisation =
+        {
+          libvirtd = {
+            enable = true;
+            qemu = {
+              swtpm.enable = true;
+            };
+            hooks.qemu."qemu-hook-pf" = ./qemu-hook-pf.sh;
           };
-          hooks.qemu."qemu-hook-pf" = ./qemu-hook-pf.sh;
+          spiceUSBRedirection.enable = true;
+        }
+        # NixVirt declarative domain management; gated so hosts without
+        # nixvirt imported still evaluate (the surface-go doesn't run VMs).
+        // optionalAttrs hasNixVirt {
+          libvirt.enable = true;
         };
-        # NixVirt declarative domain management; without this the
-        # nixvirt.service is never emitted and declared XMLs are ignored.
-        libvirt.enable = true;
-        spiceUSBRedirection.enable = true;
-      };
       home-manager.users.${primaryUsername}.dconf.settings = {
         "org/virt-manager/virt-manager/connections" = {
           autoconnect = ["qemu:///system"];
