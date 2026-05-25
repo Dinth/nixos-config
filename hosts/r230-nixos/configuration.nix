@@ -74,10 +74,10 @@
   amd_gpu.enable = false;
   printers.enable = false;
   weechat.enable = false;
-  docker = {
-    enable = true;
-    tcpClients = ["10.10.1.11"];
-  };
+  # Docker TCP socket is closed — Home Assistant queries via a
+  # tecnativa docker-socket-proxy container instead, which exposes a
+  # filtered, read-mostly view of the daemon over its own port.
+  docker.enable = true;
   komodo-periphery = {
     enable = true;
     corePublicKeys = ["MCowBQYDK2VuAyEAfIXxIx7Ls5qTL3fODOxzXc0b+7AA0h0KQA5Dj0YDmXk="];
