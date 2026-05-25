@@ -32,12 +32,9 @@ in {
           ignoreSpace = true;
         };
 
-        shellAliases = {
-          cat = "${getExe pkgs.bat}";
-          ls = "${getExe pkgs.eza} -l";
-          tree = "${getExe pkgs.eza} --tree --all";
-          top = "${getExe pkgs.btop}";
-        };
+        # Shell aliases live in modules/system/cli.nix
+        # (environment.shellAliases), so they apply to every interactive
+        # shell, not just zsh.
 
         initContent = ''
           setopt EXTENDED_HISTORY HIST_SAVE_NO_DUPS INC_APPEND_HISTORY CORRECT HIST_REDUCE_BLANKS HIST_VERIFY INTERACTIVE_COMMENTS

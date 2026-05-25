@@ -76,10 +76,14 @@ in {
       # -- Development --
       python3 # Python interpreter
     ];
+    # Single source of truth — zsh.nix used to redeclare cat/ls/tree with
+    # different flags, so the effective alias depended on which file was
+    # evaluated last. Consolidated here.
     environment.shellAliases = {
       ls = "${getExe pkgs.eza} -l --icons --git --group-directories-first"; # Use icons and group dirs
-      tree = "${getExe pkgs.eza} --tree"; # Tree view using eza
+      tree = "${getExe pkgs.eza} --tree --all"; # Tree view using eza, include hidden
       cat = "${getExe pkgs.bat}"; # Use bat for reading files
+      top = "${getExe pkgs.btop}"; # Use btop for top
       grep = "${getExe pkgs.ripgrep}"; # Use ripgrep by default
       find = "${getExe pkgs.fd}"; # Use fd by default
       diff = "${getExe pkgs.difftastic}"; # Use difftastic for diffs
