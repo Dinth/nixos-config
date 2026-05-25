@@ -7,7 +7,6 @@
   inherit (lib) mkIf;
   inherit (lib) mkOption;
   cfg = config.printers;
-  primaryUsername = config.primaryUser.name;
 in {
   options = {
     printers = {

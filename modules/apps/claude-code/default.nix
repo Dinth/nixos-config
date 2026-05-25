@@ -5,7 +5,7 @@
   home-manager,
   ...
 }: let
-  inherit (lib) mkIf mkOption;
+  inherit (lib) mkIf;
   cfg = config.opencode;
   primaryUsername = config.primaryUser.name;
   userHome = "/home/${primaryUsername}";

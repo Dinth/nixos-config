@@ -7,7 +7,6 @@
   inherit (lib) mkIf;
   inherit (lib) mkOption;
   cfg = config.amd_gpu;
-  primaryUsername = config.primaryUser.name;
 in {
   options = {
     amd_gpu = {

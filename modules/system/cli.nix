@@ -4,9 +4,8 @@
   pkgs,
   ...
 }: let
-  inherit (lib) mkIf mkOption mkDefault getExe getExe';
+  inherit (lib) mkIf mkOption mkDefault getExe;
   cfg = config.cli;
-  primaryUsername = config.primaryUser.name;
 in {
   options = {
     cli = {

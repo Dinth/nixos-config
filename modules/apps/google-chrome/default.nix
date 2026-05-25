@@ -7,7 +7,6 @@
 }: let
   inherit (lib) mkIf;
   cfg = config.graphical;
-  primaryUsername = config.primaryUser.name;
   baseFlags = [
     "--ozone-platform=wayland"
     "--enable-wayland-ime"
@@ -49,7 +48,7 @@
     (pkgs.google-chrome.override {
       commandLineArgs = chromeFlags;
     }).overrideAttrs
-    (old: {
+    (_: {
       # Run this after the standard install to fix the desktop file
       # postInstall = (old.postInstall or "") + ''
       #   if ! grep -q "StartupWMClass=" $out/share/applications/google-chrome.desktop; then

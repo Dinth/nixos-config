@@ -6,7 +6,6 @@
 }: let
   inherit (lib) mkIf mkOption;
   cfg = config.cloudflarewarp;
-  primaryUsername = config.primaryUser.name;
 in {
   options = {
     cloudflarewarp = {

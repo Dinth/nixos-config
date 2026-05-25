@@ -6,7 +6,6 @@
 }: let
   inherit (lib) mkIf mkOption mkMerge;
   cfg = config.yubikey;
-  primaryUsername = config.primaryUser.name;
 in {
   options = {
     yubikey = {

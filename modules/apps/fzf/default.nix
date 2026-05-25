@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib) mkIf getExe getExe';
+  inherit (lib) mkIf getExe;
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
 in {

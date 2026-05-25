@@ -8,7 +8,6 @@
   inherit (lib) mkIf mkOption mkDefault;
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
-  inherit (config) specialArgs;
 in {
   options = {
     kde = {

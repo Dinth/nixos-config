@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib) mkIf mkOption mkMerge;
+  inherit (lib) mkOption;
   cfg = config.clamav;
 in {
   options = {
@@ -39,10 +39,10 @@ in {
     };
   };
   config = let
-    allNormalUsers = lib.attrsets.filterAttrs (username: config: config.isNormalUser) config.users.users;
+    allNormalUsers = lib.attrsets.filterAttrs (_: u: u.isNormalUser) config.users.users;
     allACScanHomeDirs =
       builtins.concatMap (
-        dir: lib.attrsets.mapAttrsToList (username: config: config.home + "/" + dir) allNormalUsers
+        dir: lib.attrsets.mapAttrsToList (_: u: u.home + "/" + dir) allNormalUsers
       )
       cfg.accessScanning.homeDirectories;
   in {

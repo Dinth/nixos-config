@@ -4,7 +4,7 @@
   lib,
   ...
 }: let
-  inherit (lib) mkIf mkOption types optionals;
+  inherit (lib) mkIf mkOption optionals;
   cfg = config.weechat;
   inherit (config) graphical;
   primaryUsername = config.primaryUser.name;
