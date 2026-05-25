@@ -6,6 +6,69 @@
   ...
 }: let
   primaryUsername = config.primaryUser.name;
+
+  # ─── Shared AppArmor deny rules ──────────────────────────────────────
+  # `deny` wins over `allow` when both match the same path, so these
+  # blocks turn a permissive `/** rwlkmix,` allow into a blocklist.
+  #
+  # Block 1: things no application ever has a legitimate reason to read.
+  # Credentials, ragenix secrets, NAS/HAOS mounts, /etc/shadow, the
+  # NixOS source tree (contains SSH pubkeys, hostnames, MQTT URLs).
+  apparmorDenySecrets = ''
+    deny @{HOME}/.ssh/** rwx,
+    deny @{HOME}/.ssh/ rwx,
+    deny @{HOME}/.gnupg/** rwx,
+    deny @{HOME}/.gnupg/ rwx,
+    deny @{HOME}/.config/git/** rwx,
+    deny @{HOME}/.gitconfig rwx,
+    deny @{HOME}/.config/1Password/** rwx,
+    deny @{HOME}/.local/share/1Password/** rwx,
+    deny @{HOME}/.local/share/kwalletd/** rwx,
+    deny @{HOME}/.local/share/keyrings/** rwx,
+    deny @{HOME}/Documents/nixos-config/secrets/** rwx,
+    deny /run/agenix/** rwx,
+    deny /run/agenix.d/** rwx,
+    deny /mnt/** rwx,
+    deny /etc/shadow rwx,
+    deny /etc/nixos/** rwx,
+  '';
+
+  # Block 2: other browsers' profile dirs. Skipped in google-chrome's
+  # own profile (it obviously needs to read its own data).
+  apparmorDenyOtherBrowsers = ''
+    deny @{HOME}/.config/chromium/** rwx,
+    deny @{HOME}/.config/BraveSoftware/** rwx,
+    deny @{HOME}/.config/vivaldi/** rwx,
+    deny @{HOME}/.config/microsoft-edge/** rwx,
+    deny @{HOME}/.mozilla/** rwx,
+  '';
+
+  # Block 3: Chrome's session/cookies/login-data dir. Used by every
+  # profile EXCEPT chrome itself (cookie-theft is the main attack we
+  # care about — games or random Electron apps reading Chrome's DB).
+  apparmorDenyChrome = ''
+    deny @{HOME}/.config/google-chrome/** rwx,
+    deny @{HOME}/.cache/google-chrome/** rwx,
+  '';
+
+  # The permissive allow base. Anything not explicitly denied above is
+  # allowed: full filesystem, network, capabilities, IPC, mounts.
+  # Profiles using this become "blocklist" rather than "allowlist".
+  apparmorPermissiveBase = ''
+    /** rwlkmix,
+    / rwlkmix,
+
+    network,
+    capability,
+    signal,
+    unix,
+    dbus,
+    mount,
+    umount,
+    pivot_root,
+    ptrace,
+    change_profile,
+  '';
 in {
   boot = {
     blacklistedKernelModules = [
@@ -142,159 +205,129 @@ in {
       killUnconfinedConfinables = false;
       packages = with pkgs; [apparmor-utils apparmor-profiles];
       policies = {
-        # Google Chrome - web browser.
+        # ── Deny-only permissive profiles ────────────────────────────
+        # These all use the same pattern:
+        #   1. allow practically everything (`/** rwlkmix`, full network,
+        #      capabilities, IPC, mounts) so we don't break the app
+        #   2. explicitly `deny` paths the app never needs — credentials,
+        #      ragenix secrets, server mounts, browser session data,
+        #      /etc/shadow, the NixOS source tree
+        # Safe to start in `enforce` because we're not introducing any
+        # restriction the app was already hitting; we're only blocking
+        # paths it had no business reading in the first place.
         #
-        # Demoted from enforce → complain: the previous attach path
-        # (/bin/.google-chrome-stable-wrapped) no longer exists in the
-        # current nixpkgs build (the wrapped binary moved to share/
-        # google/chrome/google-chrome), so this profile has been a no-op.
-        # Stay in complain until we collect ALLOWED/DENIED data against
-        # the corrected attach path, then re-enforce.
+        # Allowed `change_profile` so chrome-sandbox / electron sandbox
+        # can transition renderers — no child profiles defined yet, but
+        # the rule has to be present to permit the syscall.
+
+        # Google Chrome — keep access to its own ~/.config/google-chrome
         "google-chrome" = {
-          state = "complain";
+          state = "enforce";
           profile = ''
             abi <abi/4.0>,
             include <tunables/global>
-            ${lib.getBin pkgs.google-chrome}/share/google/chrome/google-chrome flags=(complain) {
-              include <abstractions/base>
-              include <abstractions/audio>
-              include <abstractions/dbus-session-strict>
-              include <abstractions/fonts>
-              include <abstractions/freedesktop.org>
-              include <abstractions/gnome>
-              include <abstractions/mesa>
-              include <abstractions/nameservice>
-              include <abstractions/ssl_certs>
-              include <abstractions/user-download>
-              include <abstractions/vulkan>
-              include <abstractions/X>
-
-              capability sys_chroot,   # chrome-sandbox: chroot for renderer filesystem isolation
-              capability sys_ptrace,   # chrome-sandbox: sandbox supervision (ptrace_scope=2 requires CAP_SYS_PTRACE)
-
-              network inet stream,
-              network inet dgram,
-              network netlink raw,
-              network unix stream,     # renderer/sandbox IPC
-
-              /nix/store/** r,
-              /nix/store/*/lib/** mr,
-              /nix/store/*/bin/** rix,
-              # Chrome ships its .so files and chrome-sandbox under share/
-              /nix/store/*-google-chrome-*/share/google/chrome/** mr,
-              /nix/store/*-google-chrome-*/share/google/chrome/chrome-sandbox rix,
-
-              owner @{HOME}/.config/google-chrome/** rwk,
-              owner @{HOME}/.cache/google-chrome/** rwk,
-              owner @{HOME}/Downloads/** rw,
-
-              /dev/ r,
-              /dev/shm/** rw,
-              /dev/dri/** rw,
-              /sys/devices/** r,
-              /proc/@{pid}/** r,
-              /proc/sys/kernel/yama/ptrace_scope r,
-              /etc/machine-id r,
-              /run/user/@{uid}/** rw,
-
-              deny @{HOME}/.ssh/** rwx,
-              deny @{HOME}/.gnupg/** rwx,
-              deny @{HOME}/.config/git/** rwx,
-              deny /etc/shadow r,
+            ${lib.getBin pkgs.google-chrome}/share/google/chrome/google-chrome flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
             }
           '';
         };
 
-        # Electron apps shipped via pkgs.electron (e.g. Signal-desktop).
-        #
-        # The attach path was wrong in two ways: (1) the real binary lives
-        # under the electron-unwrapped derivation, not electron; (2) it
-        # moved from /lib/electron/ to /libexec/electron/. With the old
-        # glob the profile attached to nothing, so this was a no-op too.
-        # Discord doesn't go through this — it bundles its own Electron
-        # at opt/Discord/.Discord-wrapped and has its own profile below.
+        # Electron apps via pkgs.electron (Signal-desktop, etc.) —
+        # deny google-chrome's session data as well as other browsers.
         "electron-common" = {
-          state = "complain";
+          state = "enforce";
           profile = ''
             abi <abi/4.0>,
             include <tunables/global>
-            /nix/store/*-electron-unwrapped-*/libexec/electron/electron flags=(complain) {
-              include <abstractions/base>
-              include <abstractions/audio>
-              include <abstractions/fonts>
-              include <abstractions/freedesktop.org>
-              include <abstractions/mesa>
-              include <abstractions/nameservice>
-              include <abstractions/ssl_certs>
-              include <abstractions/X>
-
-              network inet stream,
-              network inet6 stream,
-              network unix stream,
-
-              /nix/store/** r,
-              /nix/store/*/lib/** mr,
-              # electron-unwrapped ships chrome-sandbox, helper apps and
-              # most .so files under libexec/electron, not lib/.
-              /nix/store/*-electron-unwrapped-*/libexec/electron/** mr,
-              /nix/store/*-electron-unwrapped-*/libexec/electron/chrome-sandbox rix,
-
-              owner @{HOME}/.config/** rwk,
-              owner @{HOME}/.cache/** rwk,
-              owner @{HOME}/Downloads/** rw,
-
-              /dev/shm/** rw,
-              /dev/dri/** rw,
-              /proc/@{pid}/** r,
-              /proc/sys/kernel/yama/ptrace_scope r,
-              /run/user/@{uid}/** rw,
-
-              deny @{HOME}/.ssh/** rwx,
-              deny @{HOME}/.gnupg/** rwx,
+            /nix/store/*-electron-unwrapped-*/libexec/electron/electron flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
             }
           '';
         };
 
-        # Discord - bundles its own Electron at opt/Discord/.Discord-wrapped
-        # rather than reusing pkgs.electron, so it needs its own attach.
+        # Discord — bundles its own Electron at opt/Discord/.Discord-wrapped
         "discord" = {
-          state = "complain";
+          state = "enforce";
           profile = ''
             abi <abi/4.0>,
             include <tunables/global>
-            /nix/store/*-discord-*/opt/Discord/.Discord-wrapped flags=(complain) {
-              include <abstractions/base>
-              include <abstractions/audio>
-              include <abstractions/fonts>
-              include <abstractions/freedesktop.org>
-              include <abstractions/mesa>
-              include <abstractions/nameservice>
-              include <abstractions/ssl_certs>
-              include <abstractions/X>
+            /nix/store/*-discord-*/opt/Discord/.Discord-wrapped flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
+            }
+          '';
+        };
 
-              network inet stream,
-              network inet6 stream,
-              network unix stream,
+        # Games — Steam, Lutris, Wine (incl. Proton via ix-inherit),
+        # gamescope, Heroic. Anti-cheat (EAC / BattlEye on Linux) checks
+        # ptrace_scope and /proc tampering, not AppArmor state, so a
+        # deny-only profile is safe to enforce here. Steam Runtime uses
+        # bubblewrap which needs `mount`/`pivot_root` — both granted in
+        # the permissive base.
+        #
+        # `ix` on `/** rwlkmix` makes child processes (Proton, game .exe
+        # under Wine, Steam Runtime helpers) inherit this profile, so we
+        # don't need to enumerate every game binary.
+        "games" = {
+          state = "enforce";
+          profile = ''
+            abi <abi/4.0>,
+            include <tunables/global>
 
-              /nix/store/** r,
-              /nix/store/*/lib/** mr,
-              # Discord's bundled Electron lives entirely under opt/Discord.
-              /nix/store/*-discord-*/opt/Discord/** mr,
-              /nix/store/*-discord-*/opt/Discord/chrome-sandbox rix,
+            profile games-steam /nix/store/*-steam-*/bin/steam flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
+            }
 
-              owner @{HOME}/.config/discord/** rwk,
-              owner @{HOME}/.config/discordcanary/** rwk,
-              owner @{HOME}/.cache/** rwk,
-              owner @{HOME}/Downloads/** rw,
+            profile games-lutris /nix/store/*-lutris-*/bin/lutris flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
+            }
 
-              /dev/shm/** rw,
-              /dev/dri/** rw,
-              /proc/@{pid}/** r,
-              /proc/sys/kernel/yama/ptrace_scope r,
-              /run/user/@{uid}/** rw,
+            profile games-wine /nix/store/*-wine-*/bin/wine flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
+            }
 
-              deny @{HOME}/.ssh/** rwx,
-              deny @{HOME}/.gnupg/** rwx,
+            profile games-wine64 /nix/store/*-wine-*/bin/wine64 flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
+            }
+
+            profile games-wineserver /nix/store/*-wine-*/bin/wineserver flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
+            }
+
+            profile games-gamescope /nix/store/*-gamescope-*/bin/gamescope flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
+            }
+
+            profile games-heroic /nix/store/*-heroic-unwrapped-*/bin/heroic flags=(enforce) {
+              ${apparmorPermissiveBase}
+              ${apparmorDenySecrets}
+              ${apparmorDenyOtherBrowsers}
+              ${apparmorDenyChrome}
             }
           '';
         };
