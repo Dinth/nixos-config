@@ -35,6 +35,15 @@
   lnxlink.enable = true;
   lnxlink.mqtt.secretsFile = config.age.secrets.lnxlink-mqtt.path;
   services.networkMounts.smb.vm = true;
+  # Prometheus exporters — node + systemd shared with r230; smartctl
+  # additionally enabled here for real NVMe SMART data. The default
+  # node_exporter hwmon collector picks up the it87 fan/temp sensors
+  # from hardware-configuration.nix automatically.
+  prometheus-exporters = {
+    enable = true;
+    scrapeAllowFrom = ["10.10.1.13"];
+    smartctl.enable = true;
+  };
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";

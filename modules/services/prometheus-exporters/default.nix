@@ -46,8 +46,8 @@ in {
   config = mkIf cfg.enable {
     services.prometheus.exporters = {
       # Host-level metrics: CPU, memory, disk, network, etc.
-      # hwmon/thermal_zone disabled by default — useless in VMs and
-      # the physical hosts that need them can re-enable per-host.
+      # hwmon / thermal_zone / cpufreq are default collectors and
+      # produce empty data on VMs — harmless, no need to gate.
       node = {
         enable = true;
         port = 9100;
@@ -56,7 +56,6 @@ in {
           "logind"
           "tcpstat"
         ];
-        disabledCollectors = ["hwmon" "thermal_zone"];
       };
 
       # Per-unit state (active/failed), restart counts, task counts.
