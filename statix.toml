@@ -1,0 +1,8 @@
+disabled = [
+  # W20 — `firewall.x = …; firewall.y = …;` vs
+  # `firewall = { x = …; y = …; };`. Pure style preference; the
+  # codebase uses the flat form throughout and refactoring would
+  # touch ~15 files for zero behaviour change.
+  "repeated_keys",
+]
+ignore = [".direnv", "result"]

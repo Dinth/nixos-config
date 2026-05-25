@@ -22,4 +22,12 @@
     nix-diff
   ];
   programs.nh.enable = true;
+
+  # Command-not-found that actually works: shell hook into the
+  # nix-index database. The nix-index-database flake input ships a
+  # prebuilt db so we don't have to run `nix-index` ourselves.
+  # Shadows nixos's built-in programs.command-not-found (which uses
+  # an older, less-accurate channel-based database).
+  programs.nix-index.enable = true;
+  programs.command-not-found.enable = false;
 }

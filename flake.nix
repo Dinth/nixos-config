@@ -26,6 +26,12 @@
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Prebuilt nix-index database so `command-not-found` works without
+    # having to run `nix-index` locally (~10 min) every release.
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     #     nix-darwin = {
     #       url = "github:nix-darwin/nix-darwin/master";
@@ -33,7 +39,7 @@
     #     };
   };
 
-  outputs = inputs @ {
+  outputs = {
     self,
     nixpkgs,
     home-manager,
@@ -43,20 +49,22 @@
     nixos-hardware,
     nixvirt,
     llm-agents,
+    nix-index-database,
     ...
   }: let
     system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
     # Overlay to use llm-agents.nix packages for claude-code, opencode, and rtk.
     # Call each package directly from the flake source rather than via
     # llm-agents.packages.${system}, which uses blueprint and eagerly evaluates
     # the entire package set — including the broken `apm` package that fails
     # with nixos-25.11's buildPythonApplication.
-    valkeyOverlay = final: prev: {
+    valkeyOverlay = _: prev: {
       valkey = prev.valkey.overrideAttrs (_: {
         doCheck = false;
       });
     };
-    llmAgentsOverlay = final: prev: let
+    llmAgentsOverlay = final: _: let
       callPkg = path: final.callPackage (llm-agents + path) {};
       wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
       versionCheckHomeHook = callPkg "/packages/versionCheckHomeHook/package.nix";
@@ -79,6 +87,7 @@
           ./hosts/dinth-nixos-desktop/configuration.nix
           agenix.nixosModules.default
           catppuccin.nixosModules.catppuccin
+          nix-index-database.nixosModules.nix-index
           nixvirt.nixosModules.default
           home-manager.nixosModules.home-manager
           {
@@ -104,6 +113,7 @@
           ./hosts/r230-nixos/configuration.nix
           agenix.nixosModules.default
           catppuccin.nixosModules.catppuccin
+          nix-index-database.nixosModules.nix-index
           # nixvirt is not imported here — r230 runs no VMs and the
           # virtualisation module gates NixVirt-only options behind
           # hasNixVirt so eval succeeds without it.
@@ -130,6 +140,7 @@
           ./hosts/michal-surface-go/configuration.nix
           agenix.nixosModules.default
           catppuccin.nixosModules.catppuccin
+          nix-index-database.nixosModules.nix-index
           nixos-hardware.nixosModules.microsoft-surface-go
           home-manager.nixosModules.home-manager
           {
@@ -145,12 +156,39 @@
       };
     };
 
-    # Flake checks - run with: nix flake check
-    checks.x86_64-linux = {
-      # Verify each host configuration evaluates successfully
+    # `nix fmt` — formats every .nix file in the tree with alejandra.
+    formatter.${system} = pkgs.alejandra;
+
+    # `nix flake check` — host evals + repo-wide lints.
+    checks.${system} = {
+      # Verify each host configuration evaluates and builds.
       dinth-nixos-desktop = self.nixosConfigurations.dinth-nixos-desktop.config.system.build.toplevel;
       michal-surface-go = self.nixosConfigurations.michal-surface-go.config.system.build.toplevel;
       r230-nixos = self.nixosConfigurations.r230-nixos.config.system.build.toplevel;
+
+      # Format check — fails if any .nix file would be reformatted.
+      format = pkgs.runCommand "check-alejandra" {nativeBuildInputs = [pkgs.alejandra];} ''
+        cd ${self}
+        alejandra --check .
+        touch $out
+      '';
+
+      # Dead-code lint — unused let bindings, inherits, etc.
+      # `--no-lambda-pattern-names` so module-arg patterns like
+      # `{ config, lib, pkgs, ... }` don't flag every unused arg.
+      deadnix = pkgs.runCommand "check-deadnix" {nativeBuildInputs = [pkgs.deadnix];} ''
+        cd ${self}
+        deadnix --no-lambda-pattern-names --fail .
+        touch $out
+      '';
+
+      # Anti-pattern lint — `with pkgs;` overuse, redundant rec, etc.
+      # Lint exceptions live in ./statix.toml at the repo root.
+      statix = pkgs.runCommand "check-statix" {nativeBuildInputs = [pkgs.statix];} ''
+        cp ${./statix.toml} statix.toml
+        statix check ${self}
+        touch $out
+      '';
     };
 
     # Doesnt work
