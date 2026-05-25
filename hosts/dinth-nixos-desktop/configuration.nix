@@ -86,7 +86,9 @@
     hdparm
     lm_sensors
     detach
-    nixos-anywhere
+    # nixos-anywhere removed — use `nix run nixpkgs#nixos-anywhere`
+    # when bootstrapping a new host (used maybe once a year, no need
+    # to keep its 267 MiB closure in every system generation).
   ];
 
   services.dbus = {
