@@ -60,6 +60,11 @@ in {
         "alejandra"
         "deadnix"
         "statix"
+        # Nix install / store diagnostics
+        "nix-info"
+        "nix-store -q"
+        "nix-tree"
+        "nix-diff"
         "nh search"
         # File listing / inspection
         "ls"
@@ -81,6 +86,20 @@ in {
         "diff"
         "mkdir"
         "chmod"
+        "readlink"
+        "realpath"
+        "strings"
+        "xxd"
+        "hexdump"
+        # Text shape-shifting — pure stdin → stdout, no writes
+        "cut"
+        "tr"
+        "paste"
+        "tac"
+        "column"
+        # Structured-data query
+        "jq"
+        "yq"
         # systemd / journal read-only
         "journalctl"
         "systemctl status"
@@ -107,6 +126,7 @@ in {
         "lsblk"
         "lsusb"
         "lspci"
+        "sensors"
         # Network read-only
         "ip addr"
         "ip route"
@@ -114,6 +134,8 @@ in {
         "ss"
         "ps"
         "pgrep"
+        "dig"
+        "doggo"
         # Audio / printing / desktop
         "pactl list"
         "pw-top"
@@ -140,6 +162,13 @@ in {
         "gh issue list"
         "gh issue view"
         "gh repo view"
+        "gh repo list"
+        "gh run list"
+        "gh run view"
+        "gh workflow list"
+        "gh workflow view"
+        "gh release list"
+        "gh release view"
         "gh api"
       ];
     };
@@ -198,6 +227,13 @@ in {
         # GitHub write
         "gh pr create"
         "gh issue create"
+        # Network probing / device control — read forms are safe but
+        # write forms (`nmcli con up`, `xrandr --output …`, `mount …`)
+        # mutate, and disambiguating is brittle, so prompt for all.
+        "nmap"
+        "nmcli"
+        "xrandr"
+        "mount"
         # See description above.
         "env"
       ];
