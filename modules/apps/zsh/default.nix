@@ -149,6 +149,29 @@ in {
             bindkey '^Z' cdi
           ''}
 
+          # Hint-once wrappers — keep the canonical command working
+          # (so POSIX-shaped invocations don't break silently the way
+          # they would with a hard alias to ripgrep/fd/difftastic) but
+          # print a dim-grey reminder the first time per shell session
+          # that a modern alternative exists. Sentinel env vars scoped
+          # to the shell mean each new terminal nudges again.
+          _modern_hint() {
+            local tool=$1 modern=$2 desc=$3
+            local var=_HINT_''${tool}
+            if [[ -z ''${(P)var} ]]; then
+              print -P "%F{8}▶ tip: '%F{cyan}$modern%F{8}' is available — $desc%f" >&2
+              typeset -g $var=1
+            fi
+          }
+          grep()     { _modern_hint grep     rg     "smart defaults, respects .gitignore";     command grep     "$@"; }
+          find()     { _modern_hint find     fd     "intuitive syntax (e.g. 'fd .py src/')";   command find     "$@"; }
+          diff()     { _modern_hint diff     difft  "structural diff that reads code";         command diff     "$@"; }
+          dig()      { _modern_hint dig      doggo  "cleaner table output";                    command dig      "$@"; }
+          nslookup() { _modern_hint nslookup doggo  "cleaner table output";                    command nslookup "$@"; }
+          man()      { _modern_hint man      tldr   "quick example-based docs";                command man      "$@"; }
+          htop()     { _modern_hint htop     btop   "modern TUI with GPU + sensors";           command htop     "$@"; }
+          unzip()    { _modern_hint unzip    unar   "also handles rar / 7z / tar / etc.";      command unzip    "$@"; }
+
           ${lib.optionalString (
               lib.any (tool: lib.hasAttr tool pkgs) ["wl-clipboard" "xclip" "xsel"]
             ) ''
