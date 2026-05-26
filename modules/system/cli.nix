@@ -83,10 +83,10 @@ in {
       tree = "${getExe pkgs.eza} --tree --all"; # Tree view using eza, include hidden
       cat = "${getExe pkgs.bat}"; # Use bat for reading files
       top = "${getExe pkgs.btop}"; # Use btop for top
-      grep = "${getExe pkgs.ripgrep}"; # Use ripgrep by default
-      find = "${getExe pkgs.fd}"; # Use fd by default
-      diff = "${getExe pkgs.difftastic}"; # Use difftastic for diffs
       ip = "${lib.getExe' pkgs.iproute2 "ip"} --color=auto"; # Colorize IP output
+      # grep/find/diff/dig/nslookup/man/htop/unzip are handled by hint-wrapper
+      # functions in modules/apps/zsh/default.nix — defining them as aliases
+      # here would clash with `func()` definitions in .zshrc.
     };
     programs.usbtop.enable = mkDefault true;
     programs.ssh.startAgent = mkDefault true;
