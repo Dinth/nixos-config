@@ -68,6 +68,9 @@
     pivot_root,
     ptrace,
     change_profile,
+    userns,
+    mqueue,
+    io_uring,
   '';
 in {
   boot = {
