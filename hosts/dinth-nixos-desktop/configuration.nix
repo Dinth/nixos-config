@@ -91,10 +91,6 @@
     # to keep its 267 MiB closure in every system generation).
   ];
 
-  services.dbus = {
-    enable = true;
-    implementation = "broker";
-  };
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave

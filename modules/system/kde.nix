@@ -30,7 +30,6 @@ in {
         enable = mkDefault true;
         enableQt5Integration = true;
       };
-      blueman.enable = false; # Use KDE Bluetooth instead
       accounts-daemon.enable = true;
     };
     environment.systemPackages = with pkgs;
