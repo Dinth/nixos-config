@@ -88,4 +88,6 @@
     enable = true;
     scrapeAllowFrom = ["10.10.1.13"];
   };
+  # Ship journald → omv Loki via Grafana Alloy.
+  alloy.enable = true;
 }

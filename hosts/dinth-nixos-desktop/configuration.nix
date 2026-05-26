@@ -44,6 +44,8 @@
     scrapeAllowFrom = ["10.10.1.13"];
     smartctl.enable = true;
   };
+  # Ship journald → omv Loki via Grafana Alloy.
+  alloy.enable = true;
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";

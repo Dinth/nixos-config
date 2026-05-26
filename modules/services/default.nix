@@ -4,6 +4,7 @@
   ...
 }: {
   imports = [
+    ./alloy
     ./komodo-periphery
     ./network-mounts
     ./prometheus-exporters
