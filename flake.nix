@@ -32,6 +32,14 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # lnxlink — Linux companion app for Home Assistant. Tracked as a
+    # source input so `nix flake update lnxlink` brings the latest
+    # upstream commit; the buildPythonPackage logic still lives in
+    # modules/apps/lnxlink/default.nix.
+    lnxlink = {
+      url = "github:bkbilly/lnxlink";
+      flake = false;
+    };
 
     #     nix-darwin = {
     #       url = "github:nix-darwin/nix-darwin/master";
@@ -50,6 +58,7 @@
     nixvirt,
     llm-agents,
     nix-index-database,
+    lnxlink,
     ...
   }: let
     system = "x86_64-linux";
@@ -79,7 +88,7 @@
         inherit system;
         specialArgs = {
           machineType = "desktop";
-          inherit catppuccin home-manager;
+          inherit catppuccin home-manager lnxlink;
         };
         modules = [
           ./libs
@@ -105,7 +114,7 @@
         inherit system;
         specialArgs = {
           machineType = "server";
-          inherit catppuccin home-manager;
+          inherit catppuccin home-manager lnxlink;
         };
         modules = [
           ./libs
@@ -132,7 +141,7 @@
         inherit system;
         specialArgs = {
           machineType = "tablet";
-          inherit catppuccin home-manager;
+          inherit catppuccin home-manager lnxlink;
         };
         modules = [
           ./libs

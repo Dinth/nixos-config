@@ -257,16 +257,32 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1779648000,
-        "narHash": "sha256-NXaccexWFtafKGuiikJAgnORZB0MasHQ0xetvVi/eps=",
+        "lastModified": 1779704624,
+        "narHash": "sha256-INy8z/zDl0EQSaxIV+S4Xkq99NCWaqBKtxHmJoOdfyE=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "47a386e08a8a27ce1ab3af9b58532b1d4e9ec6c6",
+        "rev": "b4d59ea23a029466b3e8314835ac7714296f2595",
         "type": "github"
       },
       "original": {
         "owner": "numtide",
         "repo": "llm-agents.nix",
+        "type": "github"
+      }
+    },
+    "lnxlink": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1779790284,
+        "narHash": "sha256-SXFRWckCn5hWa2u5fdcUkVRbLhmzYSRNzSE8ikcp9RI=",
+        "owner": "bkbilly",
+        "repo": "lnxlink",
+        "rev": "d44c87dc3006669c6a9bc83774565cb11bcd209c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bkbilly",
+        "repo": "lnxlink",
         "type": "github"
       }
     },
@@ -387,6 +403,7 @@
         "catppuccin": "catppuccin",
         "home-manager": "home-manager_2",
         "llm-agents": "llm-agents",
+        "lnxlink": "lnxlink",
         "nix-index-database": "nix-index-database",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",

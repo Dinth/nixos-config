@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  lnxlink,
   ...
 }: let
   inherit (lib) mkIf mkOption types;
@@ -9,17 +10,16 @@
   primaryUsername = config.primaryUser.name;
   hostname = config.networking.hostName;
 
-  lnxlink = pkgs.python3Packages.buildPythonPackage rec {
+  # lnxlink source pinned via flake input — bump with
+  # `nix flake update lnxlink`. The narHash recorded in flake.lock
+  # supersedes the previous inline fetchFromGitHub hash and the
+  # version-string-as-tag.
+  lnxlinkPkg = pkgs.python3Packages.buildPythonPackage {
     pname = "lnxlink";
-    version = "2026.2.0";
+    version = lnxlink.shortRev or "dev";
     pyproject = true;
 
-    src = pkgs.fetchFromGitHub {
-      owner = "bkbilly";
-      repo = "lnxlink";
-      rev = "${version}";
-      hash = "sha256-PyonUBCeEiXQWsW9v5F3XiQE30xPOkRJTNmtaktg0Sw=";
-    };
+    src = lnxlink;
 
     postPatch = ''
             sed -i"" -E 's@requires = .*@requires = ["setuptools", "wheel"]@g' pyproject.toml
@@ -167,7 +167,7 @@ in {
         Service = {
           Type = "simple";
           ExecStartPre = "${setupScript}";
-          ExecStart = "${lnxlink}/bin/lnxlink -c %h/.local/state/lnxlink/config.yaml -e beacondb";
+          ExecStart = "${lnxlinkPkg}/bin/lnxlink -c %h/.local/state/lnxlink/config.yaml -e beacondb";
           Restart = "on-failure";
           RestartSec = "10s";
           NoNewPrivileges = true;
