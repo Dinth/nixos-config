@@ -40,12 +40,24 @@ in {
       };
     };
 
-    # Allow only the specified IPs to reach port 2375; all others are dropped by default
-    networking.firewall.extraInputRules = lib.mkIf tcpEnabled (
-      lib.concatMapStrings
-      (ip: "ip saddr ${ip} tcp dport 2375 accept\n")
-      cfg.tcpClients
-    );
+    # Allow only the specified IPs to reach port 2375; all others are
+    # dropped by default. Uses iptables (active backend) + nftables (for
+    # the eventual migration) — same dual-backend pattern as in
+    # modules/services/prometheus-exporters/default.nix.
+    networking.firewall = lib.mkIf tcpEnabled {
+      extraCommands =
+        lib.concatMapStrings
+        (ip: "iptables -A nixos-fw -s ${ip} -p tcp --dport 2375 -j nixos-fw-accept\n")
+        cfg.tcpClients;
+      extraStopCommands =
+        lib.concatMapStrings
+        (ip: "iptables -D nixos-fw -s ${ip} -p tcp --dport 2375 -j nixos-fw-accept || true\n")
+        cfg.tcpClients;
+      extraInputRules =
+        lib.concatMapStrings
+        (ip: "ip saddr ${ip} tcp dport 2375 accept\n")
+        cfg.tcpClients;
+    };
 
     users.users.${primaryUsername}.extraGroups = ["docker"];
 

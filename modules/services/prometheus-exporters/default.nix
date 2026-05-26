@@ -6,15 +6,32 @@
   inherit (lib) mkIf mkOption;
   cfg = config.prometheus-exporters;
 
-  # Source-restricted firewall rule. Ports allowed only from the
-  # explicit scrapeAllowFrom IPs; the rest of the LAN gets dropped
-  # by the default firewall policy.
-  scrapeRule = let
-    ports = ["9100" "9558"] ++ lib.optional cfg.smartctl.enable "9633";
-    portList = lib.concatStringsSep ", " ports;
-  in
+  # Source-restricted firewall rules. Ports allowed only from the
+  # explicit scrapeAllowFrom IPs; the rest of the LAN is dropped by
+  # the default firewall policy.
+  #
+  # `extraCommands` (iptables) is the active backend on dinth + r230
+  # today (networking.nftables.enable = false). `extraInputRules`
+  # is the nftables equivalent and is silently no-op on iptables
+  # hosts — kept for the eventual migration so we don't have to
+  # touch this module again.
+  ports = ["9100" "9558"] ++ lib.optional cfg.smartctl.enable "9633";
+  ipPortList = lib.concatStringsSep "," ports;
+  nftPortList = lib.concatStringsSep ", " ports;
+
+  iptablesStart =
     lib.concatMapStrings (ip: ''
-      ip saddr ${ip} tcp dport { ${portList} } accept
+      iptables -A nixos-fw -s ${ip} -p tcp -m multiport --dports ${ipPortList} -j nixos-fw-accept
+    '')
+    cfg.scrapeAllowFrom;
+  iptablesStop =
+    lib.concatMapStrings (ip: ''
+      iptables -D nixos-fw -s ${ip} -p tcp -m multiport --dports ${ipPortList} -j nixos-fw-accept || true
+    '')
+    cfg.scrapeAllowFrom;
+  nftablesRule =
+    lib.concatMapStrings (ip: ''
+      ip saddr ${ip} tcp dport { ${nftPortList} } accept
     '')
     cfg.scrapeAllowFrom;
 in {
@@ -73,6 +90,10 @@ in {
       };
     };
 
-    networking.firewall.extraInputRules = scrapeRule;
+    networking.firewall = {
+      extraCommands = iptablesStart;
+      extraStopCommands = iptablesStop;
+      extraInputRules = nftablesRule;
+    };
   };
 }
