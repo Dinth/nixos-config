@@ -23,7 +23,7 @@
     // Read journald
     loki.source.journal "systemd" {
       path       = "/var/log/journal"
-      max_age    = "24h"
+      max_age = "12h"
       labels     = { job = "systemd" }
       forward_to = [loki.relabel.systemd.receiver]
     }
