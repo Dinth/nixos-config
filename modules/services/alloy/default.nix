@@ -7,11 +7,12 @@
   inherit (lib) mkIf mkOption types;
   cfg = config.alloy;
 
-  # Mirrors the journal + relabel block from omv's
-  # /opt/docker/loki-promtail/config.alloy so label semantics match
-  # (host, unit, level). The `host` label is set from the journal's
-  # _HOSTNAME field, so it auto-resolves to the local hostname
-  # without us needing to hardcode it.
+  # `host` is injected as a static label here rather than derived from the
+  # journal's _HOSTNAME field — we know the hostname at Nix eval time, and
+  # the various `__journal_*` / `__journal__*` source_label spellings have
+  # been unreliable across Alloy releases. `unit` and `level` are still
+  # mapped from journal fields via labelmap so we don't have to know the
+  # exact prefix Alloy picks.
   configFile = pkgs.writeText "alloy-config.alloy" ''
     // Where to ship the logs
     loki.write "omv_loki" {
@@ -20,38 +21,33 @@
       }
     }
 
-    // Read journald
+    // Read journald. host is set statically; job is the source tag.
     loki.source.journal "systemd" {
       path       = "/var/log/journal"
       max_age = "12h"
-      labels     = { job = "systemd" }
+      labels     = {
+        job  = "systemd",
+        host = "${config.networking.hostName}",
+      }
       forward_to = [loki.relabel.systemd.receiver]
     }
 
-    // Rewrite raw journal fields into the labels Grafana expects.
+    // Map any __journal*-prefixed labels to their plain names so unit
+    // and level fall out without us needing the exact prefix.
     loki.relabel "systemd" {
       forward_to = [loki.write.omv_loki.receiver]
 
-      // Journal fields whose name itself begins with `_` (e.g. _SYSTEMD_UNIT,
-      // _HOSTNAME) end up double-underscored in Alloy's label namespace:
-      // prefix `__journal_` + lowercased field `_systemd_unit` =
-      // `__journal__systemd_unit`. Fields without a leading underscore
-      // (PRIORITY_KEYWORD) stay single-underscored.
       rule {
-        source_labels = ["__journal__systemd_unit"]
-        target_label  = "unit"
+        action = "labelmap"
+        regex  = "__journal_+(.+)"
       }
       rule {
-        source_labels = ["unit"]
+        source_labels = ["systemd_unit"]
         regex         = "(.*)\\.service"
         target_label  = "unit"
       }
       rule {
-        source_labels = ["__journal__hostname"]
-        target_label  = "host"
-      }
-      rule {
-        source_labels = ["__journal_priority_keyword"]
+        source_labels = ["priority_keyword"]
         target_label  = "level"
       }
     }
