@@ -70,7 +70,6 @@
       "nmi_watchdog=1" # TEMPORARY: arm NMI watchdog (prerequisite for hardlockup_panic)
       "softlockup_panic=1" # TEMPORARY: convert >20s kernel-side stalls into panic so pstore captures them
       "hardlockup_panic=1" # TEMPORARY: convert CPU-stuck-with-irqs-off hangs into panic so pstore captures them
-      "netconsole=6666@10.10.10.10/enp5s0,6666@10.10.1.13/d0:94:66:4e:fe:59" # TEMPORARY: stream printk to OMV tmux listener so we capture suspend/resume hangs
       "split_lock_mitigate=0" # Disable split-lock throttling; recovers FPS in Wine/Proton games doing atomic split-lock ops
     ];
     extraModprobeConfig = ''
@@ -360,6 +359,22 @@
     tpm2.enable = true;
     # Grant irqbalance permission to set IRQ affinity (blocked by kernel hardening)
     services.irqbalance.serviceConfig.AmbientCapabilities = ["CAP_SYS_NICE"];
+    # TEMPORARY: stream printk to OMV (10.10.1.13:6666) so suspend/resume hangs
+    # are captured out-of-band. netconsole is a module on NixOS kernels, so the
+    # `netconsole=` kernel cmdline is silently dropped — it must be loaded with
+    # modprobe options after the source NIC has an IP.
+    services.netconsole = {
+      description = "Kernel netconsole → OMV";
+      wantedBy = ["multi-user.target"];
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.kmod}/bin/modprobe netconsole netconsole=6666@10.10.10.10/enp5s0,6666@10.10.1.13/d0:94:66:4e:fe:59";
+        ExecStop = "${pkgs.kmod}/bin/modprobe -r netconsole";
+      };
+    };
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
