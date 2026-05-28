@@ -33,7 +33,7 @@
       forward_to = [loki.write.omv_loki.receiver]
 
       rule {
-        source_labels = ["__journal__systemd_unit"]
+        source_labels = ["__journal_systemd_unit"]
         target_label  = "unit"
       }
       rule {
@@ -42,11 +42,11 @@
         target_label  = "unit"
       }
       rule {
-        source_labels = ["__journal__hostname"]
+        source_labels = ["__journal_hostname"]
         target_label  = "host"
       }
       rule {
-        source_labels = ["__journal__priority_keyword"]
+        source_labels = ["__journal_priority_keyword"]
         target_label  = "level"
       }
     }
