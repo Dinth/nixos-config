@@ -32,8 +32,13 @@
     loki.relabel "systemd" {
       forward_to = [loki.write.omv_loki.receiver]
 
+      // Journal fields whose name itself begins with `_` (e.g. _SYSTEMD_UNIT,
+      // _HOSTNAME) end up double-underscored in Alloy's label namespace:
+      // prefix `__journal_` + lowercased field `_systemd_unit` =
+      // `__journal__systemd_unit`. Fields without a leading underscore
+      // (PRIORITY_KEYWORD) stay single-underscored.
       rule {
-        source_labels = ["__journal_systemd_unit"]
+        source_labels = ["__journal__systemd_unit"]
         target_label  = "unit"
       }
       rule {
@@ -42,7 +47,7 @@
         target_label  = "unit"
       }
       rule {
-        source_labels = ["__journal_hostname"]
+        source_labels = ["__journal__hostname"]
         target_label  = "host"
       }
       rule {
