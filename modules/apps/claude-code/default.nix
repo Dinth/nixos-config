@@ -10,6 +10,19 @@
   primaryUsername = config.primaryUser.name;
   userHome = "/home/${primaryUsername}";
 
+  # Per-project settings overlays — merged into each project's
+  # .claude/settings.local.json at activation time, preserving any
+  # existing keys (other permissions, enabledMcpjsonServers, etc.).
+  # Keyed by absolute project path. Use for machine-specific paths
+  # like sshfs mounts that don't belong in the committed settings.json.
+  projectOverrides = {
+    "${userHome}/Documents/komodo_library" = {
+      permissions.additionalDirectories = [
+        "/mnt/omv/opt/docker"
+      ];
+    };
+  };
+
   # User-scope MCP servers — merged into ~/.claude.json at activation time
   # (instead of settings.json, which is not the documented MCP location).
   # Project-scope servers live in .mcp.json at each project root.
@@ -175,6 +188,30 @@
       "$CLAUDE_JSON" > "$TMP"
     ${lib.getExe' pkgs.coreutils "mv"} "$TMP" "$CLAUDE_JSON"
     ${lib.getExe' pkgs.coreutils "chmod"} 600 "$CLAUDE_JSON"
+  '';
+
+  # Merges per-project settings overlays into each project's
+  # .claude/settings.local.json without clobbering existing keys.
+  # jq's `*` operator deep-merges objects (arrays are replaced, so
+  # the Nix-declared list becomes the source of truth for those keys).
+  # Skips projects whose directory doesn't exist yet.
+  mergeProjectSettingsScript = pkgs.writeShellScript "merge-claude-project-settings.sh" ''
+    set -euo pipefail
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (projectPath: overrides: ''
+        if [ -d ${lib.escapeShellArg projectPath} ]; then
+          SETTINGS=${lib.escapeShellArg "${projectPath}/.claude/settings.local.json"}
+          NEW=${lib.escapeShellArg (builtins.toJSON overrides)}
+          ${lib.getExe' pkgs.coreutils "mkdir"} -p ${lib.escapeShellArg "${projectPath}/.claude"}
+          if [ ! -s "$SETTINGS" ]; then
+            echo '{}' > "$SETTINGS"
+          fi
+          TMP="$(${lib.getExe' pkgs.coreutils "mktemp"} "$SETTINGS.XXXXXX")"
+          ${lib.getExe pkgs.jq} --argjson new "$NEW" '. * $new' \
+            "$SETTINGS" > "$TMP"
+          ${lib.getExe' pkgs.coreutils "mv"} "$TMP" "$SETTINGS"
+        fi
+      '')
+      projectOverrides)}
   '';
 
   # Two-line status bar: model + dir + git branch on line 1,
@@ -384,6 +421,12 @@ in {
       # user-scope MCP location), preserving Claude Code's mutable state.
       home.activation.claudeCodeGlobalMcp = home-manager.lib.hm.dag.entryAfter ["claudeCodeSettings"] ''
         $DRY_RUN_CMD ${mergeGlobalMcpScript}
+      '';
+      # Merge Nix-declared per-project overlays into each project's
+      # .claude/settings.local.json. Used for machine-specific paths
+      # (e.g. sshfs mounts) that don't belong in committed settings.json.
+      home.activation.claudeCodeProjectSettings = home-manager.lib.hm.dag.entryAfter ["claudeCodeGlobalMcp"] ''
+        $DRY_RUN_CMD ${mergeProjectSettingsScript}
       '';
       programs.claude-code.enable = true;
     };
