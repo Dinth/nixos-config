@@ -18,6 +18,17 @@ in {
           identityFile = [config.age.secrets."id-ed25519".path];
           identitiesOnly = true;
         };
+        "10.10.0.20 dell-switch" = {
+          hostname = "10.10.0.20";
+          user = "admin";
+          extraOptions = {
+            KexAlgorithms = "+diffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1";
+            HostKeyAlgorithms = "+ssh-rsa";
+            PubkeyAcceptedAlgorithms = "+ssh-rsa";
+            Ciphers = "+aes128-cbc,3des-cbc";
+            MACs = "+hmac-sha1";
+          };
+        };
         "*" = {
           identityFile = [
             config.age.secrets."id-ed25519".path
