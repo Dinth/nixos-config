@@ -18,6 +18,12 @@ in {
           identityFile = [config.age.secrets."id-ed25519".path];
           identitiesOnly = true;
         };
+        "wazuh wazuh-server 10.10.1.18" = {
+          hostname = "10.10.1.18";
+          user = "wazuh-user";
+          identityFile = [config.age.secrets."id-ed25519".path];
+          identitiesOnly = true;
+        };
         "10.10.0.20 dell-switch" = {
           hostname = "10.10.0.20";
           user = "admin";
