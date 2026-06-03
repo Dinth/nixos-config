@@ -10,5 +10,6 @@
     ./prometheus-exporters
     ./ssh
     ./tailscale
+    ./wazuh-agent
   ];
 }

@@ -40,6 +40,16 @@
       url = "github:bkbilly/lnxlink";
       flake = false;
     };
+    # Wazuh agent (XDR/SIEM endpoint) — not in nixpkgs. Community flake
+    # providing a from-source `wazuh-agent` package + a journald-aware NixOS
+    # module (`services.wazuh-agent`). Pinned to nealfennimore's fork at
+    # agent 4.12.0 (≤ our 4.14.5 manager, as Wazuh requires). The overlay and
+    # module are applied per-host below; `wazuh.enable` (modules/services/
+    # wazuh-agent) is the homelab toggle. Compiles from source on first build.
+    wazuh-agent = {
+      url = "github:nealfennimore/wazuh.nix/384ddd35d27a77d7ef0681efd60f46a92a43e1b4";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     #     nix-darwin = {
     #       url = "github:nix-darwin/nix-darwin/master";
@@ -59,6 +69,7 @@
     llm-agents,
     nix-index-database,
     lnxlink,
+    wazuh-agent,
     ...
   }: let
     system = "x86_64-linux";
@@ -98,9 +109,10 @@
           catppuccin.nixosModules.catppuccin
           nix-index-database.nixosModules.nix-index
           nixvirt.nixosModules.default
+          wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -123,11 +135,13 @@
           agenix.nixosModules.default
           catppuccin.nixosModules.catppuccin
           nix-index-database.nixosModules.nix-index
+          wazuh-agent.nixosModules.wazuh-agent
           # nixvirt is not imported here — r230 runs no VMs and the
           # virtualisation module gates NixVirt-only options behind
           # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
+            nixpkgs.overlays = [wazuh-agent.overlays.wazuh];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -151,9 +165,10 @@
           catppuccin.nixosModules.catppuccin
           nix-index-database.nixosModules.nix-index
           nixos-hardware.nixosModules.microsoft-surface-go
+          wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
