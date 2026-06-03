@@ -2,11 +2,26 @@
   config,
   lib,
   pkgs,
+  home-manager,
   ...
 }: let
   inherit (lib) mkIf mkOption;
   cfg = config.opencode;
   primaryUsername = config.primaryUser.name;
+
+  # AGENTS.md marker dropped onto the HAOS /config CIFS share (outside $HOME,
+  # so home.file can't manage it). Dropped at both /mnt/haos and the common
+  # /mnt/haos/esphome subproject so opencode picks it up regardless of which it
+  # is launched from. Guarded by `[ -d ]` (triggers the autofs mount) and
+  # best-effort so a rebuild never fails when HAOS is unreachable.
+  mergeHaosMarkerScript = pkgs.writeShellScript "write-opencode-haos-marker.sh" ''
+    set -euo pipefail
+    for d in /mnt/haos /mnt/haos/esphome; do
+      if [ -d "$d" ]; then
+        ${lib.getExe' pkgs.coreutils "cp"} -f ${./haos/AGENTS.md} "$d/AGENTS.md" || true
+      fi
+    done
+  '';
 in {
   options = {
     opencode = {
@@ -65,6 +80,11 @@ in {
         if [ -r "${config.age.secrets.ha-mcp-url.path}" ]; then
           export HOMEASSISTANT_MCP_URL="$(< "${config.age.secrets.ha-mcp-url.path}")"
         fi
+      '';
+      # Drop the HA marker (AGENTS.md) onto the /mnt/haos CIFS share so working
+      # there auto-loads HA mode. The homeassistant MCP is already global.
+      home.activation.opencodeHaosMarker = home-manager.lib.hm.dag.entryAfter ["writeBoundary"] ''
+        $DRY_RUN_CMD ${mergeHaosMarkerScript}
       '';
       home.sessionVariables = {
         OPENCODE_LOG_LEVEL = "debug"; # Force debug logging at env level

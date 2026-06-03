@@ -21,7 +21,23 @@
         "/mnt/omv/opt/docker"
       ];
     };
+    # HAOS /config share (CIFS //10.10.1.11/config). Pre-approve the
+    # project-scoped homeassistant MCP server so it loads without a trust
+    # prompt. The `.mcp.json` itself is dropped here by claudeCodeHaosMarkers.
+    "/mnt/haos" = {
+      enabledMcpjsonServers = ["homeassistant"];
+    };
+    "/mnt/haos/esphome" = {
+      enabledMcpjsonServers = ["homeassistant"];
+    };
   };
+
+  # HAOS marker files written into the CIFS share at activation (the share
+  # lives outside $HOME so home.file can't manage it). `.mcp.json` wires the
+  # write-capable homeassistant MCP at /mnt/haos and /mnt/haos/esphome; the
+  # project CLAUDE.md flips Claude into HA mode whenever cwd is under the share.
+  haosMcpJson = ./haos/mcp.json;
+  haosClaudeMd = ./haos/CLAUDE.md;
 
   # User-scope MCP servers — merged into ~/.claude.json at activation time
   # (instead of settings.json, which is not the documented MCP location).
@@ -214,6 +230,24 @@
       projectOverrides)}
   '';
 
+  # Drops the HA marker files onto the CIFS share. Guarded by `[ -d ]` (which
+  # also triggers the autofs automount); writes are best-effort so a rebuild
+  # never fails when HAOS is unreachable. `.mcp.json` carries the literal
+  # ${HOMEASSISTANT_MCP_URL} placeholder — Claude Code expands it from the env
+  # at launch, so the auth-keyed URL never lands on disk.
+  mergeHaosMarkersScript = pkgs.writeShellScript "write-claude-haos-markers.sh" ''
+    set -euo pipefail
+    cp=${lib.getExe' pkgs.coreutils "cp"}
+    for d in /mnt/haos /mnt/haos/esphome; do
+      if [ -d "$d" ]; then
+        "$cp" -f ${haosMcpJson} "$d/.mcp.json" || true
+      fi
+    done
+    if [ -d /mnt/haos ]; then
+      "$cp" -f ${haosClaudeMd} /mnt/haos/CLAUDE.md || true
+    fi
+  '';
+
   # Two-line status bar: model + dir + git branch on line 1,
   # context-usage bar + cost (+ rate limits + RTK savings) on line 2.
   # Catppuccin-ish ANSI palette.
@@ -392,10 +426,10 @@ in {
         ruff
         rtk # Rust Token Killer - reduces LLM token consumption
       ];
-      # Export HOMEASSISTANT_MCP_URL for Claude Code's project-scope .mcp.json
-      # in ~/Documents/nixos-config. The URL contains a private auth key so it
-      # lives in ragenix; read at shell startup so it's available whenever
-      # `claude` is launched from a zsh session.
+      # Export HOMEASSISTANT_MCP_URL for the project-scope .mcp.json files on the
+      # HA config share (/mnt/haos, /mnt/haos/esphome). The URL contains a private
+      # auth key so it lives in ragenix; read at shell startup so it's available
+      # whenever `claude` is launched from a zsh session.
       programs.zsh.initContent = lib.mkAfter ''
         if [ -r "${config.age.secrets.ha-mcp-url.path}" ]; then
           export HOMEASSISTANT_MCP_URL="$(< "${config.age.secrets.ha-mcp-url.path}")"
@@ -407,6 +441,12 @@ in {
       # subagent_type matching the `name:` field in each frontmatter.
       home.file.".claude/agents" = {
         source = ./agents;
+        recursive = true;
+      };
+      # User-scope skills — auto-activated by description match (e.g. the
+      # home-assistant workflow skill).
+      home.file.".claude/skills" = {
+        source = ./skills;
         recursive = true;
       };
       # Install settings.json as a real mutable file instead of a Nix store
@@ -427,6 +467,11 @@ in {
       # (e.g. sshfs mounts) that don't belong in committed settings.json.
       home.activation.claudeCodeProjectSettings = home-manager.lib.hm.dag.entryAfter ["claudeCodeGlobalMcp"] ''
         $DRY_RUN_CMD ${mergeProjectSettingsScript}
+      '';
+      # Drop the HA marker files (.mcp.json + CLAUDE.md) onto the /mnt/haos CIFS
+      # share so working there auto-loads HA mode + the homeassistant MCP.
+      home.activation.claudeCodeHaosMarkers = home-manager.lib.hm.dag.entryAfter ["claudeCodeProjectSettings"] ''
+        $DRY_RUN_CMD ${mergeHaosMarkersScript}
       '';
       programs.claude-code.enable = true;
     };

@@ -3,10 +3,6 @@
     "nixos": {
       "type": "stdio",
       "command": "mcp-nixos"
-    },
-    "homeassistant": {
-      "type": "http",
-      "url": "${HOMEASSISTANT_MCP_URL}"
     }
   }
 }

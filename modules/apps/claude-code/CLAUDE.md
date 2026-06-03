@@ -160,10 +160,13 @@ Global vars: `${TZ}`, `${DOCKER_PUID}`, `${DOCKER_PGID}`, `${DOCKER_SOCKET_GID}`
 
 - **IP:** `10.10.1.11` — Home Assistant OS (HAOS), **native install, not Docker**
 - **API:** `http://10.10.1.11:8123`
-- **MCP:** the `homeassistant` MCP server (project-scoped in `nixos-config/.mcp.json`,
-  URL from the ragenix `ha-mcp-url` secret) exposes `ha_*` tools to read, validate,
-  and write HA config. **This is the way to inspect and change HA** — it is
-  write-capable; mutations prompt for approval.
+- **Config share:** HAOS `/config` is CIFS-mounted at `/mnt/haos`. Working there
+  auto-loads HA mode (see `/mnt/haos/CLAUDE.md`).
+- **MCP:** the `homeassistant` MCP server (project-scoped to `/mnt/haos` and
+  `/mnt/haos/esphome`, URL from the ragenix `ha-mcp-url` secret) exposes `ha_*`
+  tools to read, validate, and write HA config. **This is the way to inspect and
+  change HA** — it is write-capable; mutations prompt for approval. It is not
+  wired in `nixos-config`.
 
 **For any HA work, delegate to the `home-assistant` subagent.** It is MCP-first and
 carries the full convention set. It also loads the authoritative
