@@ -55,6 +55,17 @@ in {
         source = ./skills;
         recursive = true;
       };
+      # Export the Home Assistant MCP URL (private auth key) from the ragenix
+      # secret so opencode's `homeassistant` MCP can resolve `{env:...}` at
+      # launch. Declared here (not only in the claude-code module) so opencode
+      # doesn't silently depend on claude-code being enabled. Home Manager
+      # merges this with any other initContent fragment; a double export is
+      # harmless and idempotent.
+      programs.zsh.initContent = lib.mkAfter ''
+        if [ -r "${config.age.secrets.ha-mcp-url.path}" ]; then
+          export HOMEASSISTANT_MCP_URL="$(< "${config.age.secrets.ha-mcp-url.path}")"
+        fi
+      '';
       home.sessionVariables = {
         OPENCODE_LOG_LEVEL = "debug"; # Force debug logging at env level
         #        OPENCODE_METRICS_ENABLED = "true";
@@ -297,6 +308,17 @@ in {
               type = "local";
               command = [(lib.getExe pkgs.mcp-nixos)];
               timeout = 15000;
+            };
+            # Home Assistant MCP — the same server Claude Code uses. The URL holds
+            # a private auth key, so it comes from the ragenix `ha-mcp-url` secret
+            # via the $HOMEASSISTANT_MCP_URL env var (exported in zsh below);
+            # opencode resolves `{env:...}` at launch. Per-agent access is gated
+            # by `tools.homeassistant = true` in agents.nix.
+            homeassistant = {
+              type = "remote";
+              url = "{env:HOMEASSISTANT_MCP_URL}";
+              enabled = true;
+              timeout = 20000;
             };
           };
         };

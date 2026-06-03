@@ -158,29 +158,23 @@ Global vars: `${TZ}`, `${DOCKER_PUID}`, `${DOCKER_PGID}`, `${DOCKER_SOCKET_GID}`
 
 ## Home Assistant
 
-- **IP:** `10.10.1.11`
-- **OS:** Home Assistant OS (HAOS) — native install, **not Docker**
+- **IP:** `10.10.1.11` — Home Assistant OS (HAOS), **native install, not Docker**
 - **API:** `http://10.10.1.11:8123`
+- **MCP:** the `homeassistant` MCP server (project-scoped in `nixos-config/.mcp.json`,
+  URL from the ragenix `ha-mcp-url` secret) exposes `ha_*` tools to read, validate,
+  and write HA config. **This is the way to inspect and change HA** — it is
+  write-capable; mutations prompt for approval.
 
-### YAML Conventions
-Always use default values in Jinja2 templates:
-```yaml
-# Good
-{{ states('sensor.temperature') | float(0) }}
-# Bad — will error if unavailable
-{{ states('sensor.temperature') | float }}
-```
+**For any HA work, delegate to the `home-assistant` subagent.** It is MCP-first and
+carries the full convention set. It also loads the authoritative
+`home-assistant-best-practices` skill that the MCP ships (via `ha_get_skill_guide` /
+the `skill://home-assistant-best-practices/SKILL.md` resource) — that skill is the
+source of truth for native-vs-template choices, helper selection, automation modes,
+`entity_id` vs `device_id`, Zigbee patterns, safe refactoring, dashboards, and the
+current deprecation list. Do not re-derive those rules here.
 
-### Debugging Automations
-1. Fetch the automation by name or `entity_id`
-2. Read the full YAML — triggers, conditions, actions
-3. Check referenced entities/scripts/helpers
-4. Return a corrected YAML block — not just a description
-
-### Integration
-- Metrics scraped by Prometheus on `10.10.1.13`
-- Logs shipped via Promtail → Loki on `10.10.1.13`
-- ESPHome devices communicate directly with HA
+- ESPHome nodes talk to HA directly on `10.10.1.11`.
+- HA metrics → Prometheus on `10.10.1.13`; logs → Promtail → Loki on `10.10.1.13`.
 
 ---
 

@@ -31,8 +31,9 @@ The LAN is `10.10.0.0/16`, segmented into:
 ## Services reachable on the network
 | Service | URL | Notes |
 |---------|-----|-------|
-| Home Assistant | `http://10.10.1.13:8123` | Via Traefik proxy |
-| MCP Gateway | `http://10.10.1.13:4888/sse` | SSE, exposes hass-mcp / docker-mcp / filesystem |
+| Home Assistant | `http://10.10.1.13:8123` | Web UI via Traefik proxy (HAOS host is `10.10.1.11`) |
+| Home Assistant MCP | `$HOMEASSISTANT_MCP_URL` (`10.10.1.11`) | The `homeassistant` MCP — `ha_*` tools; see the homeassistant knowledge file |
+| MCP Gateway | `http://10.10.1.13:4888/sse` | SSE, exposes docker-mcp / filesystem |
 | Grafana | `http://10.10.1.13` (proxied) | Monitoring dashboards |
 | Ollama | `http://10.10.1.13:11434/v1` | Local LLM inference |
 | Komodo | `http://10.10.1.13` (proxied) | Stack deployment manager |
