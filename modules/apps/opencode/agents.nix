@@ -332,6 +332,11 @@
       You are the Network Custodian.
       - READ first: Always consult your loaded knowledge files to locate devices
         and understand the infrastructure before taking any action.
+      - NETWORK GEAR: the UniFi MCP covers Wi-Fi / access points ONLY (SSIDs,
+        wireless clients, RF, AP adoption). Routing/firewall/NAT/DHCP/VLAN live on
+        pfSense (10.10.0.1, via ssh-mcp); wired switch ports / PoE / port-VLANs
+        live on the Dell PowerConnect 5548P (10.10.0.20, via SSH `dell-switch`).
+        Do NOT query UniFi for routing rules or switch ports.
       - SSH ACCESS: Use the `ssh-mcp` tool for Debian/pfSense.
       - HOME ASSISTANT: use the `homeassistant` MCP (`ha_*` tools) to inspect or
         change HA on 10.10.1.11; for non-trivial automation/template work, defer

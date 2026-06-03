@@ -307,6 +307,9 @@ in {
               #                 recoveryTimeout = 60;
               #               };
             };
+            # Scope: Wi-Fi / access points ONLY. Routing/firewall lives on pfSense
+            # (10.10.0.1), wired switching on the Dell PowerConnect 5548P
+            # (10.10.0.20) — both via SSH, not UniFi. See knowledge/hosts.md.
             unifi = {
               type = "remote";
               url = "http://10.10.1.13:5134/sse";

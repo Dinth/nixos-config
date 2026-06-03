@@ -28,6 +28,26 @@ The LAN is `10.10.0.0/16`, segmented into:
   `10.10.1.13`.
 - Ollama (local LLM inference) runs on `10.10.1.13:11434`.
 
+## Network equipment (`10.10.0.0/24`)
+
+| Device | IP | Role | Managed via |
+|--------|----|------|-------------|
+| pfSense | `10.10.0.1` | **Router / firewall** — routing & firewall rules, NAT, DHCP, VLANs, DNS | `ssh-mcp` / pfSense web UI |
+| Dell PowerConnect 5548P | `10.10.0.20` | **Managed switch** — wired switch ports, VLANs, PoE | SSH (`dell-switch` host, legacy algos) |
+| UniFi APs | `10.10.0.0/24` | **Wi-Fi access points only** | UniFi MCP |
+
+**Read before querying the UniFi MCP:** the UniFi controller (and its MCP) covers
+**only Wi-Fi / access points** — SSIDs, WLANs, wireless clients, RF/channels, AP
+adoption. It does **not** know about routing, firewall rules, NAT, or wired switch
+ports.
+
+- Routing / firewall / NAT / DHCP / VLAN-on-the-router question → **pfSense
+  `10.10.0.1`** (`ssh-mcp`), not UniFi.
+- Wired switch port / PoE / port-VLAN question → **Dell PowerConnect 5548P
+  `10.10.0.20`** (SSH `dell-switch`), not UniFi.
+
+Don't reach for the UniFi MCP for those — it returns nothing useful and wastes the session.
+
 ## Services reachable on the network
 | Service | URL | Notes |
 |---------|-----|-------|
