@@ -9,13 +9,12 @@
   primaryUsername = config.primaryUser.name;
   primaryUid = config.users.users.${primaryUsername}.uid;
 
-  # Mount unit name for the SD card (udisks2 creates this)
-  mountUnit = "run-media-${primaryUsername}-CAM.mount";
+  sourceDir = "/run/media/${primaryUsername}/CAM/DCIM/Movie/RO";
 
   backupScript = pkgs.writeShellScript "dashcam-backup" ''
     set -euo pipefail
 
-    SOURCE="/run/media/${primaryUsername}/CAM/DCIM/Movie/RO/"
+    SOURCE="${sourceDir}/"
     TARGET="/home/${primaryUsername}/Documents/Dashcam/"
 
     # Create target if missing
@@ -51,19 +50,24 @@ in {
   };
 
   config = mkIf cfg.enable {
-    # System service that triggers when the CAM SD card is mounted
+    # Watch for the source directory; udisks2 mounts don't create system-level
+    # .mount units so binding to them doesn't work.
+    systemd.paths.dashcam-backup = {
+      description = "Watch for dashcam SD card mount";
+      wantedBy = ["multi-user.target"];
+      pathConfig = {
+        PathExists = sourceDir;
+        Unit = "dashcam-backup.service";
+      };
+    };
+
     systemd.services.dashcam-backup = {
       description = "Backup dashcam footage from SD card";
-      after = [mountUnit];
-      bindsTo = [mountUnit];
-      wantedBy = [mountUnit];
 
       serviceConfig = {
         Type = "oneshot";
         User = primaryUsername;
         ExecStart = backupScript;
-        # Give mount a moment to settle
-        ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
       };
     };
   };
