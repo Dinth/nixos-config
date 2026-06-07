@@ -136,11 +136,11 @@
   systemd = {
     tpm2.enable = true;
     # Hibernation after 30m of sleep
-    sleep.extraConfig = ''
-      HibernateDelaySec=30m
-      SuspendState=mem
-      HibernateOnACPower=no
-    '';
+    sleep.settings.Sleep = {
+      HibernateDelaySec = "30m";
+      SuspendState = "mem";
+      HibernateOnACPower = "no";
+    };
   };
 
   powerManagement = {

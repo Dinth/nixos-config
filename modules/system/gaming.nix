@@ -52,7 +52,7 @@ in {
       (lutris.override {
         extraPkgs = pkgs:
           with pkgs; [
-            wineWowPackages.staging
+            wineWow64Packages.staging
             winetricks
             dxvk
             vkd3d
@@ -76,7 +76,7 @@ in {
       protonplus
       winetricks
       umu-launcher
-      wineWowPackages.staging
+      wineWow64Packages.staging
       openttd-jgrpp
     ];
   };
