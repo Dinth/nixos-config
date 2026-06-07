@@ -50,6 +50,7 @@ in {
               swtpm.enable = true;
             };
             hooks.qemu."qemu-hook-pf" = ./qemu-hook-pf.sh;
+            hooks.qemu."nas-power" = ./nas-power-hook.sh;
           };
           spiceUSBRedirection.enable = true;
         }
@@ -66,6 +67,7 @@ in {
       };
       environment.systemPackages = with pkgs; [
         libguestfs
+        wakeonlan
       ];
 
       # Networking configuration for libvirt
