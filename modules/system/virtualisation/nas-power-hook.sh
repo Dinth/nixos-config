@@ -3,10 +3,7 @@
 # Wake QNAP NAS (10.10.1.19) before LinuxMint starts, shut it down
 # 600 s after it stops (if no other VMs are still running).
 #
-# SSH key setup (one-time):
-#   sudo ssh-keygen -t ed25519 -f /root/.ssh/qnap_ed25519 -N ""
-#   sudo ssh-copy-id -i /root/.ssh/qnap_ed25519.pub admin@10.10.1.19
-#   (or paste the pubkey via QNAP Control Panel → Users → admin → SSH keys)
+# SSH: uses /home/michal/.ssh/id_ed25519 — pubkey must be in admin@10.10.1.19 authorized_keys.
 
 set -euo pipefail
 
@@ -64,11 +61,19 @@ any_vm_running() {
 shutdown_nas() {
     if nas_reachable; then
         log "Sending poweroff to NAS via SSH"
-        $ssh \
+        # id_ed25519 is passphrase-protected; feed the passphrase via SSH_ASKPASS
+        # so ssh can unlock it non-interactively (same trick as the sshfs mount).
+        local _askpass
+        _askpass=$(mktemp)
+        printf '#!/bin/sh\nexec cat /run/agenix/id-ed25519-passphrase\n' > "$_askpass"
+        chmod 0700 "$_askpass"
+        SSH_ASKPASS="$_askpass" SSH_ASKPASS_REQUIRE=force \
+            $ssh \
             -o StrictHostKeyChecking=accept-new \
             -o ConnectTimeout=10 \
-            -i /root/.ssh/qnap_ed25519 \
+            -i /home/michal/.ssh/id_ed25519 \
             admin@"$NAS_IP" poweroff 2>/dev/null || true
+        rm -f "$_askpass"
     else
         log "NAS already unreachable — skipping SSH poweroff"
     fi
