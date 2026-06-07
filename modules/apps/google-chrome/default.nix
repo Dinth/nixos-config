@@ -59,13 +59,11 @@
 in {
   config = mkIf cfg.enable {
     environment.systemPackages = [
-      pkgs.vdhcoapp
       chromePackage
     ];
     environment.sessionVariables.NO_AT_BRIDGE = "1";
     environment.etc =
       {
-        "opt/chrome/native-messaging-hosts/net.downloadhelper.coapp.json".source = "${pkgs.vdhcoapp}/lib/mozilla/native-messaging-hosts/net.downloadhelper.coapp.json";
         "/opt/chrome/policies/enrollment/CloudManagementEnrollmentToken".source =
           config.age.secrets.chrome-enrolment.path;
         "/opt/chrome/policies/enrollment/CloudManagementEnrollmentOptions".text = "Mandatory";
