@@ -95,9 +95,7 @@
     # to keep its 267 MiB closure in every system generation).
   ];
 
-  # dbus-broker is meaningfully faster than the reference dbus-daemon
-  # (in-kernel message routing via the kdbus protocol family). Still
-  # opt-in in nixos-25.11 — the option default is "dbus".
+  # dbus-broker is the default in nixos-26.05+; kept explicit for clarity.
   services.dbus.implementation = "broker";
 
   # This value determines the NixOS release from which the default
