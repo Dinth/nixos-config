@@ -30,11 +30,9 @@ in {
   );
   # boot.tmp is fully configured in modules/system/security.nix (with tmpfsSize).
   services.fwupd.enable = true;
-  services.earlyoom = {
+  services.nohang = {
     enable = true;
-    freeMemThreshold = 5;
-    freeSwapThreshold = 10;
-    enableNotifications = true;
+    configPath = "desktop";
   };
 
   # Base home-manager config for root (required when modules apply HM config to root)

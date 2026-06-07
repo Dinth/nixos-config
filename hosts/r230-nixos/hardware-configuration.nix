@@ -14,6 +14,7 @@
   boot.loader.grub.devices = ["nodev"];
   boot.loader.grub.device = "/dev/sda";
   boot.loader.grub.useOSProber = false;
+  boot.initrd.systemd.enable = true;
   boot.initrd.availableKernelModules = ["uhci_hcd" "ehci_pci" "ahci" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod"];
   boot.initrd.kernelModules = [];
   boot.kernelModules = [];
