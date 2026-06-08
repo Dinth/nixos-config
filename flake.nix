@@ -100,18 +100,27 @@
     #    initializations. Suppressed via NIX_CFLAGS_COMPILE (cc-wrapper injects
     #    this into every compiler call including the libdb sub-make).
     #
-    # 2. Clang 21 / GCC 15 default to C23, where `bool` and `false` are
+    # 2. GCC 15 / Clang 21 default to C23, where `bool` and `false` are
     #    reserved keywords. libbpf-bootstrap's vmlinux.h still uses
-    #    `typedef _Bool bool` and `false = 0` enum values. Fixed by injecting
-    #    -std=gnu11 into the BPF-specific clang command in FindBpfObject.cmake
-    #    via postPatch (runs after the upstream patches extract and modify that
-    #    file).
+    #    `typedef _Bool bool` and `false = 0` enum values. Two compilation
+    #    paths need fixing:
+    #    a. The host shared library: `add_library(modern SHARED src/modern.bpf.c)`
+    #       in CMakeLists.txt compiles the BPF source with the host GCC 15
+    #       compiler. Fixed by prepending -std=gnu11 to CMAKE_C_FLAGS in the
+    #       line the upstream patch already adds.
+    #    b. The BPF clang invocation in FindBpfObject.cmake (belt-and-suspenders;
+    #       that step already passes in practice, but the flag is correct there
+    #       too).
     wazuhFixOverlay = _: prev: {
       wazuh-agent = prev.wazuh-agent.overrideAttrs (old: {
         NIX_CFLAGS_COMPILE = "-Wno-incompatible-pointer-types";
         postPatch =
           (old.postPatch or "")
           + ''
+            substituteInPlace src/external/libbpf-bootstrap/CMakeLists.txt \
+              --replace-warn \
+              '-Wno-error=implicit-function-declaration -Wno-error=int-conversion' \
+              '-std=gnu11 -Wno-error=implicit-function-declaration -Wno-error=int-conversion'
             substituteInPlace src/external/libbpf-bootstrap/tools/cmake/FindBpfObject.cmake \
               --replace-warn "-g -O2 -target bpf" "-std=gnu11 -g -O2 -target bpf"
           '';
