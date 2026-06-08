@@ -54,7 +54,7 @@ in {
         pyright
         lemminx
         shellcheck
-        nodePackages.prettier
+        prettier
         mcp-nixos
         djlint
         ruff
@@ -252,7 +252,7 @@ in {
             };
             jsonc = {
               command = [
-                (lib.getExe pkgs.nodePackages.prettier)
+                (lib.getExe pkgs.prettier)
                 "--parser"
                 "json"
                 "$FILE"

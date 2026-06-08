@@ -424,7 +424,7 @@ in {
         php83Packages.php-cs-fixer
         shfmt
         shellcheck
-        nodePackages.prettier
+        prettier
         djlint
         ruff
         rtk # Rust Token Killer - reduces LLM token consumption
