@@ -93,24 +93,25 @@
       opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") {inherit wrapBuddy versionCheckHomeHook;};
       rtk = callPkg "/packages/rtk/package.nix";
     };
-    # Two GCC/Clang version compatibility fixes for Wazuh 4.12.0 on NixOS 26.05:
+    # Compiler-compatibility fixes for Wazuh 4.12.0 on NixOS 26.05
+    # (GCC 14/15 and Clang 21 regressions):
     #
     # 1. GCC 14+ made -Wincompatible-pointer-types a hard error; Wazuh's
-    #    bundled Berkeley DB 18.1 triggers it with old-style C function pointer
-    #    initializations. Suppressed via NIX_CFLAGS_COMPILE (cc-wrapper injects
-    #    this into every compiler call including the libdb sub-make).
+    #    bundled Berkeley DB 18.1 triggers it. Suppressed via NIX_CFLAGS_COMPILE
+    #    so the cc-wrapper injects the flag into every compiler call.
     #
-    # 2. GCC 15 / Clang 21 default to C23, where `bool` and `false` are
-    #    reserved keywords. libbpf-bootstrap's vmlinux.h still uses
-    #    `typedef _Bool bool` and `false = 0` enum values. Two compilation
-    #    paths need fixing:
-    #    a. The host shared library: `add_library(modern SHARED src/modern.bpf.c)`
-    #       in CMakeLists.txt compiles the BPF source with the host GCC 15
-    #       compiler. Fixed by prepending -std=gnu11 to CMAKE_C_FLAGS in the
-    #       line the upstream patch already adds.
-    #    b. The BPF clang invocation in FindBpfObject.cmake (belt-and-suspenders;
-    #       that step already passes in practice, but the flag is correct there
-    #       too).
+    # 2. GCC 15 / Clang 21 default to C23. libbpf-bootstrap's vmlinux.h uses
+    #    `typedef _Bool bool` and `false = 0` — both reserved in C23.
+    #    Fixed by prepending -std=gnu11 to CMAKE_C_FLAGS (host shared library
+    #    compile path) and to the BPF clang command in FindBpfObject.cmake.
+    #
+    # 3. GCC 15 libstdc++ no longer transitively includes <cstdint> via
+    #    <string> / <vector>, even in C++17 mode. Wazuh's C++ modules use
+    #    uint8_t / uint32_t in dozens of headers without explicit <cstdint>.
+    #    Fixed by prepending -include cstdint to CMAKE_CXX_FLAGS in every
+    #    cmake build that resets the variable from scratch, plus inserting it
+    #    into the top-level src cmake for the subdirectory modules (utils,
+    #    router, content_manager, http-request, indexer_connector, etc.).
     wazuhFixOverlay = _: prev: {
       wazuh-agent = prev.wazuh-agent.overrideAttrs (old: {
         NIX_CFLAGS_COMPILE = "-Wno-incompatible-pointer-types";
@@ -123,6 +124,23 @@
               '-std=gnu11 -Wno-error=implicit-function-declaration -Wno-error=int-conversion'
             substituteInPlace src/external/libbpf-bootstrap/tools/cmake/FindBpfObject.cmake \
               --replace-warn "-g -O2 -target bpf" "-std=gnu11 -g -O2 -target bpf"
+
+            for f in \
+              src/data_provider/CMakeLists.txt \
+              src/shared_modules/dbsync/CMakeLists.txt \
+              src/shared_modules/rsync/CMakeLists.txt \
+              src/wazuh_modules/syscollector/CMakeLists.txt; do
+              substituteInPlace "$f" \
+                --replace-warn \
+                'CMAKE_CXX_FLAGS "-Wall' \
+                'CMAKE_CXX_FLAGS "-include cstdint -Wall'
+            done
+            substituteInPlace src/shared_modules/keystore/CMakeLists.txt \
+              --replace-warn \
+              'CMAKE_CXX_FLAGS "-fPIC"' \
+              'CMAKE_CXX_FLAGS "-include cstdint -fPIC"'
+            sed -i '/set(CMAKE_CXX_STANDARD_REQUIRED ON)/a set(CMAKE_CXX_FLAGS "-include cstdint")' \
+              src/CMakeLists.txt
           '';
       });
     };
