@@ -93,6 +93,15 @@
       opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") {inherit wrapBuddy versionCheckHomeHook;};
       rtk = callPkg "/packages/rtk/package.nix";
     };
+    # GCC 14 (nixos-26.05) promoted -Wincompatible-pointer-types to a hard
+    # error; Wazuh's bundled Berkeley DB 18.1 triggers it. Suppress the flag
+    # via NIX_CFLAGS_COMPILE so the cc-wrapper injects it into every
+    # compilation in the build, including the libdb sub-make.
+    wazuhFixOverlay = _: prev: {
+      wazuh-agent = prev.wazuh-agent.overrideAttrs (_: {
+        NIX_CFLAGS_COMPILE = "-Wno-incompatible-pointer-types";
+      });
+    };
   in {
     nixosConfigurations = {
       dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
@@ -112,7 +121,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -141,7 +150,7 @@
           # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [wazuh-agent.overlays.wazuh];
+            nixpkgs.overlays = [wazuh-agent.overlays.wazuh wazuhFixOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -168,7 +177,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
