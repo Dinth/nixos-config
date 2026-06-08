@@ -93,13 +93,28 @@
       opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") {inherit wrapBuddy versionCheckHomeHook;};
       rtk = callPkg "/packages/rtk/package.nix";
     };
-    # GCC 14 (nixos-26.05) promoted -Wincompatible-pointer-types to a hard
-    # error; Wazuh's bundled Berkeley DB 18.1 triggers it. Suppress the flag
-    # via NIX_CFLAGS_COMPILE so the cc-wrapper injects it into every
-    # compilation in the build, including the libdb sub-make.
+    # Two GCC/Clang version compatibility fixes for Wazuh 4.12.0 on NixOS 26.05:
+    #
+    # 1. GCC 14+ made -Wincompatible-pointer-types a hard error; Wazuh's
+    #    bundled Berkeley DB 18.1 triggers it with old-style C function pointer
+    #    initializations. Suppressed via NIX_CFLAGS_COMPILE (cc-wrapper injects
+    #    this into every compiler call including the libdb sub-make).
+    #
+    # 2. Clang 21 / GCC 15 default to C23, where `bool` and `false` are
+    #    reserved keywords. libbpf-bootstrap's vmlinux.h still uses
+    #    `typedef _Bool bool` and `false = 0` enum values. Fixed by injecting
+    #    -std=gnu11 into the BPF-specific clang command in FindBpfObject.cmake
+    #    via postPatch (runs after the upstream patches extract and modify that
+    #    file).
     wazuhFixOverlay = _: prev: {
-      wazuh-agent = prev.wazuh-agent.overrideAttrs (_: {
+      wazuh-agent = prev.wazuh-agent.overrideAttrs (old: {
         NIX_CFLAGS_COMPILE = "-Wno-incompatible-pointer-types";
+        postPatch =
+          (old.postPatch or "")
+          + ''
+            substituteInPlace src/external/libbpf-bootstrap/tools/cmake/FindBpfObject.cmake \
+              --replace-warn "-g -O2 -target bpf" "-std=gnu11 -g -O2 -target bpf"
+          '';
       });
     };
   in {
