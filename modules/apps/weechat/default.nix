@@ -53,7 +53,7 @@
         /set plugins.var.python.slack.auto_open_threads true
         /set plugins.var.python.slack.thread_messages_in_channel false
         /set plugins.var.python.slack.notify_subscribed_threads auto
-        /set plugins.var.python.slack.background_load_all_history true
+        /set plugins.var.python.slack.background_load_all_history false
         /set plugins.var.python.slack.history_fetch_count 50
         /set plugins.var.python.slack.files_download_location "~/Downloads/weeslack"
 
