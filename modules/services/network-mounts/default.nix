@@ -33,6 +33,7 @@
   cifsOptions = credPath: [
     "credentials=${credPath}"
     "rw"
+    "sync"
     "noserverino"
     "actimeo=1"
     "noperm"
