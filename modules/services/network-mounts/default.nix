@@ -108,6 +108,7 @@ in {
           "uid=${primaryUid}"
           "gid=${primaryGid}"
           "reconnect"
+          "workaround=rename"
           "ServerAliveInterval=15"
           "ServerAliveCountMax=3"
           "StrictHostKeyChecking=accept-new"
