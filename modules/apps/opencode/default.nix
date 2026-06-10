@@ -189,6 +189,10 @@ in {
             bash =
               bashFromList "ask" config.agentPermissions.askBash
               // bashFromList "allow" config.agentPermissions.readOnlyBash;
+            # Auto-allow the read-only HA skill-guide MCP tool (the
+            # home-assistant agent loads it on every run). opencode names
+            # MCP tools `<server>_<tool>`.
+            "homeassistant_ha_get_skill_guide" = "allow";
             edit = "ask";
             read = "allow";
             context_info = "allow";
