@@ -33,7 +33,6 @@
   cifsOptions = credPath: [
     "credentials=${credPath}"
     "rw"
-    "sync"
     "noserverino"
     "actimeo=1"
     "noperm"
@@ -89,7 +88,9 @@ in {
       fileSystems."/mnt/haos" = {
         device = "//10.10.1.11/config";
         fsType = "cifs";
-        options = cifsOptions "/run/agenix/smb-haos-creds";
+        # sync: force synchronous writes so edits flush to the HAOS disk before
+        # save returns, otherwise HA reloads can miss freshly-written config.
+        options = cifsOptions "/run/agenix/smb-haos-creds" ++ ["sync"];
       };
     })
     (mkIf cfg.sftp.omv {
