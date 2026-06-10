@@ -89,5 +89,5 @@
   # Ship journald → omv Loki via Grafana Alloy.
   alloy.enable = true;
   # Wazuh agent → manager at 10.10.1.18.
-  wazuh.enable = true;
+  wazuh.enable = false; # temporarily disabled
 }

@@ -69,7 +69,7 @@
   docker.enable = false;
   yubikey.enable = true;
   # Wazuh agent → manager at 10.10.1.18.
-  wazuh.enable = true;
+  wazuh.enable = false; # temporarily disabled
   primaryUser = {
     name = "michal";
     fullName = "Michal Gawronski-Kot";
