@@ -15,7 +15,7 @@
       rootIndicationFileNames = ["flake.nix" "flake.lock" "default.nix"];
       settings = {
         nil = {
-          formatting = {command = ["${pkgs.nixfmt-rfc-style}/bin/nixfmt"];};
+          formatting = {command = ["${pkgs.nixfmt}/bin/nixfmt"];};
         };
       };
     };
@@ -77,7 +77,7 @@ in {
         intelephense
         lemminx
         nix-doc
-        nixfmt-rfc-style
+        nixfmt
         statix
         nix-diff
         nix-tree

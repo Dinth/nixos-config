@@ -77,7 +77,7 @@
         mqtt-explorer
         discord
         signal-desktop
-        caido
+        caido-desktop
         milkytracker
       ];
     };

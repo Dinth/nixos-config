@@ -93,8 +93,8 @@ in {
       };
       programs.opencode = {
         enable = true;
+        tui.theme = "catppuccin";
         settings = {
-          theme = "catppuccin";
           provider = {
             opencode = {
               #               timeout = 120000;
@@ -247,9 +247,9 @@ in {
             };
           };
           formatter = {
-            nixfmt-rfc-style = {
+            nixfmt = {
               command = [
-                (lib.getExe pkgs.nixfmt-rfc-style)
+                (lib.getExe pkgs.nixfmt)
                 "$FILE"
               ];
               extensions = [".nix"];

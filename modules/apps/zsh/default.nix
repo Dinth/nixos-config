@@ -19,6 +19,9 @@ in {
       ));
       programs.zsh = {
         enable = true;
+        # Keep zsh dotfiles in $HOME (legacy behaviour). The default flips to
+        # $XDG_CONFIG_HOME/zsh once home.stateVersion >= "26.05".
+        dotDir = config.home.homeDirectory;
         enableCompletion = true;
         autosuggestion.enable = true;
         syntaxHighlighting.enable = true;

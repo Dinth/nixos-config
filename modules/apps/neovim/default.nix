@@ -20,7 +20,7 @@ in {
         withRuby = false;
         withPython3 = false;
 
-        extraLuaConfig = ''
+        initLua = ''
           -- ============================================================
           -- mcedit-like neovim configuration (catppuccin theme)
           -- ============================================================
