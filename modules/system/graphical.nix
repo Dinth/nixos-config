@@ -55,9 +55,23 @@ in {
       hinting = {
         enable = mkDefault true;
         style = mkDefault "full";
-        autohint = mkDefault true;
+        # Let well-hinted fonts (corefonts, vista-fonts, Ubuntu) use their native
+        # bytecode hinting; forcing the autohinter degraded rendering after the
+        # freetype 2.13->2.14 bump in the 26.05 upgrade.
+        autohint = mkDefault false;
       };
       allowBitmaps = mkDefault false;
+      # Avoid pixelated embedded bitmaps in fonts like Calibri/Cambria at small sizes.
+      useEmbeddedBitmaps = mkDefault false;
+      # Pin generic-family resolution: otherwise `monospace` leaked to Hack (a
+      # transitive dep) instead of the Fira Code we install, and emoji/CJK had no
+      # fallback in the chain.
+      defaultFonts = {
+        sansSerif = mkDefault ["Noto Sans" "Noto Sans CJK SC" "Noto Color Emoji"];
+        serif = mkDefault ["Noto Serif" "Noto Serif CJK SC" "Noto Color Emoji"];
+        monospace = mkDefault ["FiraCode Nerd Font Mono" "Noto Sans Mono CJK SC" "Noto Color Emoji"];
+        emoji = mkDefault ["Noto Color Emoji"];
+      };
     };
     orcaslicer.enable = mkDefault true;
     security.rtkit.enable = mkDefault true;
