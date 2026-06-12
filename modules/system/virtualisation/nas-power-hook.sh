@@ -21,6 +21,7 @@ wakeonlan="/run/current-system/sw/bin/wakeonlan"
 date="/run/current-system/sw/bin/date"
 sleep="/run/current-system/sw/bin/sleep"
 systemctl="/run/current-system/sw/bin/systemctl"
+systemd_run="/run/current-system/sw/bin/systemd-run"
 virsh="/run/current-system/sw/bin/virsh"
 grep="/run/current-system/sw/bin/grep"
 ssh="/run/current-system/sw/bin/ssh"
@@ -84,6 +85,8 @@ shutdown_nas() {
 case "$operation" in
     prepare)
         [ "$sub_op" = "begin" ] || exit 0
+        # Cancel a shutdown still pending from a stop inside the delay window.
+        $systemctl stop nas-power-shutdown.timer 2>/dev/null || true
         if nas_reachable; then
             log "NAS already up, skipping WoL"
         else
@@ -94,16 +97,28 @@ case "$operation" in
 
     release)
         [ "$sub_op" = "end" ] || exit 0
-        # Return immediately so libvirt is not blocked during VM cleanup.
-        (
-            log "LinuxMint released — waiting 600 s before NAS shutdown"
-            $sleep 600
-            if any_vm_running; then
-                log "A VM is still running — skipping NAS shutdown"
-            else
-                shutdown_nas
-            fi
-        ) &
-        disown $!
+        # Schedule the shutdown via a transient systemd timer rather than a
+        # backgrounded subshell. A child of this hook inherits libvirt's stdout
+        # pipe, so libvirt would block on VM cleanup until the delay elapsed.
+        # systemd-run fully detaches the job and makes it cancellable from the
+        # prepare branch when the VM restarts inside the delay window.
+        log "LinuxMint released — scheduling NAS shutdown in 600 s"
+        $systemctl stop nas-power-shutdown.timer 2>/dev/null || true
+        $systemctl reset-failed nas-power-shutdown.service nas-power-shutdown.timer 2>/dev/null || true
+        $systemd_run --quiet --collect \
+            --unit=nas-power-shutdown \
+            --description="Shut down QNAP NAS 600 s after LinuxMint stopped" \
+            --on-active=600 \
+            "$0" "$VM_DOMAIN" deferred-shutdown end \
+            || log "ERROR: failed to schedule NAS shutdown timer"
+        ;;
+
+    deferred-shutdown)
+        # Fired by the nas-power-shutdown systemd timer (see release branch).
+        if any_vm_running; then
+            log "A VM is still running — skipping NAS shutdown"
+        else
+            shutdown_nas
+        fi
         ;;
 esac
