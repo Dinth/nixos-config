@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   inherit (lib) mkIf mkOption;
@@ -22,22 +23,55 @@ in {
       '';
     };
 
-    managerIP = mkOption {
+    managerHost = mkOption {
       type = lib.types.str;
-      default = "10.10.1.18";
-      description = "IP/hostname of the Wazuh manager (registration on 1515, reporting on 1514).";
+      default = "edr.wickhay.uk";
+      description = "IP/hostname of the Wazuh manager (reporting on managerPort, enrolment on registrationPort).";
+    };
+
+    managerPort = mkOption {
+      type = lib.types.port;
+      default = 9514;
+      description = "Port the manager listens on for agent reporting traffic.";
+    };
+
+    registrationPort = mkOption {
+      type = lib.types.port;
+      default = 9515;
+      description = "Port the manager listens on for agent enrolment (agent-auth).";
     };
   };
 
   config = mkIf cfg.enable {
+    # Enrolment password for agent-auth. The upstream `agentAuthPassword`
+    # option bakes the password into a world-readable /nix/store script, so we
+    # keep it out of the store: decrypt via ragenix and drop it into
+    # authd.pass at runtime (see the ExecStartPre below). Owned by the wazuh
+    # user the upstream module creates so agent-auth can read it.
+    age.secrets.wazuh-enrolment = {
+      file = ../../../secrets/wazuh-enrolment.age;
+      owner = "wazuh";
+      group = "wazuh";
+      mode = "0400";
+    };
+
     services.wazuh-agent = {
       enable = true;
-      # Reporting on 1514, enrolment (agent-auth) on 1515. registration.host
-      # must be set explicitly: when left null the upstream module falls back
-      # to manager.host *and* manager.port (1514), which would send enrolment
-      # to the wrong port. Same server, default registration port (1515).
-      manager.host = cfg.managerIP;
-      registration.host = cfg.managerIP;
+      # Reporting on managerPort, enrolment (agent-auth) on registrationPort.
+      # registration.host must be set explicitly: when left null the upstream
+      # module falls back to manager.host *and* manager.port, which would send
+      # enrolment to the reporting port. Same server, separate ports.
+      manager.host = cfg.managerHost;
+      manager.port = cfg.managerPort;
+      registration.host = cfg.managerHost;
+      registration.port = cfg.registrationPort;
     };
+
+    # Install the enrolment password into authd.pass before agent-auth runs.
+    # agent-auth reads /var/ossec/etc/authd.pass automatically; runs as the
+    # wazuh user, which owns both the secret and the ossec etc dir.
+    systemd.services.wazuh-agent-auth.serviceConfig.ExecStartPre = [
+      "${lib.getExe' pkgs.coreutils "install"} -m 0640 ${config.age.secrets.wazuh-enrolment.path} /var/ossec/etc/authd.pass"
+    ];
   };
 }

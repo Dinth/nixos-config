@@ -68,7 +68,7 @@
   weechat.enable = true;
   docker.enable = false;
   yubikey.enable = true;
-  # Wazuh agent → manager at 10.10.1.18.
+  # Wazuh agent → manager at edr.wickhay.uk.
   wazuh.enable = false; # temporarily disabled
   primaryUser = {
     name = "michal";
