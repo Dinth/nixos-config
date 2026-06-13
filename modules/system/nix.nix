@@ -18,6 +18,14 @@
     "https://cache.nixos.org"
     "https://nix-community.cachix.org"
   ];
+  # Public key for nix-community.cachix.org. Without it, Nix silently
+  # refuses every path that cache signs and falls back to cache.nixos.org
+  # or a local rebuild — so the substituter line above was dead weight
+  # until this was added. cache.nixos.org's own key is a NixOS default and
+  # is merged in automatically, so it isn't repeated here.
+  nix.settings.trusted-public-keys = [
+    "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+  ];
   environment.systemPackages = with pkgs; [
     nix-diff
   ];
