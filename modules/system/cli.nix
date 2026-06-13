@@ -12,6 +12,13 @@
     getExe
     ;
   cfg = config.cli;
+  # GPU-aware resource monitor: the ROCm build on hosts with an AMD GPU,
+  # plain btop elsewhere. Shared by the system package and the `top` alias
+  # so they resolve to the same binary (the btop HM module picks the same).
+  btopPackage =
+    if config.amd_gpu.enable
+    then pkgs.btop-rocm
+    else pkgs.btop;
 in {
   options = {
     cli = {
@@ -38,11 +45,7 @@ in {
       jq # Lightweight and flexible command-line JSON processor
 
       # -- System Monitoring --
-      (
-        if config.amd_gpu.enable
-        then pkgs.btop-rocm
-        else pkgs.btop
-      ) # Resource monitor (CPU, Mem, Net) with specific support for AMD GPUs
+      btopPackage # Resource monitor (CPU, Mem, Net) with specific support for AMD GPUs
       iotop # Top-like interface for monitoring disk I/O usage by process
       iftop # Display bandwidth usage on a network interface
       hwinfo # Detailed hardware identification tool
@@ -72,7 +75,6 @@ in {
       pciutils # Utilities for inspecting PCI devices (provides 'lspci')
       usbutils # Utilities for inspecting USB devices (provides 'lsusb')
       sqlite.bin
-      jq
 
       # -- Archiving --
       zip # Packager for .zip files
@@ -90,7 +92,7 @@ in {
       ls = "${getExe pkgs.eza} -l --icons --git --group-directories-first"; # Use icons and group dirs
       tree = "${getExe pkgs.eza} --tree --all"; # Tree view using eza, include hidden
       cat = "${getExe pkgs.bat}"; # Use bat for reading files
-      top = "${getExe pkgs.btop}"; # Use btop for top
+      top = "${getExe btopPackage}"; # Use btop for top (GPU-aware on AMD hosts)
       ip = "${lib.getExe' pkgs.iproute2 "ip"} --color=auto"; # Colorize IP output
       # grep/find/diff/dig/nslookup/man/htop/unzip are handled by hint-wrapper
       # functions in modules/apps/zsh/default.nix — defining them as aliases

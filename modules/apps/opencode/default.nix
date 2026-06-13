@@ -87,7 +87,7 @@ in {
         $DRY_RUN_CMD ${mergeHaosMarkerScript}
       '';
       home.sessionVariables = {
-        OPENCODE_LOG_LEVEL = "debug"; # Force debug logging at env level
+        OPENCODE_LOG_LEVEL = "info"; # Bump to "debug" only when troubleshooting
         #        OPENCODE_METRICS_ENABLED = "true";
         #        OPENCODE_METRICS_ENDPOINT = "http://10.10.1.13:9090/metrics";  # Prometheus - to add
       };

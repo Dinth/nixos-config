@@ -47,7 +47,7 @@
     core_public_keys = [${lib.concatMapStringsSep ", " (k: ''"${k}"'') cfg.corePublicKeys}]
 
     [logging]
-    level = "trace"
+    level = "info"
   '';
 in {
   options.komodo-periphery = {

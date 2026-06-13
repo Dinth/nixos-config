@@ -11,8 +11,11 @@
   services.qemuGuest.enable = true;
 
   boot.loader.grub.enable = true; # Use the boot drive for GRUB
-  boot.loader.grub.devices = ["nodev"];
-  boot.loader.grub.device = "/dev/sda";
+  # BIOS Proxmox guest: install GRUB to the boot disk's MBR. Previously this
+  # set both `devices = ["nodev"]` (EFI-style, "don't install to a disk") and
+  # `device = "/dev/sda"`, which contradict each other — `nodev` belongs to
+  # EFI installs. The list form pointed at /dev/sda is the correct BIOS setup.
+  boot.loader.grub.devices = ["/dev/sda"];
   boot.loader.grub.useOSProber = false;
   boot.initrd.systemd.enable = true;
   boot.initrd.availableKernelModules = ["uhci_hcd" "ehci_pci" "ahci" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod"];

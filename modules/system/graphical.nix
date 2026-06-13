@@ -27,10 +27,12 @@ in {
       libvlc
       libva
       libva-utils
-      mesa
+      # mesa / vulkan-validation-layers dropped: GPU drivers belong in
+      # hardware.graphics.extraPackages (set per-host), not systemPackages,
+      # and the validation layers are a heavyweight dev-only closure that no
+      # app loads unless it explicitly requests Vulkan validation.
       vulkan-tools
       vulkan-loader
-      vulkan-validation-layers
       mpv
       wl-clipboard
       libvdpau-va-gl
