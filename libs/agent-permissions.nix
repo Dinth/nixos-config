@@ -84,8 +84,6 @@ in {
         "tree"
         "eza"
         "diff"
-        "mkdir"
-        "chmod"
         "readlink"
         "realpath"
         "strings"
@@ -195,10 +193,14 @@ in {
         "git checkout"
         "git switch"
         "git stash"
-        # Filesystem write
+        # Filesystem write. chmod/mkdir live here, not in readOnlyBash:
+        # chmod can flip a private key world-readable or mark a dropped
+        # file executable, and mkdir is a write — neither is read-only.
         "rm"
         "mv"
         "cp"
+        "chmod"
+        "mkdir"
         # Process management
         "kill"
         "killall"

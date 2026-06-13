@@ -64,7 +64,7 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = ["networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" "input"];
+    extraGroups = ["networkmanager" "wheel" "scanner" "network" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" "input"];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {
