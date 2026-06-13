@@ -41,7 +41,9 @@
       "k10temp"
       "it87"
       "amdgpu"
-      "efi_pstore" # TEMPORARY: load EFI pstore backend so panic dmesg is persisted into EFI vars
+      # Suspend-hang investigation concluded (2026-06) — left commented so the
+      # capture rig can be re-armed quickly if the second-sleep hang returns.
+      # "efi_pstore" # TEMPORARY: load EFI pstore backend so panic dmesg is persisted into EFI vars
     ];
     extraModulePackages = [
       config.boot.kernelPackages.r8125
@@ -64,12 +66,16 @@
       "amdgpu.aspm=0" # Disable PCIe ASPM to prevent SMU firmware deadlock on Navi22 during runtime
       "amdgpu.runpm=0" # Keep GPU in D0 during runtime idle; prevents entering D3 between frames
       "amdgpu.sg_display=0" # Disable scatter-gather display to prevent DC state corruption across sleep cycles on Navi22
-      "no_console_suspend" # TEMPORARY: keep console alive during suspend to diagnose second-sleep hang
-      "panic=300" # TEMPORARY: wait 5 min before reboot on panic so we can read the backtrace
-      "pstore.backend=efi" # TEMPORARY: persist panic dmesg into EFI vars so we can recover backtrace after auto-reboot
-      "nmi_watchdog=1" # TEMPORARY: arm NMI watchdog (prerequisite for hardlockup_panic)
-      "softlockup_panic=1" # TEMPORARY: convert >20s kernel-side stalls into panic so pstore captures them
-      "hardlockup_panic=1" # TEMPORARY: convert CPU-stuck-with-irqs-off hangs into panic so pstore captures them
+      # Suspend-hang capture rig — concluded (2026-06), left commented so it can
+      # be re-armed quickly if the second-sleep hang returns. nmi_watchdog and
+      # the *_panic params each carry a real running cost (a perf counter, plus
+      # turning recoverable stalls into forced reboots), so they don't stay on.
+      # "no_console_suspend" # TEMPORARY: keep console alive during suspend to diagnose second-sleep hang
+      # "panic=300" # TEMPORARY: wait 5 min before reboot on panic so we can read the backtrace
+      # "pstore.backend=efi" # TEMPORARY: persist panic dmesg into EFI vars so we can recover backtrace after auto-reboot
+      # "nmi_watchdog=1" # TEMPORARY: arm NMI watchdog (prerequisite for hardlockup_panic)
+      # "softlockup_panic=1" # TEMPORARY: convert >20s kernel-side stalls into panic so pstore captures them
+      # "hardlockup_panic=1" # TEMPORARY: convert CPU-stuck-with-irqs-off hangs into panic so pstore captures them
       "split_lock_mitigate=0" # Disable split-lock throttling; recovers FPS in Wine/Proton games doing atomic split-lock ops
     ];
     extraModprobeConfig = ''
@@ -363,18 +369,20 @@
     # are captured out-of-band. netconsole is a module on NixOS kernels, so the
     # `netconsole=` kernel cmdline is silently dropped — it must be loaded with
     # modprobe options after the source NIC has an IP.
-    services.netconsole = {
-      description = "Kernel netconsole → OMV";
-      wantedBy = ["multi-user.target"];
-      after = ["network-online.target"];
-      wants = ["network-online.target"];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = "${pkgs.kmod}/bin/modprobe netconsole netconsole=6666@10.10.10.10/enp5s0,6666@10.10.1.13/d0:94:66:4e:fe:59";
-        ExecStop = "${pkgs.kmod}/bin/modprobe -r netconsole";
-      };
-    };
+    # Suspend-hang investigation concluded (2026-06) — left commented so the
+    # out-of-band capture can be re-armed quickly if the hang returns.
+    # services.netconsole = {
+    #   description = "Kernel netconsole → OMV";
+    #   wantedBy = ["multi-user.target"];
+    #   after = ["network-online.target"];
+    #   wants = ["network-online.target"];
+    #   serviceConfig = {
+    #     Type = "oneshot";
+    #     RemainAfterExit = true;
+    #     ExecStart = "${pkgs.kmod}/bin/modprobe netconsole netconsole=6666@10.10.10.10/enp5s0,6666@10.10.1.13/d0:94:66:4e:fe:59";
+    #     ExecStop = "${pkgs.kmod}/bin/modprobe -r netconsole";
+    #   };
+    # };
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
