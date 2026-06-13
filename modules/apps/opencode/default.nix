@@ -247,9 +247,13 @@ in {
             };
           };
           formatter = {
-            nixfmt = {
+            # alejandra, not nixfmt — the flake's `nix fmt` and the
+            # checks.format gate both enforce alejandra, so formatting Nix
+            # with anything else just makes `nix flake check` fail.
+            alejandra = {
               command = [
-                (lib.getExe pkgs.nixfmt)
+                (lib.getExe pkgs.alejandra)
+                "-q"
                 "$FILE"
               ];
               extensions = [".nix"];

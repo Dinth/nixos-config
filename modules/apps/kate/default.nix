@@ -15,7 +15,9 @@
       rootIndicationFileNames = ["flake.nix" "flake.lock" "default.nix"];
       settings = {
         nil = {
-          formatting = {command = ["${pkgs.nixfmt}/bin/nixfmt"];};
+          # alejandra (stdin via "-"), not nixfmt — matches the flake's
+          # `nix fmt` / checks.format gate so Kate-formatted files pass CI.
+          formatting = {command = ["${lib.getExe pkgs.alejandra}" "-q" "-"];};
         };
       };
     };
@@ -77,7 +79,7 @@ in {
         intelephense
         lemminx
         nix-doc
-        nixfmt
+        alejandra
         statix
         nix-diff
         nix-tree

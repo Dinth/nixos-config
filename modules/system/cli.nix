@@ -3,17 +3,16 @@
   lib,
   pkgs,
   ...
-}:
-let
-  inherit (lib)
+}: let
+  inherit
+    (lib)
     mkIf
     mkOption
     mkDefault
     getExe
     ;
   cfg = config.cli;
-in
-{
+in {
   options = {
     cli = {
       enable = mkOption {
@@ -39,7 +38,11 @@ in
       jq # Lightweight and flexible command-line JSON processor
 
       # -- System Monitoring --
-      (if config.amd_gpu.enable then pkgs.btop-rocm else pkgs.btop) # Resource monitor (CPU, Mem, Net) with specific support for AMD GPUs
+      (
+        if config.amd_gpu.enable
+        then pkgs.btop-rocm
+        else pkgs.btop
+      ) # Resource monitor (CPU, Mem, Net) with specific support for AMD GPUs
       iotop # Top-like interface for monitoring disk I/O usage by process
       iftop # Display bandwidth usage on a network interface
       hwinfo # Detailed hardware identification tool
