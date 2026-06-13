@@ -72,6 +72,10 @@
   amd_gpu.enable = false;
   printers.enable = false;
   weechat.enable = false;
+  # Headless Proxmox docker VM — the paths ClamAV scans (Downloads,
+  # /run/media) don't meaningfully exist here, so the resident ~1.2 GB
+  # signature DB and fanotify scanner are pure overhead. Wazuh covers EDR.
+  clamav.enable = false;
   # Docker TCP socket is closed — Home Assistant queries via a
   # tecnativa docker-socket-proxy container instead, which exposes a
   # filtered, read-mostly view of the daemon over its own port.

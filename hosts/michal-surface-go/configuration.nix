@@ -68,6 +68,10 @@
   weechat.enable = true;
   docker.enable = false;
   yubikey.enable = true;
+  # 4–8 GB tablet: keep the daily scheduled ClamAV scan but drop on-access
+  # scanning, which otherwise holds the ~1.2 GB signature DB resident and
+  # scans every file open — too heavy for this RAM budget.
+  clamav.accessScanning.enable = false;
   # Wazuh agent → manager at edr.wickhay.uk.
   wazuh.enable = true;
   primaryUser = {
@@ -85,7 +89,7 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = ["networkmanager" "wheel" "scanner" "network" "disk" "audio" "video" "vboxusers" "dialout" "gamemode" "lp"];
+    extraGroups = ["networkmanager" "wheel" "scanner" "network" "audio" "video" "vboxusers" "dialout" "gamemode" "lp"];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {

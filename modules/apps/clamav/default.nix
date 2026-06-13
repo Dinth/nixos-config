@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib) mkOption;
+  inherit (lib) mkIf mkMerge mkOption;
   cfg = config.clamav;
 in {
   options = {
@@ -38,126 +38,145 @@ in {
       };
     };
   };
-  config = let
-    allNormalUsers = lib.attrsets.filterAttrs (_: u: u.isNormalUser) config.users.users;
-    allACScanHomeDirs =
-      builtins.concatMap (
-        dir: lib.attrsets.mapAttrsToList (_: u: u.home + "/" + dir) allNormalUsers
-      )
-      cfg.accessScanning.homeDirectories;
-  in {
-    clamav.accessScanning.directories = allACScanHomeDirs;
-    services.clamav = {
-      daemon = {
-        enable = true;
-        settings = {
-          LogFile = "/var/log/clamav/clamav.log";
-          DatabaseDirectory = "/var/lib/clamav";
-          ExtendedDetectionInfo = "yes";
-          OnAccessIncludePath = cfg.accessScanning.directories;
-          OnAccessPrevention = false;
-          OnAccessExtraScanning = false;
-          OnAccessExcludeUname = "clamav";
-          MaxFileSize = "250M";
-          MaxScanSize = "4000M";
-          MaxScanTime = "60000";
-          MaxRecursion = 3;
-          MaxFiles = 5000;
-          StreamMaxLength = "100M";
-          OnAccessMaxFileSize = "100M";
-          BytecodeTimeout = "60000";
-          User = "clamav";
-          ScanPE = true;
-          ScanELF = true;
-          ScanMail = true;
-          ScanArchive = true;
-          ScanHTML = true;
-          ScanOLE2 = true;
-          ScanPDF = true;
-          ScanSWF = true;
-          OnAccessMaxThreads = 12;
-          MaxThreads = 16;
-          MaxQueue = 200;
-          CrossFilesystems = false;
-        };
-      };
-      updater = {
-        enable = true;
-        settings = {
-          UpdateLogFile = "/var/log/clamav/freshclam.log";
-          DatabaseDirectory = "/var/lib/clamav";
-          CompressLocalDatabase = false;
-        };
-        interval = "daily";
-        frequency = 1;
-      };
-      fangfrisch = {
-        enable = true;
-        interval = "daily";
-        settings = {
-          DEFAULT.db_url = "sqlite:////var/lib/clamav/fangfrisch_db.sqlite";
-          DEFAULT.local_directory = "/var/lib/clamav";
-          DEFAULT.log_level = "INFO";
-          urlhaus.enabled = "yes";
-          urlhaus.max_size = "2MB";
-          sanesecurity.enabled = "yes";
-        };
-      };
-      scanner = {
-        scanDirectories = [
-          "/home"
-          "/tmp"
-          "/run/media"
-          "/run/user"
-        ];
-        interval = "*-*-* 09:00:00";
-      };
-    };
-    systemd.services.clamav-fangfrisch-init = {
-      after = ["network-online.target"];
-      wants = ["network-online.target"];
-    };
-    systemd.services.clamav-fangfrisch = {
-      after = ["network-online.target"];
-      wants = ["network-online.target"];
-    };
-    systemd.services."clamav-clamonacc" = {
-      description = "ClamAV On-Access Scanner";
-      documentation = ["man:clamonacc(8)" "man:clamd.conf(5)" "https://docs.clamav.net/"];
-      requires = ["clamav-daemon.service"];
-      after = ["clamav-daemon.service"];
-      wantedBy = ["multi-user.target"];
-      serviceConfig = {
-        Type = "simple";
-        # Root required for fanotify (CAP_SYS_ADMIN), but capabilities are restricted
-        User = "root";
-        ExecStartPre = ''${lib.getExe pkgs.bash} -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
-        ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F -c /etc/clamav/clamd.conf --move /var/lib/quarantine --fdpass --allmatch'';
-        StandardOutput = "journal";
-        StandardError = "journal";
-        ExecReload = ''${lib.getExe' pkgs.coreutils "kill"} -USR2 $MAINPID'';
-        # Capability restrictions - only what fanotify needs
-        CapabilityBoundingSet = "CAP_SYS_ADMIN CAP_DAC_READ_SEARCH";
-        AmbientCapabilities = "CAP_SYS_ADMIN CAP_DAC_READ_SEARCH";
-        # Hardening (relaxed - scanner needs broad filesystem read access)
-        PrivateTmp = true;
-        PrivateDevices = true;
-        PrivateNetwork = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
-        NoNewPrivileges = true;
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
-        RestrictRealtime = true;
-      };
-    };
-    systemd.tmpfiles.rules = [
-      "d /var/log/clamav 0755 clamav clamav - -"
-      "d /var/lib/quarantine 0755 root root - -"
-    ];
-    environment.variables = {
-      CLAMAV_ONACCESS_FLAGS = "--fanotify"; # Avoid legacy inotify
-    };
-  };
+  config = mkIf cfg.enable (
+    let
+      allNormalUsers = lib.attrsets.filterAttrs (_: u: u.isNormalUser) config.users.users;
+      allACScanHomeDirs =
+        builtins.concatMap (
+          dir: lib.attrsets.mapAttrsToList (_: u: u.home + "/" + dir) allNormalUsers
+        )
+        cfg.accessScanning.homeDirectories;
+    in
+      mkMerge [
+        # ── Base on-demand stack ─────────────────────────────────────
+        # clamd + freshclam + fangfrisch signature feeds + the scheduled
+        # scanner. Runs whenever clamav.enable is set.
+        {
+          services.clamav = {
+            daemon = {
+              enable = true;
+              settings = {
+                LogFile = "/var/log/clamav/clamav.log";
+                DatabaseDirectory = "/var/lib/clamav";
+                ExtendedDetectionInfo = "yes";
+                MaxFileSize = "250M";
+                MaxScanSize = "4000M";
+                MaxScanTime = "60000";
+                MaxRecursion = 3;
+                MaxFiles = 5000;
+                StreamMaxLength = "100M";
+                BytecodeTimeout = "60000";
+                User = "clamav";
+                ScanPE = true;
+                ScanELF = true;
+                ScanMail = true;
+                ScanArchive = true;
+                ScanHTML = true;
+                ScanOLE2 = true;
+                ScanPDF = true;
+                ScanSWF = true;
+                MaxThreads = 16;
+                MaxQueue = 200;
+                CrossFilesystems = false;
+              };
+            };
+            updater = {
+              enable = true;
+              settings = {
+                UpdateLogFile = "/var/log/clamav/freshclam.log";
+                DatabaseDirectory = "/var/lib/clamav";
+                CompressLocalDatabase = false;
+              };
+              interval = "daily";
+              frequency = 1;
+            };
+            fangfrisch = {
+              enable = true;
+              interval = "daily";
+              settings = {
+                DEFAULT.db_url = "sqlite:////var/lib/clamav/fangfrisch_db.sqlite";
+                DEFAULT.local_directory = "/var/lib/clamav";
+                DEFAULT.log_level = "INFO";
+                urlhaus.enabled = "yes";
+                urlhaus.max_size = "2MB";
+                sanesecurity.enabled = "yes";
+              };
+            };
+            scanner = {
+              scanDirectories = [
+                "/home"
+                "/tmp"
+                "/run/media"
+                "/run/user"
+              ];
+              interval = "*-*-* 09:00:00";
+            };
+          };
+          systemd.services.clamav-fangfrisch-init = {
+            after = ["network-online.target"];
+            wants = ["network-online.target"];
+          };
+          systemd.services.clamav-fangfrisch = {
+            after = ["network-online.target"];
+            wants = ["network-online.target"];
+          };
+          systemd.tmpfiles.rules = [
+            "d /var/log/clamav 0755 clamav clamav - -"
+          ];
+        }
+
+        # ── On-access scanning (fanotify) ────────────────────────────
+        # The clamonacc daemon and its OnAccess* clamd settings only exist
+        # when accessScanning.enable is set. This is the heavy path — it
+        # holds the signature DB resident and scans on every open.
+        (mkIf cfg.accessScanning.enable {
+          clamav.accessScanning.directories = allACScanHomeDirs;
+          services.clamav.daemon.settings = {
+            OnAccessIncludePath = cfg.accessScanning.directories;
+            OnAccessPrevention = false;
+            OnAccessExtraScanning = false;
+            OnAccessExcludeUname = "clamav";
+            OnAccessMaxFileSize = "100M";
+            OnAccessMaxThreads = 12;
+          };
+          systemd.services."clamav-clamonacc" = {
+            description = "ClamAV On-Access Scanner";
+            documentation = ["man:clamonacc(8)" "man:clamd.conf(5)" "https://docs.clamav.net/"];
+            requires = ["clamav-daemon.service"];
+            after = ["clamav-daemon.service"];
+            wantedBy = ["multi-user.target"];
+            serviceConfig = {
+              Type = "simple";
+              # Root required for fanotify (CAP_SYS_ADMIN), but capabilities are restricted
+              User = "root";
+              ExecStartPre = ''${lib.getExe pkgs.bash} -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"'';
+              ExecStart = ''${lib.getExe' pkgs.clamav "clamonacc"} -F -c /etc/clamav/clamd.conf --move /var/lib/quarantine --fdpass --allmatch'';
+              StandardOutput = "journal";
+              StandardError = "journal";
+              ExecReload = ''${lib.getExe' pkgs.coreutils "kill"} -USR2 $MAINPID'';
+              # Capability restrictions - only what fanotify needs
+              CapabilityBoundingSet = "CAP_SYS_ADMIN CAP_DAC_READ_SEARCH";
+              AmbientCapabilities = "CAP_SYS_ADMIN CAP_DAC_READ_SEARCH";
+              # Hardening (relaxed - scanner needs broad filesystem read access)
+              PrivateTmp = true;
+              PrivateDevices = true;
+              PrivateNetwork = true;
+              ProtectKernelTunables = true;
+              ProtectKernelModules = true;
+              ProtectControlGroups = true;
+              NoNewPrivileges = true;
+              RestrictSUIDSGID = true;
+              LockPersonality = true;
+              RestrictRealtime = true;
+            };
+          };
+          systemd.tmpfiles.rules = [
+            "d /var/lib/quarantine 0755 root root - -"
+          ];
+          environment.variables = {
+            CLAMAV_ONACCESS_FLAGS = "--fanotify"; # Avoid legacy inotify
+          };
+        })
+      ]
+  );
 }
