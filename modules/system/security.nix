@@ -171,9 +171,16 @@ in {
         "-a always,exit -F arch=b64 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
         "-a always,exit -F arch=b32 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
 
-        # NixOS configuration changes
+        # NixOS configuration changes. This is a flake setup — the real config
+        # lives in the user's repo, not /etc/nixos (which stays empty here), so
+        # watch the repo path. /etc/nixos is kept too: it costs nothing and
+        # still catches any legacy/out-of-band write there. The repo watch is a
+        # no-op on hosts where it isn't checked out (e.g. r230); the rule loader
+        # tolerates a failing watch per its `|| true` workaround below.
         "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
         "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
+        "-a always,exit -F arch=b64 -S openat,openat2 -F dir=${config.users.users.${primaryUsername}.home}/Documents/nixos-config/ -F perm=wa -F key=nixos-config"
+        "-a always,exit -F arch=b32 -S openat,openat2 -F dir=${config.users.users.${primaryUsername}.home}/Documents/nixos-config/ -F perm=wa -F key=nixos-config"
 
         # Identity files monitoring
         "-a always,exit -F arch=b64 -S openat,openat2 -F path=/etc/passwd -F perm=wa -F key=identity"
