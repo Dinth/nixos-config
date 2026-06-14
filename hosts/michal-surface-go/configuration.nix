@@ -89,7 +89,10 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = ["networkmanager" "wheel" "scanner" "network" "audio" "video" "vboxusers" "dialout" "gamemode" "lp"];
+    # Dropped: "network" + "vboxusers" (groups don't exist) and "gamemode"
+    # (gaming.enable = false on this host, so the group is never created) —
+    # all three were just activation warnings.
+    extraGroups = ["networkmanager" "wheel" "scanner" "audio" "video" "dialout" "lp"];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {

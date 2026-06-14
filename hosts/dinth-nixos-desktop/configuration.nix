@@ -64,7 +64,10 @@
     isNormalUser = true;
     shell = pkgs.zsh;
     description = config.primaryUser.fullName;
-    extraGroups = ["networkmanager" "wheel" "scanner" "network" "audio" "video" "vboxusers" "dialout" "gamemode" "lp" "input"];
+    # Dropped: "network" + "vboxusers" — neither group exists (no module
+    # creates them; VirtualBox is macOS-only here), so they only produced
+    # activation warnings. "gamemode" stays — gaming.enable creates it here.
+    extraGroups = ["networkmanager" "wheel" "scanner" "audio" "video" "dialout" "gamemode" "lp" "input"];
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
   home-manager.users.${config.primaryUser.name} = {

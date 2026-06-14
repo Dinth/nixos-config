@@ -38,6 +38,9 @@
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/f458e530-c7f3-450e-b4fe-859fd65a94f3";
     fsType = "ext4";
+    # noatime: skip access-time writes — matches the desktop and reduces
+    # flash wear on the Surface's eMMC/SSD.
+    options = ["noatime"];
   };
 
   fileSystems."/boot" = {

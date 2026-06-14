@@ -100,8 +100,8 @@
     device = "/dev/disk/by-uuid/789d3481-8d64-4a39-b219-95b98db2a3a7";
     fsType = "ext4";
     options = [
+      # noatime implies nodiratime, so the latter would be redundant.
       "noatime"
-      "nodiratime"
       "x-systemd.device-timeout=infinity"
     ];
   };
