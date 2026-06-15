@@ -6,8 +6,17 @@
   ...
 }: let
   inherit (lib) mkIf mkOption;
-  cfg = config.opencode;
+  cfg = config.agenticAi;
   primaryUsername = config.primaryUser.name;
+
+  # opencode ships only "catppuccin" (mocha) and "catppuccin-macchiato" as
+  # built-in catppuccin themes — there's no latte/frappe build-in — so any
+  # flavor other than macchiato falls back to the default catppuccin. Follows
+  # the system-wide theme.flavor.
+  opencodeTheme =
+    if config.theme.flavor == "macchiato"
+    then "catppuccin-macchiato"
+    else "catppuccin";
 
   # AGENTS.md marker dropped onto the HAOS /config CIFS share (outside $HOME,
   # so home.file can't manage it). Dropped at both /mnt/haos and the common
@@ -24,11 +33,14 @@
   '';
 in {
   options = {
-    opencode = {
+    agenticAi = {
       enable = mkOption {
         type = lib.types.bool;
         default = false;
-        description = "Install opencode.";
+        # One toggle for the agentic AI coding stack. Gates both this module
+        # (opencode) and modules/apps/claude-code, so claude-code no longer
+        # silently rides on an option named "opencode".
+        description = "Install the agentic AI coding tools (opencode + claude-code).";
       };
     };
   };
@@ -93,7 +105,7 @@ in {
       };
       programs.opencode = {
         enable = true;
-        tui.theme = "catppuccin";
+        tui.theme = opencodeTheme;
         settings = {
           provider = {
             opencode = {

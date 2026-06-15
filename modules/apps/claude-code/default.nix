@@ -6,7 +6,10 @@
   ...
 }: let
   inherit (lib) mkIf;
-  cfg = config.opencode;
+  # Gated by the shared agenticAi toggle (defined in modules/apps/opencode),
+  # so claude-code is enabled alongside opencode rather than depending on an
+  # option named after the other tool.
+  cfg = config.agenticAi;
   primaryUsername = config.primaryUser.name;
   userHome = "/home/${primaryUsername}";
 
