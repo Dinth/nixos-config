@@ -178,7 +178,10 @@
 
   services = {
     udev.extraRules = ''
-      KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", MODE="0660", GROUP="users", TAG+="uaccess"
+      # Keychron (VIA/QMK) raw HID config access. uaccess scopes it to the
+      # active-seat user (ACL, revoked on logout); no static GROUP="users"/MODE
+      # so the node isn't rw for every account on the box, permanently.
+      KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", TAG+="uaccess"
 
       # Restrict USB remote-wakeup to keyboard + mouse only. Steam Controller
       # (28de:1142) and ITE motherboard MCU (048d:8297) were observed asserting

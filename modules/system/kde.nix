@@ -89,22 +89,17 @@ in {
     #    };
     # Session variables for KDE
     environment.sessionVariables = {
-      # Common KDE variables
-      # Qt theming
       QT_QPA_PLATFORMTHEME = "kde";
-      QT_STYLE_OVERRIDE = "breeze";
-
-      # KDE session type
-      XDG_SESSION_TYPE = "wayland";
-      XDG_CURRENT_DESKTOP = "KDE";
-
-      NIXOS_OZONE_WL = "1"; # Electron apps Wayland support
-
-      QT_QPA_PLATFORM = "wayland";
+      # Prefer Wayland but fall back to X (xcb) so Qt apps still launch in an
+      # X11 session; bare "wayland" hard-fails them outside a Wayland session.
+      QT_QPA_PLATFORM = "wayland;xcb";
+      # Let KWin draw server-side window decorations for Qt clients.
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-
-      # KDE Wayland session
-      # KWIN_COMPOSE = "auto";
+      # Dropped: QT_STYLE_OVERRIDE (redundant with qt.style = "breeze" below,
+      # and it overrides apps that ship their own style), XDG_SESSION_TYPE /
+      # XDG_CURRENT_DESKTOP (set per-session by the display manager — hardcoding
+      # them lies to portals/Electron outside Wayland), and NIXOS_OZONE_WL
+      # (already set in modules/system/graphical.nix).
     };
     home-manager.users.${primaryUsername} = {
       home.file.".local/share/user-places.xbel".source = ./dolphin-places.xbel;
