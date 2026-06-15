@@ -15,7 +15,9 @@ in {
       keepEnv = true;
     }
   ]);
-  nix.settings.trusted-users = mkIf (machineType == "server") ["root" config.primaryUser.name];
+  # nix.settings.trusted-users is set globally in modules/system/nix.nix to
+  # ["root" "@wheel"]; the primary user is in wheel on every host, so a
+  # server-specific override here would be redundant (lists merge anyway).
 
   nixpkgs = {
     config = {
