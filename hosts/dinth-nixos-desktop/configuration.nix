@@ -28,6 +28,7 @@
   dashcam-sd.enable = true;
   printers.enable = true;
   weechat.enable = true;
+  nomachine-client.enable = true;
   docker.enable = false;
   yubikey.enable = true;
   agenticAi.enable = true;
