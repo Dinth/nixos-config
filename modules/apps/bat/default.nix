@@ -8,16 +8,19 @@
   primaryUsername = config.primaryUser.name;
 in {
   config = mkIf cfg.enable {
-    home-manager.users.${primaryUsername}.programs.bat = {
-      enable = true;
-      config = {
-        map-syntax = ".ignore:Git Ignore";
-        style = "numbers,changes";
+    home-manager.users.${primaryUsername} = {
+      # Installs the catppuccin .tmTheme AND points programs.bat.config.theme at
+      # it, using the global catppuccin.flavor (from theme.flavor). Previously a
+      # BAT_THEME="Catppuccin Mocha" env var was set without ever installing the
+      # theme, so bat warned "unknown theme" and silently fell back to default.
+      catppuccin.bat.enable = true;
+      programs.bat = {
+        enable = true;
+        config = {
+          map-syntax = ".ignore:Git Ignore";
+          style = "numbers,changes";
+        };
       };
-    };
-    environment.variables = {
-      # Make bat use the theme if enabled
-      BAT_THEME = "Catppuccin Mocha";
     };
   };
 }

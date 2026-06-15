@@ -7,6 +7,11 @@
   inherit (lib) mkIf getExe getExe';
   cfg = config.cli;
   primaryUsername = config.primaryUser.name;
+  # Captured from the system config here because `config` is shadowed by the
+  # home-manager.users lambda below (where it refers to the HM config, which
+  # has no theme.flavor). vivid is not a catppuccin/nix module, so its theme
+  # name has to be interpolated explicitly.
+  themeFlavor = config.theme.flavor;
 in {
   config = mkIf cfg.enable {
     programs.zsh.enable = true;
@@ -14,7 +19,7 @@ in {
     home-manager.users.${primaryUsername} = {config, ...}: {
       home.sessionVariables.LS_COLORS = lib.removeSuffix "\n" (builtins.readFile (
         pkgs.runCommand "generate-ls-colors" {} ''
-          ${getExe pkgs.vivid} generate catppuccin-mocha > $out
+          ${getExe pkgs.vivid} generate catppuccin-${themeFlavor} > $out
         ''
       ));
       programs.zsh = {
@@ -213,7 +218,7 @@ in {
 
       catppuccin.zsh-syntax-highlighting = {
         enable = true;
-        flavor = "mocha";
+        # flavor inherits the global catppuccin.flavor (set from theme.flavor).
       };
     };
   };

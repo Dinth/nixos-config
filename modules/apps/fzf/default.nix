@@ -12,7 +12,7 @@ in {
     home-manager.users.${primaryUsername} = {config, ...}: {
       catppuccin.fzf = {
         enable = true;
-        flavor = "mocha";
+        # flavor inherits the global catppuccin.flavor (set from theme.flavor).
         accent = "mauve";
       };
       programs.fzf = {

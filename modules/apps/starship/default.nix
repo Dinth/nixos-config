@@ -13,7 +13,9 @@
     (builtins.fromTOML (builtins.readFile
         "${pkgs.starship}/share/starship/presets/catppuccin-powerline.toml"))
     {
-      palette = lib.mkForce "catppuccin_mocha";
+      # Preset ships all four palettes (catppuccin_{latte,frappe,macchiato,mocha});
+      # follow the system-wide theme.flavor.
+      palette = lib.mkForce "catppuccin_${config.theme.flavor}";
 
       # Add NixOS symbol (missing from preset)
       os.symbols.NixOS = "";

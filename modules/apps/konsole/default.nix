@@ -14,6 +14,19 @@
     rev = "3b64040e3f4ae5afb2347e7be8a38bc3cd8c73a8";
     hash = "sha256-d5+ygDrNl2qBxZ5Cn4U7d836+ZHz77m6/yxTIANd9BU=";
   };
+
+  # The Default profile follows the system-wide theme.flavor. The SSH and
+  # OpenCode profiles deliberately use different flavors as a visual cue for
+  # which context you're in, so they stay pinned below.
+  defaultColorScheme =
+    {
+      latte = "catppuccinLatte";
+      frappe = "catppuccinFrappe";
+      macchiato = "catppuccinMacchiato";
+      mocha = "catppuccinMocha";
+    }.${
+      config.theme.flavor
+    };
 in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername}.programs.konsole = {
@@ -40,7 +53,7 @@ in {
       profiles.Default = {
         name = "Default";
         command = "${pkgs.zsh}/bin/zsh";
-        colorScheme = "catppuccinMocha";
+        colorScheme = defaultColorScheme;
         font = {
           name = "FiraCode Nerd Font Med";
           size = 11;
