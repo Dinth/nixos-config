@@ -78,7 +78,7 @@
     # Call each package directly from the flake source rather than via
     # llm-agents.packages.${system}, which uses blueprint and eagerly evaluates
     # the entire package set — including the broken `apm` package that fails
-    # with nixos-25.11's buildPythonApplication.
+    # to build under our nixpkgs pin.
     valkeyOverlay = _: prev: {
       valkey = prev.valkey.overrideAttrs (_: {
         doCheck = false;

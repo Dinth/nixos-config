@@ -274,7 +274,11 @@ in {
           }
         ];
         # Systemmonitor widgets - sensors must be JSON array strings
-        desktop.widgets = [
+        # Free-floating system-monitor widgets: positioned for the desktop's
+        # screen (x=1696) and wired to its specific GPU/NVMe sensor IDs, so on
+        # the Surface (different resolution + sensors) they'd be mispositioned
+        # and/or permanently empty. Desktop-only.
+        desktop.widgets = lib.optionals (machineType == "desktop") [
           # --- CPU ---
           {
             name = "org.kde.plasma.systemmonitor";
