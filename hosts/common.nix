@@ -32,8 +32,13 @@ in {
   );
   # boot.tmp is fully configured in modules/system/security.nix (with tmpfsSize).
   services.fwupd.enable = true;
+  # Userspace OOM-prevention daemon — workstations only. Its value is keeping
+  # an interactive session responsive during swap thrash, which doesn't apply
+  # to the headless, swapless r230; there, per-container mem_limit plus the
+  # kernel cgroup OOM killer handle memory pressure more surgically than
+  # nohang's host-wide process-size heuristic would.
   services.nohang = {
-    enable = true;
+    enable = machineType != "server";
     configPath = "desktop";
   };
 
