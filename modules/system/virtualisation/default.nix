@@ -50,7 +50,13 @@ in {
               swtpm.enable = true;
             };
             hooks.qemu."qemu-hook-pf" = ./qemu-hook-pf.sh;
-            hooks.qemu."nas-power" = ./nas-power-hook.sh;
+            # writeShellScript guarantees a 0555 store path. Referencing the
+            # raw ./nas-power-hook.sh dropped the executable bit in the store,
+            # so libvirt silently skipped the hook in qemu.d (it ignores
+            # non-executable files) — the hook never ran.
+            hooks.qemu."nas-power" =
+              pkgs.writeShellScript "nas-power-hook"
+              (builtins.readFile ./nas-power-hook.sh);
           };
           spiceUSBRedirection.enable = true;
         }

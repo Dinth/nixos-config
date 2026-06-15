@@ -1,4 +1,6 @@
 #!/run/current-system/sw/bin/bash
+# (interpreter is also supplied by pkgs.writeShellScript when wired into
+#  libvirtd hooks; this shebang keeps the file runnable standalone for tests)
 #
 # Wake QNAP NAS (10.10.1.19) before LinuxMint starts, shut it down
 # 600 s after it stops (if no other VMs are still running).
