@@ -10,6 +10,48 @@
   primaryUsername = config.primaryUser.name;
   hostname = config.networking.hostName;
 
+  # dbus-mediaplayer: runtime dependency of lnxlink's `media` (MPRIS) module.
+  # Not in nixpkgs and lnxlink would otherwise try to `pip install` it at
+  # runtime, which fails on the read-only Nix store — so the module crashes
+  # with "'NoneType' object has no attribute 'DBusMediaPlayers'". Package it
+  # here so the import succeeds and MPRIS works.
+  dbusMediaplayer = pkgs.python3Packages.buildPythonPackage rec {
+    pname = "dbus-mediaplayer";
+    version = "2025.6.0";
+    pyproject = true;
+
+    src = pkgs.fetchPypi {
+      pname = "dbus_mediaplayer";
+      inherit version;
+      sha256 = "1i7g1bldjfqa8ghhq56s86ljy70h8yfph0ymnjkkxmcy970038g6";
+    };
+
+    # Upstream pins exact build deps (setuptools~=69.2.0, wheel~=0.43.0) that
+    # nixpkgs doesn't ship; relax them like the lnxlink derivation does.
+    postPatch = ''
+      sed -i"" -E 's@requires = .*@requires = ["setuptools", "wheel"]@g' pyproject.toml
+    '';
+
+    nativeBuildInputs = with pkgs.python3Packages; [
+      setuptools
+      wheel
+    ];
+
+    propagatedBuildInputs = with pkgs.python3Packages; [
+      jeepney
+    ];
+
+    # No test suite shipped in the sdist.
+    doCheck = false;
+    pythonImportsCheck = ["dbus_mediaplayer"];
+
+    meta = with lib; {
+      description = "Currently playing media using DBus";
+      homepage = "https://github.com/bkbilly/dbus_mediaplayer";
+      license = licenses.mit;
+    };
+  };
+
   # lnxlink source pinned via flake input — bump with
   # `nix flake update lnxlink`. The narHash recorded in flake.lock
   # supersedes the previous inline fetchFromGitHub hash and the
@@ -83,6 +125,7 @@
       beaupy
       aiohttp
       jeepney
+      dbusMediaplayer
     ];
 
     meta = with lib; {
