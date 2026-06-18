@@ -441,6 +441,14 @@ in {
           export HOMEASSISTANT_MCP_URL="$(< "${config.age.secrets.ha-mcp-url.path}")"
         fi
       '';
+      # Register the claude-cli:// URL scheme handler declaratively. Claude Code
+      # adds this to mimeapps.list at runtime, but once home-manager owns the
+      # file it becomes a read-only store symlink the app can no longer write,
+      # so the association has to be declared here to persist.
+      xdg.mimeApps = {
+        defaultApplications."x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
+        associations.added."x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
+      };
       # Global Claude Code instructions
       home.file.".claude/CLAUDE.md".source = ./CLAUDE.md;
       # User-scope subagents — invoked by main Claude via the Agent tool with
