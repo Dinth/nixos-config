@@ -19,6 +19,7 @@ The LAN is `10.10.0.0/16`, segmented into:
 | `michal-surface-go` | local | Mobile workstation | NixOS |
 | `omv` / `r720-omv` | `10.10.1.13` | Primary server — most Docker stacks, NAS storage | OpenMediaVault (Debian-based) |
 | `r230-nixos` | `10.10.1.12` | Secondary server — Docker stacks on NixOS | NixOS |
+| `r230-proxmox` | `10.10.1.16` | Virtualization host — Proxmox VE (SSH `dinth@`, passphrase-protected key) | Proxmox VE |
 | `homeassistant` | `10.10.1.11` | Home automation hub | Home Assistant OS (HAOS) |
 
 ### Key Facts
