@@ -17,12 +17,15 @@ The LAN is `10.10.0.0/16`, segmented into:
 | `michal-surface-go` | local | Mobile workstation | NixOS |
 | `omv` / `r720-omv` | `10.10.1.13` | Primary server — most Docker stacks, NAS storage | OpenMediaVault (Debian-based) |
 | `r230-nixos` | `10.10.1.12` | Secondary server — Docker stacks on NixOS | NixOS |
-| `r230-proxmox` | `10.10.1.16` | Virtualization host — Proxmox VE (SSH `dinth@`, passphrase-protected key) | Proxmox VE |
+| `r230-proxmox` | `10.10.1.16` | Hypervisor — Proxmox VE; hosts the `r230-nixos`, `homeassistant`, and pfSense VMs (SSH `dinth@`, passphrase-protected key) | Proxmox VE |
 | `homeassistant` | `10.10.1.11` | Home automation hub | Home Assistant OS (HAOS) |
 
 ## Key facts
 - Most Docker stacks run on `10.10.1.13` (`omv`); `r230-nixos` at `10.10.1.12`
   is a separate NixOS host that also runs containers.
+- `r230-proxmox` (`10.10.1.16`) is the Proxmox hypervisor running the
+  `r230-nixos` (`10.10.1.12`), `homeassistant` (`10.10.1.11`), and pfSense
+  (`10.10.0.1`) VMs. The `omv` NAS (`10.10.1.13`) is a separate physical box.
 - Home Assistant on `10.10.1.11` is a **native HAOS install — not a Docker container**.
 - NixOS hosts: `dinth-nixos-desktop`, `michal-surface-go`, `r230-nixos`.
 - Always ask which host a new service should target rather than assuming
