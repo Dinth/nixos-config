@@ -18,6 +18,12 @@ in {
           IdentityFile = [config.age.secrets."id-ed25519".path];
           IdentitiesOnly = true;
         };
+        "r230-proxmox proxmox 10.10.1.16" = {
+          HostName = "10.10.1.16";
+          User = "dinth";
+          IdentityFile = [config.age.secrets."id-ed25519".path];
+          IdentitiesOnly = true;
+        };
         "wazuh wazuh-server 10.10.1.18" = {
           HostName = "10.10.1.18";
           User = "wazuh-user";
