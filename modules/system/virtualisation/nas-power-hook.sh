@@ -84,20 +84,39 @@ any_vm_running() {
 
 shutdown_nas() {
     if nas_reachable; then
-        log "Sending poweroff to NAS via SSH"
+        log "Sending detached poweroff to NAS via SSH"
         # id_ed25519 is passphrase-protected; feed the passphrase via SSH_ASKPASS
         # so ssh can unlock it non-interactively (same trick as the sshfs mount).
-        local _askpass
+        local _askpass rc
         _askpass=$(mktemp)
         printf '#!/bin/sh\nexec cat /run/agenix/id-ed25519-passphrase\n' > "$_askpass"
         chmod 0700 "$_askpass"
+        # QTS `poweroff` is a busybox applet that signals init. Run plainly as
+        # `ssh host poweroff` the shutdown tears down sshd and SIGHUPs poweroff
+        # before it completes, so the box never goes down. Detach it with setsid
+        # (+ a short delay so ssh returns first) into its own session, and log
+        # the ssh exit code rather than swallowing it so failures leave evidence.
         SSH_ASKPASS="$_askpass" SSH_ASKPASS_REQUIRE=force \
             $ssh \
             -o StrictHostKeyChecking=accept-new \
             -o ConnectTimeout=10 \
             -i /home/michal/.ssh/id_ed25519 \
-            admin@"$NAS_IP" poweroff 2>/dev/null || true
+            admin@"$NAS_IP" \
+            'setsid sh -c "sleep 2; /sbin/poweroff" </dev/null >/dev/null 2>&1 &' \
+            && rc=0 || rc=$?
         rm -f "$_askpass"
+        log "NAS poweroff dispatched (ssh rc=$rc) — verifying"
+        # Confirm it actually powered off; harmless to block here since this runs
+        # in the transient nas-power-shutdown service, and it records a verdict.
+        local deadline=$(( $($date +%s) + 120 ))
+        while (( $($date +%s) < deadline )); do
+            $sleep 5
+            if ! nas_reachable; then
+                log "NAS confirmed powered off"
+                return 0
+            fi
+        done
+        log "WARNING: NAS still reachable 120 s after poweroff dispatch"
     else
         log "NAS already unreachable — skipping SSH poweroff"
     fi
