@@ -16,6 +16,10 @@ sub_op="$3"
 NAS_IP="10.10.1.19"
 NAS_MAC="00:08:9b:da:78:e2"
 VM_DOMAIN="LinuxMint"
+# Backing disk QEMU needs (vdc in linuxmint.xml). This file living on the
+# CIFS share is the real precondition for starting the VM — gate on it, not
+# on ping, because the QNAP answers ICMP long before this is reachable.
+VM_DISK="/mnt/VM/LargeDrive.qcow2"
 
 logger="/run/current-system/sw/bin/logger"
 ping="/run/current-system/sw/bin/ping"
@@ -40,20 +44,37 @@ wake_nas() {
     local deadline=$(( $($date +%s) + 180 ))
     while (( $($date +%s) < deadline )); do
         if nas_reachable; then
-            log "NAS is reachable — waiting 5 s for SMB to settle"
-            $sleep 5
+            log "NAS responds to ping"
             return 0
         fi
         $sleep 5
     done
-    log "ERROR: NAS did not respond within 180 s"
+    log "ERROR: NAS did not respond to ping within 180 s"
     return 1
 }
 
 remount_nas() {
-    log "Remounting mnt-VM.mount"
     $systemctl reset-failed mnt-VM.automount mnt-VM.mount 2>/dev/null || true
-    $systemctl start mnt-VM.mount || true
+    $systemctl start mnt-VM.mount 2>/dev/null || true
+}
+
+# Ping coming up is not enough: the QNAP exports the SMB share — and mounts
+# the storage pool underneath it — tens of seconds after the network stack is
+# alive. Keep (re)mounting and checking the actual backing disk until QEMU can
+# open it, so the VM never starts against a missing/half-ready share.
+wait_for_vm_disk() {
+    local deadline=$(( $($date +%s) + 240 ))
+    while (( $($date +%s) < deadline )); do
+        remount_nas
+        if [ -r "$VM_DISK" ]; then
+            log "VM backing disk $VM_DISK is ready"
+            return 0
+        fi
+        log "Waiting for $VM_DISK — share not exporting it yet"
+        $sleep 5
+    done
+    log "ERROR: $VM_DISK not readable within 240 s — aborting VM start"
+    return 1
 }
 
 any_vm_running() {
@@ -94,7 +115,10 @@ case "$operation" in
         else
             wake_nas
         fi
-        remount_nas
+        # Block here (and fail the hook under set -e) until the backing disk is
+        # actually present — libvirt aborts the start cleanly instead of QEMU
+        # racing ahead and dying on a missing /mnt/VM/LargeDrive.qcow2.
+        wait_for_vm_disk
         ;;
 
     release)
