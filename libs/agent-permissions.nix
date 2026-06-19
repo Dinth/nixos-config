@@ -246,9 +246,10 @@ in {
       readOnly = true;
       description = ''
         MCP tool names that bypass the prompt for read-only queries.
-        Claude Code uses these via permissions.allow; opencode's
-        permission model doesn't have per-tool MCP granularity so
-        these are not consumed there.
+        Claude Code uses these via permissions.allow. opencode does
+        support per-tool MCP allows (`<server>_<tool>` keys) but is
+        not driven from this list — it pins the specific HA read tools
+        it needs inline in modules/apps/opencode.
       '';
       default = [
         "mcp__nixos__home_manager_options_by_prefix"

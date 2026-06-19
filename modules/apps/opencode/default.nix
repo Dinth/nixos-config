@@ -201,10 +201,15 @@ in {
             bash =
               bashFromList "ask" config.agentPermissions.askBash
               // bashFromList "allow" config.agentPermissions.readOnlyBash;
-            # Auto-allow the read-only HA skill-guide MCP tool (the
-            # home-assistant agent loads it on every run). opencode names
-            # MCP tools `<server>_<tool>`.
+            # Auto-allow read-only HA MCP tools. opencode names MCP tools
+            # `<server>_<tool>` and (unlike the comment in
+            # libs/agent-permissions.nix once claimed) does support per-tool
+            # MCP granularity. The skill guide loads on every run; the search
+            # tools are pure read-only entity lookups, so neither warrants a
+            # prompt. Claude Code grants the same via mcpReadOnly.
             "homeassistant_ha_get_skill_guide" = "allow";
+            "homeassistant_ha_search_entities" = "allow";
+            "homeassistant_ha_deep_search" = "allow";
             edit = "ask";
             read = "allow";
             context_info = "allow";
