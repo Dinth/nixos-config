@@ -63,7 +63,7 @@ remount_nas() {
 # alive. Keep (re)mounting and checking the actual backing disk until QEMU can
 # open it, so the VM never starts against a missing/half-ready share.
 wait_for_vm_disk() {
-    local deadline=$(( $($date +%s) + 240 ))
+    local deadline=$(( $($date +%s) + 420 ))
     while (( $($date +%s) < deadline )); do
         remount_nas
         if [ -r "$VM_DISK" ]; then
@@ -73,7 +73,7 @@ wait_for_vm_disk() {
         log "Waiting for $VM_DISK — share not exporting it yet"
         $sleep 5
     done
-    log "ERROR: $VM_DISK not readable within 240 s — aborting VM start"
+    log "ERROR: $VM_DISK not readable within 420 s — aborting VM start"
     return 1
 }
 
