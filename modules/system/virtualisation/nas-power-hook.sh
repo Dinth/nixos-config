@@ -31,6 +31,7 @@ systemd_run="/run/current-system/sw/bin/systemd-run"
 virsh="/run/current-system/sw/bin/virsh"
 grep="/run/current-system/sw/bin/grep"
 ssh="/run/current-system/sw/bin/ssh"
+umount="/run/current-system/sw/bin/umount"
 
 log() { $logger -t "nas-power-hook" "$*"; }
 
@@ -80,6 +81,22 @@ wait_for_vm_disk() {
 any_vm_running() {
     $virsh --connect qemu:///system list --state-running --name 2>/dev/null \
         | $grep -q '[^[:space:]]'
+}
+
+unmount_nas() {
+    # Tear down /mnt/VM before the NAS disappears. A CIFS mount left pointing
+    # at a powered-off server goes stale: every stat() against it (df, file
+    # managers, shell path completion) blocks for the CIFS timeout, and the
+    # x-systemd.automount trigger re-arms on access so it keeps coming back —
+    # this is what makes the whole system lag once the QNAP is off. Stop the
+    # automount first so nothing re-triggers, then unmount while the share is
+    # still reachable so it flushes cleanly.
+    log "Unmounting /mnt/VM ahead of NAS poweroff"
+    $systemctl stop mnt-VM.automount 2>/dev/null || true
+    $systemctl stop mnt-VM.mount 2>/dev/null || true
+    # Belt-and-braces: force + lazy unmount in case systemd left a stale handle
+    # behind (e.g. the NAS vanished before this ran).
+    $umount -f -l /mnt/VM 2>/dev/null || true
 }
 
 shutdown_nas() {
@@ -163,6 +180,7 @@ case "$operation" in
         if any_vm_running; then
             log "A VM is still running — skipping NAS shutdown"
         else
+            unmount_nas
             shutdown_nas
         fi
         ;;
