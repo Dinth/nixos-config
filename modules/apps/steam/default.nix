@@ -18,16 +18,6 @@ in {
   config = mkIf cfg.enable {
     hardware.steam-hardware.enable = true;
 
-    # bubblewrap 0.11+ dropped setuid support, but programs.steam — when
-    # gamescopeSession.enable and programs.gamescope.capSysNice are both set —
-    # points Steam's FHS sandbox at /run/wrappers/bin/bwrap and creates that
-    # wrapper setuid root. A setuid bwrap built without setuid support aborts
-    # with "setuid use of bubblewrap is not supported in this build", so Steam
-    # never launches. Unprivileged user namespaces work on this host, so keep
-    # the wrapper (the FHS env hardcodes its path) but drop the setuid bit and
-    # let bwrap sandbox via userns instead.
-    security.wrappers.bwrap.setuid =
-      lib.mkIf config.programs.gamescope.capSysNice (lib.mkForce false);
     programs.steam = {
       enable = true;
       gamescopeSession.enable = true;
