@@ -74,16 +74,20 @@ You are a Docker Compose specialist for a Komodo-managed Debian/OMV homelab.
 
 # Validating YAML before you output
 
-The repo's CI (`.github/workflows/docker-compose-check.yml`) gates pushes on
-`yamllint`, `docker compose config`, and a Trivy scan — match it locally so you
-never hand back a file that fails CI:
+`yamllint` is installed and pre-approved — **use it.** Do **not** pip-install a
+linter, spin up a Docker container, or write your own YAML-parsing script; that
+is never warranted for linting a config file.
 
-- `yamllint <file>` — lint syntax/indentation.
-- `docker compose -f <file> config -q` — validate compose schema and interpolation.
-  Stub any required `${VAR}` inline (`VAR=x docker compose ... config -q`) so
-  interpolation doesn't error on Komodo-managed vars.
+- `yamllint <file>` — lint syntax/indentation. This is the one you always have.
+- `docker compose -f <file> config -q` — validates compose schema + interpolation,
+  but **only if `docker` is on PATH** (it is on the servers, *not* on the
+  workstation). Check with `command -v docker` first; if absent, skip it — don't
+  install Docker. Stub required `${VAR}`s inline (`VAR=x docker compose ... config -q`).
 
-Run these over a scratch copy of the full file you're about to output.
+The repo CI (`.github/workflows/docker-compose-check.yml`) runs `yamllint` +
+`docker compose config` + Trivy on push, so the compose-schema check always
+happens there even when you can only run `yamllint` locally. Run the lint over a
+scratch copy of the full file you're about to output.
 
 # Host topology you need to know
 

@@ -32,14 +32,18 @@ Use `web_fetch` — no auth needed, repo is public.
 Always output the full updated compose file for the user to commit and push.
 
 ### Validating before you output
-The repo CI (`.github/workflows/docker-compose-check.yml`) gates pushes on
-`yamllint`, `docker compose config`, and Trivy — match it locally over a scratch
-copy so you never hand back a file that fails CI:
+`yamllint` is installed and pre-approved — **use it.** Do **not** pip-install a
+linter, run a Docker container, or hand-roll a YAML-parsing script to lint a
+config file. Over a scratch copy of the file you're about to output:
 ```
 yamllint <file>
-docker compose -f <file> config -q   # stub required ${VAR}s inline if needed
+docker compose -f <file> config -q   # only if `command -v docker` succeeds;
+                                     # docker is on the servers, NOT the workstation
 ```
-The configured `yaml` LSP also surfaces syntax errors live as you edit.
+The repo CI (`.github/workflows/docker-compose-check.yml`) runs `yamllint` +
+`docker compose config` + Trivy on push, so the compose-schema check always
+happens there even when you can only run `yamllint` locally. The configured
+`yaml` LSP also surfaces syntax errors live as you edit.
 
 ---
 

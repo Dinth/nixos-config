@@ -57,6 +57,7 @@ in {
     home-manager.users.${primaryUsername} = {
       home.packages = with pkgs; [
         yamlfmt
+        yamllint # YAML linter — agents validate compose.yaml locally instead of improvising
         php83Packages.php-cs-fixer
         shfmt
         libxml2

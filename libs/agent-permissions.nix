@@ -95,9 +95,10 @@ in {
         "paste"
         "tac"
         "column"
-        # Structured-data query
+        # Structured-data query / lint
         "jq"
         "yq"
+        "yamllint"
         # systemd / journal read-only
         "journalctl"
         "systemctl status"
@@ -154,6 +155,8 @@ in {
         "docker network inspect"
         "docker volume ls"
         "docker volume inspect"
+        # Compose schema validation (read-only — prints the resolved config)
+        "docker compose config"
         # GitHub read-only
         "gh pr list"
         "gh pr view"
