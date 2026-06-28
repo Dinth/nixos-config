@@ -2,12 +2,17 @@
 
 ## Source of Truth
 
-Stack definitions live in GitHub — this is the **only** source of truth.
+Stack definitions live in GitHub — this is the **only** source of truth. Stacks
+are grouped by target server, and the file is **always** named `compose.yaml`
+(not `docker-compose.yml`):
 ```
-https://github.com/Dinth/komodo_library/<stack_name>/docker-compose.yml
+https://github.com/Dinth/komodo_library/blob/main/<server>/<stack>/compose.yaml
 ```
-The repo is **public**. Each stack is a subfolder containing `docker-compose.yml`
-and any supporting files.
+- `r720-omv/<stack>/compose.yaml` — stacks for `omv` (`10.10.1.13`), the bulk of them
+- `r230-nixos/<stack>/compose.yaml` — stacks for `r230-nixos` (`10.10.1.12`)
+
+The repo is **public**. Each stack is a subfolder containing `compose.yaml` and
+any supporting files.
 
 ### Deployment workflow
 Stacks are deployed via **Komodo** (self-hosted, on `10.10.1.13`):
@@ -19,12 +24,22 @@ Komodo also manages all environment variables per stack.
 ### Reading a stack before editing
 Always fetch the current compose from GitHub before touching anything:
 ```
-https://raw.githubusercontent.com/Dinth/komodo_library/main/<stack_name>/docker-compose.yml
+https://raw.githubusercontent.com/Dinth/komodo_library/main/<server>/<stack>/compose.yaml
 ```
 Use `web_fetch` — no auth needed, repo is public.
 
 **Never suggest editing files on the server directly.**
 Always output the full updated compose file for the user to commit and push.
+
+### Validating before you output
+The repo CI (`.github/workflows/docker-compose-check.yml`) gates pushes on
+`yamllint`, `docker compose config`, and Trivy — match it locally over a scratch
+copy so you never hand back a file that fails CI:
+```
+yamllint <file>
+docker compose -f <file> config -q   # stub required ${VAR}s inline if needed
+```
+The configured `yaml` LSP also surfaces syntax errors live as you edit.
 
 ---
 
@@ -135,12 +150,12 @@ labels, no published ports.
 
 ## Stacks Inventory
 
-| Stack | GitHub | Notes |
-|-------|--------|-------|
-| `traefik` | `komodo_library/traefik` | Reverse proxy, external network `traefik` |
-| `monitoring` | `komodo_library/monitoring` | Grafana, Prometheus, Promtail, Loki, InfluxDB |
-| `mcp-gateway` | `komodo_library/mcp-gateway` | MCP SSE gateway on port `4888` |
-| `komodo` | `komodo_library/komodo` | Deployment manager |
+| Stack | Path | Notes |
+|-------|------|-------|
+| `traefik` | `r720-omv/traefik/compose.yaml` | Reverse proxy, external network `traefik` |
+| `monitoring` | `r720-omv/monitoring/compose.yaml` | Grafana, Prometheus, Promtail, Loki, InfluxDB |
+| `mcp-gateway` | `r720-omv/mcp-gateway/compose.yaml` | MCP SSE gateway on port `4888` |
+| `komodo` | `r720-omv/komodo/compose.yaml` | Deployment manager |
 
 ### Databases
 Migrating from shared Postgres/MariaDB to **per-stack databases**.

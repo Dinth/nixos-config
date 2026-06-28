@@ -4,9 +4,14 @@ This directory is the **live Home Assistant OS `/config` share**
 (`//10.10.1.11/config`, mounted at `/mnt/haos`). Everything here is HAOS's running
 configuration — edits take effect on the `homeassistant` host at `10.10.1.11`.
 
-**Operate in Home Assistant mode for all work here.** Use the `home-assistant`
-skill, and for non-trivial automation/template/dashboard/ESPHome work delegate to
-the `home-assistant` subagent.
+**Operate in Home Assistant mode for all work here, inline.** Inside `/mnt/haos`
+you already have everything the `home-assistant` subagent does: the write-capable
+`homeassistant` MCP is wired for this project and the `home-assistant` skill loads
+here. So load the skill and use the `ha_*` tools directly — **do not spawn the
+`home-assistant` subagent from inside the share.** It would only start cold and
+re-derive the context you already hold. Delegation to that subagent is for *other*
+projects (e.g. nixos-config) that lack the HA MCP/skill; reserve it here only for
+genuinely heavy, isolated multi-step builds.
 
 - The `homeassistant` MCP (`ha_*` tools) is wired for this project and is
   **write-capable** — prefer it over hand-edited YAML. Inspect with

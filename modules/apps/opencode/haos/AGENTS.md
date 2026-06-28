@@ -2,10 +2,14 @@
 
 `/mnt/haos` is the live HAOS `/config` share (`//10.10.1.11/config`). Everything
 here is Home Assistant's running configuration — edits take effect on `10.10.1.11`.
-**Operate in Home Assistant mode for all work here.**
+**Operate in Home Assistant mode for all work here, inline.**
 
-- Use the `home-assistant` skill; delegate complex automation/template/ESPHome
-  work to `@home-assistant-agent`.
+- Inside `/mnt/haos` you already have everything `@home-assistant-agent` does:
+  the write-capable `homeassistant` MCP is wired for this project and the
+  `home-assistant` skill loads here. Load the skill and use the `ha_*` tools
+  directly — **do not spawn `@home-assistant-agent` from inside the share**; it
+  only starts cold and re-derives context you already hold. Reserve it for
+  genuinely heavy, isolated multi-step builds.
 - The `homeassistant` MCP (`ha_*` tools) is available and **write-capable** —
   prefer it over hand-pasted YAML. Inspect with `ha_get_state` /
   `ha_search_entities`, create via `ha_config_set_*`, validate with
