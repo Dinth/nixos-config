@@ -84,6 +84,36 @@
         doCheck = false;
       });
     };
+    # Keep the 32-bit (pkgsi686Linux) closure from compiling a full numerical
+    # stack (numpy → lapack → openblas) from source. The 32-bit PipeWire pulled
+    # in for games' ALSA audio drags it in transitively, and Hydra does not
+    # populate the i686 cache for it, so it builds locally — openblas' test
+    # suite alone is ~6h. The stack enters only through *test-only* inputs of
+    # two widely-used Python build deps; cutting both removes it from every path
+    # (pipewire → libcamera/ffado/roc-toolkit/… all funnel through these):
+    #
+    #  1. pybind11 lists numpy directly in nativeCheckInputs. On i686 its tests
+    #     are already not built (upstream gates buildTests on host/build CPU
+    #     bit-depth matching, which differ for i686-on-x86_64), yet numpy is
+    #     still pulled because doCheck defaults true.
+    #  2. pyfakefs lists pandas (→ numpy) in nativeCheckInputs, and pyfakefs sits
+    #     in the closure of setuptools/distutils — i.e. nearly every i686 Python
+    #     build — so it is the single cut point for all the scons/meson-built
+    #     PipeWire features.
+    #
+    # Disabling doCheck on these loses nothing on i686 (no i686-relevant tests)
+    # and is scoped to i686 so the cached x86_64 builds stay byte-identical.
+    i686LeanOverlay = _: prev:
+      prev.lib.optionalAttrs prev.stdenv.hostPlatform.isi686 {
+        pythonPackagesExtensions =
+          prev.pythonPackagesExtensions
+          ++ [
+            (_: pyprev: {
+              pybind11 = pyprev.pybind11.overridePythonAttrs (_: {doCheck = false;});
+              pyfakefs = pyprev.pyfakefs.overridePythonAttrs (_: {doCheck = false;});
+            })
+          ];
+      };
     llmAgentsOverlay = final: _: let
       callPkg = path: final.callPackage (llm-agents + path) {};
       wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
@@ -163,7 +193,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -219,7 +249,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay];
+            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
