@@ -22,6 +22,14 @@ in {
   nixpkgs = {
     config = {
       allowUnfree = true;
+      # heroic and signal-desktop pin pnpm 10.29.2 to match their lockfiles and
+      # use it only as a build-time tool to fetch node deps (sandboxed, never
+      # shipped at runtime). A recent nixpkgs bump flagged that pnpm version as
+      # insecure, which blocks evaluation; permitting it is the upstream-advised
+      # fix. Revisit when those packages bump their pinned pnpm.
+      permittedInsecurePackages = [
+        "pnpm-10.29.2"
+      ];
     };
   };
   # Kernel: stable for servers, latest for desktops/tablets
