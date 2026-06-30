@@ -67,10 +67,10 @@
             sed -i"" -E 's@requires = .*@requires = ["setuptools", "wheel"]@g' pyproject.toml
             sed -i"" '/asyncio/d' pyproject.toml
 
-            # Fix log file location - use ~/.local/state/lnxlink instead of config directory
-            substituteInPlace lnxlink/files_setup.py \
-              --replace-fail 'config_dir = os.path.dirname(os.path.realpath(config_path))' \
-                             'config_dir = os.path.expanduser("~/.local/state/lnxlink"); os.makedirs(config_dir, exist_ok=True)'
+            # NOTE: no log-location patch needed — upstream's setup_logger()
+            # defaults the log dir to the config file's directory, and our
+            # runtime config already lives in ~/.local/state/lnxlink (see
+            # setupScript + ExecStart -c path), so lnxlink.log lands there.
 
             # Replace GNOME-specific keep_alive with systemd-inhibit version (works on KDE)
             cat > lnxlink/modules/keep_alive.py << 'EOF'
