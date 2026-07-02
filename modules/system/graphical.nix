@@ -93,6 +93,12 @@ in {
       xdg = {
         enable = true;
         mimeApps.enable = true;
+        # Let Home Manager forcefully own mimeapps.list: replace it with the
+        # managed (immutable, read-only) store symlink instead of trying to
+        # back the existing file up. Without this, activation aborts whenever a
+        # stale ~/.config/mimeapps.list.backup already exists ("backup would be
+        # clobbered"), which recurs every time the file drifts from HM's copy.
+        configFile."mimeapps.list".force = true;
       };
       home.file.".XCompose".text = ''
         include "%L"  # Loads default sequences first
