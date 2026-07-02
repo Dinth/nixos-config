@@ -42,6 +42,23 @@
   haosMcpJson = ./haos/mcp.json;
   haosClaudeMd = ./haos/CLAUDE.md;
 
+  # Project paths seeded as trusted in ~/.claude.json. Claude Code 2.1+
+  # ignores a project's settings.local.json permissions AND re-prompts for
+  # its .mcp.json servers until the folder is explicitly trusted
+  # (projects.<path>.hasTrustDialogAccepted). Every project we manage
+  # declaratively must therefore also be trusted here — otherwise a fresh
+  # checkout or new machine drops all the Nix-declared allow/MCP overlays and
+  # prompts on first launch. Add new project roots here as they gain overlays.
+  trustedProjects = lib.unique (
+    builtins.attrNames projectOverrides
+    ++ [
+      "${userHome}/Documents/nixos-config"
+      "${userHome}/Documents/komodo_library"
+      "${userHome}/.claude"
+      "${userHome}/.config/opencode"
+    ]
+  );
+
   # User-scope MCP servers — merged into ~/.claude.json at activation time
   # (instead of settings.json, which is not the documented MCP location).
   # Project-scope servers live in .mcp.json at each project root.
@@ -192,12 +209,15 @@
       > $out
   '';
 
-  # Merges the managed user-scope MCP servers into ~/.claude.json without
-  # touching mutable state (OAuth tokens, sessions, project-trust map).
-  mergeGlobalMcpScript = pkgs.writeShellScript "merge-claude-global-mcp.sh" ''
+  # Merges the managed user-scope MCP servers and project-trust seeds into
+  # ~/.claude.json without touching other mutable state (OAuth tokens,
+  # sessions, history). The trust reduce sets only the two flags on each
+  # managed project, preserving any existing per-project keys.
+  mergeGlobalClaudeJsonScript = pkgs.writeShellScript "merge-claude-global-json.sh" ''
     set -euo pipefail
     CLAUDE_JSON="$HOME/.claude.json"
-    NEW_JSON=${lib.escapeShellArg (builtins.toJSON globalMcpServers)}
+    MCP_JSON=${lib.escapeShellArg (builtins.toJSON globalMcpServers)}
+    TRUSTED_JSON=${lib.escapeShellArg (builtins.toJSON trustedProjects)}
 
     if [ ! -s "$CLAUDE_JSON" ]; then
       ${lib.getExe' pkgs.coreutils "install"} -m 600 /dev/null "$CLAUDE_JSON"
@@ -205,9 +225,12 @@
     fi
 
     TMP="$(${lib.getExe' pkgs.coreutils "mktemp"} "$CLAUDE_JSON.XXXXXX")"
-    ${lib.getExe pkgs.jq} --argjson new "$NEW_JSON" \
-      '.mcpServers = ((.mcpServers // {}) + $new)' \
-      "$CLAUDE_JSON" > "$TMP"
+    ${lib.getExe pkgs.jq} --argjson mcp "$MCP_JSON" --argjson trusted "$TRUSTED_JSON" '
+      .mcpServers = ((.mcpServers // {}) + $mcp)
+      | reduce $trusted[] as $p (.;
+          .projects[$p] = ((.projects[$p] // {})
+            + {hasTrustDialogAccepted: true, hasCompletedProjectOnboarding: true}))
+    ' "$CLAUDE_JSON" > "$TMP"
     ${lib.getExe' pkgs.coreutils "mv"} "$TMP" "$CLAUDE_JSON"
     ${lib.getExe' pkgs.coreutils "chmod"} 600 "$CLAUDE_JSON"
   '';
@@ -471,15 +494,16 @@ in {
         $DRY_RUN_CMD rm -f "$HOME/.claude/settings.json"
         $DRY_RUN_CMD install -m 600 ${claudeSettingsFile} "$HOME/.claude/settings.json"
       '';
-      # Merge user-scope MCP servers into ~/.claude.json (the documented
-      # user-scope MCP location), preserving Claude Code's mutable state.
-      home.activation.claudeCodeGlobalMcp = home-manager.lib.hm.dag.entryAfter ["claudeCodeSettings"] ''
-        $DRY_RUN_CMD ${mergeGlobalMcpScript}
+      # Merge user-scope MCP servers + project-trust seeds into ~/.claude.json
+      # (the documented user-scope MCP location), preserving Claude Code's
+      # mutable state.
+      home.activation.claudeCodeGlobalJson = home-manager.lib.hm.dag.entryAfter ["claudeCodeSettings"] ''
+        $DRY_RUN_CMD ${mergeGlobalClaudeJsonScript}
       '';
       # Merge Nix-declared per-project overlays into each project's
       # .claude/settings.local.json. Used for machine-specific paths
       # (e.g. sshfs mounts) that don't belong in committed settings.json.
-      home.activation.claudeCodeProjectSettings = home-manager.lib.hm.dag.entryAfter ["claudeCodeGlobalMcp"] ''
+      home.activation.claudeCodeProjectSettings = home-manager.lib.hm.dag.entryAfter ["claudeCodeGlobalJson"] ''
         $DRY_RUN_CMD ${mergeProjectSettingsScript}
       '';
       # Drop the HA marker files (.mcp.json + CLAUDE.md) onto the /mnt/haos CIFS
