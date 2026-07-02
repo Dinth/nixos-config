@@ -295,6 +295,8 @@
       vim_mode=$(jq -r '.vim.mode // empty'                            <<<"$input")
       rl_5h=$(jq -r '.rate_limits.five_hour.used_percentage // empty'  <<<"$input")
       rl_7d=$(jq -r '.rate_limits.seven_day.used_percentage // empty'  <<<"$input")
+      rl_5h_reset=$(jq -r '.rate_limits.five_hour.resets_at // empty'  <<<"$input")
+      rl_7d_reset=$(jq -r '.rate_limits.seven_day.resets_at // empty'  <<<"$input")
 
       pct=''${pct_raw%.*}
       pct=''${pct:-0}
@@ -341,19 +343,44 @@
 
       line2="''${TEAL}''${bar}''${RST} ''${DIM}''${pct}%''${RST}  ''${YELLOW}\$''${cost_fmt}''${RST}"
 
+      # Compact "time until reset" from a resets_at value. Claude Code sends it
+      # as a Unix timestamp in seconds (schema: resets_at is a number); we also
+      # tolerate milliseconds and ISO 8601 so a payload-format change doesn't
+      # break rendering. Emits e.g. 3h20m, 2d4h, or 45m — empty if unparseable.
+      fmt_reset() {
+        local raw=$1 epoch now delta d h m
+        if [[ "$raw" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+          epoch=''${raw%.*}
+          [ "$epoch" -gt 100000000000 ] && epoch=$((epoch / 1000))   # ms → s
+        else
+          epoch=$(date -d "$raw" +%s 2>/dev/null || echo "")
+        fi
+        [ -z "$epoch" ] && return 0
+        now=$(date +%s)
+        delta=$((epoch - now))
+        [ "$delta" -lt 0 ] && delta=0
+        d=$((delta / 86400)); h=$(((delta % 86400) / 3600)); m=$(((delta % 3600) / 60))
+        if   [ "$d" -gt 0 ]; then printf '%dd%dh' "$d" "$h"
+        elif [ "$h" -gt 0 ]; then printf '%dh%dm' "$h" "$m"
+        else                      printf '%dm'    "$m"
+        fi
+      }
+
       fmt_rl() {
-        local pct=$1 label=$2 color
+        local pct=$1 label=$2 reset_raw=$3 color reset_str=""
         pct=''${pct%.*}
         pct=''${pct:-0}
         if   [ "$pct" -ge 90 ]; then color=$'\e[38;5;174m'   # rose
         elif [ "$pct" -ge 70 ]; then color=$'\e[38;5;179m'   # peach
         else                         color=$'\e[38;5;108m'   # green
         fi
+        [ -n "$reset_raw" ] && reset_str=$(fmt_reset "$reset_raw")
         printf '  %s%s: %d%%%s' "$color" "$label" "$pct" "$RST"
+        [ -n "$reset_str" ] && printf '%s ↻%s%s' "$DIM" "$reset_str" "$RST"
       }
 
-      [ -n "$rl_5h" ] && line2+=$(fmt_rl "$rl_5h" "5h")
-      [ -n "$rl_7d" ] && line2+=$(fmt_rl "$rl_7d" "7d")
+      [ -n "$rl_5h" ] && line2+=$(fmt_rl "$rl_5h" "5h" "$rl_5h_reset")
+      [ -n "$rl_7d" ] && line2+=$(fmt_rl "$rl_7d" "7d" "$rl_7d_reset")
 
       # RTK savings segment: "RTK -49% (587t) / -36% (3.2Kt)"
       # First pair = current Claude session (since cost.total_duration_ms ago).
