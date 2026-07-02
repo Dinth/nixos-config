@@ -65,6 +65,17 @@ in {
         // optionalAttrs hasNixVirt {
           libvirt.enable = true;
         };
+
+      # libvirtd-config is the oneshot that (re)links qemu hooks into
+      # /var/lib/libvirt/hooks/qemu.d on each run. Upstream leaves it a plain
+      # Type=oneshot, so after it fires once it goes inactive/dead and
+      # switch-to-configuration never restarts it — meaning a changed nas-power
+      # hook builds into the closure but the on-disk symlink stays frozen at
+      # whatever it was when the service last ran (e.g. a stale, buggy hook
+      # surviving many rebuilds). RemainAfterExit makes it "active (exited)" so
+      # switch restarts it whenever its definition changes, relinking the hook.
+      systemd.services.libvirtd-config.serviceConfig.RemainAfterExit = true;
+
       home-manager.users.${primaryUsername}.dconf.settings = {
         "org/virt-manager/virt-manager/connections" = {
           autoconnect = ["qemu:///system"];
