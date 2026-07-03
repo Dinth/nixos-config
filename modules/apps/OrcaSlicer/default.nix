@@ -15,6 +15,18 @@ in {
         default = false;
         description = "Enable Orca slicer.";
       };
+      userId = mkOption {
+        type = lib.types.str;
+        default = "3210423684";
+        description = ''
+          OrcaSlicer stores per-user filament presets under
+          config/OrcaSlicer/user/<userId>/. This is the numeric id of the
+          logged-in MakerWorld/Bambu account (visible as the folder name in
+          ~/.config/OrcaSlicer/user/). The declaratively-managed filament
+          profiles are installed under this id, so it must match the account
+          Orca is signed in as or the presets won't load.
+        '';
+      };
     };
   };
   config = mkIf cfg.enable {
@@ -29,7 +41,7 @@ in {
       home.packages = with pkgs; [
         orca-slicer # Slicer for 3d projects
       ];
-      xdg.configFile."OrcaSlicer/user/3210423684/filament" = {
+      xdg.configFile."OrcaSlicer/user/${cfg.userId}/filament" = {
         source = ./filament-profiles;
         recursive = true;
       };

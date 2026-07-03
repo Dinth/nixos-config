@@ -47,6 +47,26 @@ in {
             config.age.secrets."id-ed25519-sk-rk-3".path
           ];
           IdentitiesOnly = true;
+
+          # Connection multiplexing: the first connection to a host opens a
+          # master socket; subsequent ssh/scp/rsync/git-over-ssh to the same
+          # host reuse it — near-instant, and a hardware key (sk-rk-*) is
+          # touched once per host instead of once per connection. %C is the
+          # hashed conn tuple, keeping the socket path short (Unix sockets cap
+          # at ~108 chars, which long user@host:port paths can overflow).
+          ControlMaster = "auto";
+          ControlPath = "~/.ssh/master-%C";
+          ControlPersist = "5m";
+
+          # Drop dead sessions cleanly on a network blip and keep NAT/firewall
+          # state warm so idle tabs don't freeze.
+          ServerAliveInterval = 60;
+          ServerAliveCountMax = 3;
+
+          # Add keys to the agent on first use (no repeat passphrase prompts)
+          # and hash host names/IPs in known_hosts.
+          AddKeysToAgent = "yes";
+          HashKnownHosts = "yes";
         };
       };
     };
