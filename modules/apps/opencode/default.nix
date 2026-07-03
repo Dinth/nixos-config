@@ -198,33 +198,41 @@ in {
                   }
                 ])
                 cmds);
-          in {
-            bash =
-              bashFromList "ask" config.agentPermissions.askBash
-              // bashFromList "allow" config.agentPermissions.readOnlyBash;
-            # Auto-allow read-only HA MCP tools. opencode names MCP tools
-            # `<server>_<tool>` and (unlike the comment in
-            # libs/agent-permissions.nix once claimed) does support per-tool
-            # MCP granularity. The skill guide loads on every run; the search
-            # tools are pure read-only entity lookups, so neither warrants a
-            # prompt. Claude Code grants the same via mcpReadOnly.
-            "homeassistant_ha_get_skill_guide" = "allow";
-            "homeassistant_ha_search" = "allow";
-            "homeassistant_ha_search_entities" = "allow";
-            "homeassistant_ha_deep_search" = "allow";
-            edit = "ask";
-            read = "allow";
-            context_info = "allow";
-            list = "allow";
-            glob = "allow";
-            grep = "allow";
-            webfetch = "allow";
-            websearch = "allow";
-            write = "ask";
-            task = "allow";
-            todowrite = "allow";
-            todoread = "allow";
-          };
+            # Auto-allow the full read-only Home Assistant MCP set. opencode
+            # names MCP tools `<server>_<tool>` and (unlike the comment in
+            # libs/agent-permissions.nix once claimed) supports per-tool
+            # granularity. Derived from the shared mcpReadOnly list — strip
+            # the Claude-Code `mcp__homeassistant__` prefix and re-prefix
+            # with the opencode `homeassistant_` server name — so both
+            # agents stay in lockstep: a read tool added to the shared list
+            # is granted here automatically. Only the `homeassistant`
+            # server's entries are taken (grafana/nixos MCPs aren't wired
+            # into opencode).
+            haPrefix = "mcp__homeassistant__";
+            haReadOnly = lib.listToAttrs (map (t: {
+                name = "homeassistant_" + lib.removePrefix haPrefix t;
+                value = "allow";
+              })
+              (lib.filter (lib.hasPrefix haPrefix) config.agentPermissions.mcpReadOnly));
+          in
+            {
+              bash =
+                bashFromList "ask" config.agentPermissions.askBash
+                // bashFromList "allow" config.agentPermissions.readOnlyBash;
+              edit = "ask";
+              read = "allow";
+              context_info = "allow";
+              list = "allow";
+              glob = "allow";
+              grep = "allow";
+              webfetch = "allow";
+              websearch = "allow";
+              write = "ask";
+              task = "allow";
+              todowrite = "allow";
+              todoread = "allow";
+            }
+            // haReadOnly;
           lsp = {
             yaml = {
               command = [
