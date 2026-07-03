@@ -289,6 +289,7 @@ in {
         "mcp__homeassistant__ha_get_addon"
         "mcp__homeassistant__ha_get_blueprint"
         "mcp__homeassistant__ha_get_camera_image"
+        "mcp__homeassistant__ha_get_dashboard_screenshot"
         "mcp__homeassistant__ha_get_history"
         "mcp__homeassistant__ha_get_logs"
         "mcp__homeassistant__ha_get_system_health"
@@ -319,6 +320,7 @@ in {
         "mcp__homeassistant__ha_config_list_floors"
         "mcp__homeassistant__ha_config_list_groups"
         "mcp__homeassistant__ha_config_list_helpers"
+        "mcp__homeassistant__ha_get_hacs_info"
         "mcp__homeassistant__ha_hacs_search"
         "mcp__homeassistant__ha_hacs_repository_info"
       ];
