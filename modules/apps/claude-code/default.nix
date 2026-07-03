@@ -74,6 +74,18 @@
       type = "http";
       url = "http://10.10.1.13:5134/mcp";
     };
+    # Self-hosted Nextcloud MCP (nc.wickhay.uk, proxied to 10.10.1.13:5136).
+    # Basic-auth credential (base64 of user:app-password) comes from the
+    # ragenix `nextcloud-mcp-auth` secret, exported as NEXTCLOUD_MCP_AUTH at
+    # shell startup and expanded by Claude Code at launch — env-var expansion
+    # is supported in http `headers` (per the MCP docs). The `:-` default
+    # keeps a missing var from failing the whole ~/.claude.json parse, so the
+    # token never has to live in the nix store.
+    nextcloud = {
+      type = "http";
+      url = "http://10.10.1.13:5136/mcp";
+      headers.Authorization = "Basic \${NEXTCLOUD_MCP_AUTH:-}";
+    };
   };
 
   # Settings attrset — serialised to JSON and installed as a real mutable
@@ -489,6 +501,9 @@ in {
       programs.zsh.initContent = lib.mkAfter ''
         if [ -r "${config.age.secrets.ha-mcp-url.path}" ]; then
           export HOMEASSISTANT_MCP_URL="$(< "${config.age.secrets.ha-mcp-url.path}")"
+        fi
+        if [ -r "${config.age.secrets.nextcloud-mcp-auth.path}" ]; then
+          export NEXTCLOUD_MCP_AUTH="$(< "${config.age.secrets.nextcloud-mcp-auth.path}")"
         fi
       '';
       # Register the claude-cli:// URL scheme handler declaratively. Claude Code

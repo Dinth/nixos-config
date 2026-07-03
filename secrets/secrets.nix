@@ -23,5 +23,6 @@ in {
   "id-ed25519.age".publicKeys = users ++ systems;
   "id-ed25519-passphrase.age".publicKeys = users ++ systems;
   "ha-mcp-url.age".publicKeys = users ++ systems;
+  "nextcloud-mcp-auth.age".publicKeys = users ++ systems;
   "wazuh-enrolment.age".publicKeys = users ++ systems;
 }
