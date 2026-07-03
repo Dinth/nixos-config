@@ -325,5 +325,27 @@ in {
         "mcp__homeassistant__ha_hacs_repository_info"
       ];
     };
+
+    denyReadGlobs = mkOption {
+      type = types.listOf types.str;
+      readOnly = true;
+      description = ''
+        Bare file-path globs an agent must never read — secret material.
+        Both agents deny the same paths. Each consuming module wraps the
+        globs in its own syntax and expands each to a root-level and a
+        nested (`**/`) form:
+          - claude-code: `Read(./<glob>)` + `Read(./**/<glob>)` in `deny`.
+          - opencode:    `read` map `<glob>` / `**/<glob>` = "deny" under a
+            `"*" = "allow"` catch-all (opencode resolves last-match-wins,
+            and sorted JSON keys put `*` first so the deny globs override).
+      '';
+      default = [
+        ".env"
+        ".env.*"
+        "*.key"
+        "*.pem"
+        "secrets/**"
+      ];
+    };
   };
 }

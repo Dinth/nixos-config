@@ -201,17 +201,17 @@
         ])
         config.agentPermissions.askBash;
 
-      # Project-relative deny patterns need the `./` prefix to match. Nested
-      # globs catch .env files in subdirectories (packages/api/.env, etc.).
-      deny = [
-        "Read(./.env)"
-        "Read(./.env.*)"
-        "Read(./**/.env)"
-        "Read(./**/.env.*)"
-        "Read(./**/secrets/**)"
-        "Read(./**/*.key)"
-        "Read(./**/*.pem)"
-      ];
+      # Secret-file globs come from libs/agent-permissions.nix so
+      # claude-code and opencode deny the same paths. Project-relative
+      # patterns need the `./` prefix to match; each bare glob expands to
+      # a root-level and a nested (`**/`) form so it also catches e.g.
+      # packages/api/.env.
+      deny =
+        lib.concatMap (g: [
+          "Read(./${g})"
+          "Read(./**/${g})"
+        ])
+        config.agentPermissions.denyReadGlobs;
     };
   };
 

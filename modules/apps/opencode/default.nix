@@ -214,13 +214,31 @@ in {
                 value = "allow";
               })
               (lib.filter (lib.hasPrefix haPrefix) config.agentPermissions.mcpReadOnly));
+            # Deny reads of secret material, from the shared denyReadGlobs
+            # list (same paths as the claude-code `deny` block). `*` = allow
+            # is the catch-all; opencode resolves last-matching-rule-wins and
+            # sorted JSON keys emit `*` first, so the deny globs override it.
+            # Each bare glob also gets a nested `**/` form.
+            denyRead =
+              {"*" = "allow";}
+              // lib.listToAttrs (lib.concatMap (g: [
+                  {
+                    name = g;
+                    value = "deny";
+                  }
+                  {
+                    name = "**/${g}";
+                    value = "deny";
+                  }
+                ])
+                config.agentPermissions.denyReadGlobs);
           in
             {
               bash =
                 bashFromList "ask" config.agentPermissions.askBash
                 // bashFromList "allow" config.agentPermissions.readOnlyBash;
               edit = "ask";
-              read = "allow";
+              read = denyRead;
               context_info = "allow";
               list = "allow";
               glob = "allow";
