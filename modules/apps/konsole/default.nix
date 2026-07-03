@@ -27,6 +27,84 @@
     }.${
       config.theme.flavor
     };
+
+  # All three profiles share the same font.
+  baseFont = {
+    name = "FiraCode Nerd Font Med";
+    size = 11;
+  };
+
+  # Shared profile settings. The per-profile blocks below deep-merge their
+  # own overrides onto this via lib.recursiveUpdate, so only the deltas
+  # (tab titles, dimensions, bell/scrollback, link handling …) live in each
+  # profile instead of the full block being copy-pasted three times.
+  baseProfileExtraConfig = {
+    Appearance = {
+      LineSpacing = 0;
+      BoldIntense = true;
+      CursorShape = 0;
+      UseFontBracketing = true;
+      UseFontLineCharacters = true;
+      AntiAliasFonts = true;
+      BidiTableDirOverride = true;
+    };
+    General = {
+      DimWhenInactive = false;
+      InvertSelectionColors = true;
+      SemanticInputClick = true;
+      SemanticUpDown = true;
+      TerminalCenter = true;
+      TerminalColumns = 160;
+      TerminalRows = 40;
+      Environment = "TERM=xterm-256color,COLORTERM=truecolor";
+      LocalTabTitleFormat = "%d : %n";
+      RemoteTabTitleFormat = "%h : %u";
+      StartInCurrentSessionDir = true;
+      ShowTerminalSizeHint = true;
+    };
+    Monitor = {
+      ActivityMode = 1;
+      SilenceMode = 1;
+      SilenceSeconds = 20;
+    };
+    "Interaction Options" = {
+      AllowEscapedLinks = false;
+      UnderlineLinksEnabled = true;
+      AutoCopySelectedText = false;
+      CopyTextAsHTML = false;
+      OpenLinksByDirectClickEnabled = false;
+      TextEditorCmd = 0;
+      TrimLeadingSpacesInSelectedText = true;
+      TrimTrailingSpacesInSelectedText = true;
+      UnderlineFilesEnabled = true;
+      WordCharacters = ":@-./_~?&=%+#";
+      TripleClickMode = 0;
+      MiddleClickPasteMode = 0;
+    };
+    Scrolling = {
+      HistoryMode = 1;
+      HistorySize = 40000;
+      ScrollBarPosition = 2;
+      ScrollFullPage = false;
+      ReflowLines = true;
+      HighlightScrolledLines = true;
+    };
+    TabBar = {
+      TabBarPosition = 0;
+      CloseTabOnMiddleMouseButton = true;
+      TabBarVisibility = 2;
+    };
+    "Terminal Features" = {
+      BellMode = 1;
+      BlinkingCursorEnabled = true;
+      FlowControlEnabled = false;
+      UrlHintsModifiers = 67108864;
+      BidiRenderingEnabled = true;
+      LineNumbers = 0;
+    };
+  };
+
+  mkProfileExtraConfig = overrides: lib.recursiveUpdate baseProfileExtraConfig overrides;
 in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername}.programs.konsole = {
@@ -54,149 +132,22 @@ in {
         name = "Default";
         command = "${pkgs.zsh}/bin/zsh";
         colorScheme = defaultColorScheme;
-        font = {
-          name = "FiraCode Nerd Font Med";
-          size = 11;
-        };
-        extraConfig = {
-          Appearance = {
-            LineSpacing = 0;
-            BoldIntense = true;
-            CursorShape = 0;
-            UseFontBracketing = true;
-            UseFontLineCharacters = true;
-            AntiAliasFonts = true;
-            BidiTableDirOverride = true;
-          };
-          General = {
-            DimWhenInactive = false;
-            InvertSelectionColors = true;
-            SemanticInputClick = true;
-            SemanticUpDown = true;
-            TerminalCenter = true;
-            TerminalColumns = 160;
-            TerminalRows = 40;
-            Environment = "TERM=xterm-256color,COLORTERM=truecolor";
-            LocalTabTitleFormat = "%d : %n";
-            RemoteTabTitleFormat = "%h : %u";
-            StartInCurrentSessionDir = true;
-            ShowTerminalSizeHint = true;
-          };
-          Monitor = {
-            ActivityMode = 1;
-            SilenceMode = 1;
-            SilenceSeconds = 20;
-          };
-          "Interaction Options" = {
-            AllowEscapedLinks = false;
-            UnderlineLinksEnabled = true;
-            AutoCopySelectedText = false;
-            CopyTextAsHTML = false;
-            OpenLinksByDirectClickEnabled = false;
-            TextEditorCmd = 0;
-            TrimLeadingSpacesInSelectedText = true;
-            TrimTrailingSpacesInSelectedText = true;
-            UnderlineFilesEnabled = true;
-            WordCharacters = ":@-./_~?&=%+#";
-            TripleClickMode = 0;
-            MiddleClickPasteMode = 0;
-          };
-          "Scrolling" = {
-            HistoryMode = 1;
-            HistorySize = 40000;
-            ScrollBarPosition = 2;
-            ScrollFullPage = false;
-            ReflowLines = true;
-            HighlightScrolledLines = true;
-          };
-          "TabBar" = {
-            TabBarPosition = 0;
-            CloseTabOnMiddleMouseButton = true;
-            TabBarVisibility = 2;
-          };
-          "Terminal Features" = {
-            BellMode = 1;
-            BlinkingCursorEnabled = true;
-            FlowControlEnabled = false;
-            UrlHintsModifiers = 67108864;
-            BidiRenderingEnabled = true;
-            LineNumbers = 0;
-          };
-        };
+        font = baseFont;
+        extraConfig = baseProfileExtraConfig;
       };
       profiles.SSH = {
         name = "SSH - 10.10.1.13";
         command = "${pkgs.openssh}/bin/ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 root@10.10.1.13";
         colorScheme = "catppuccinFrappe";
-        font = {
-          name = "FiraCode Nerd Font Med";
-          size = 11;
-        };
-        extraConfig = {
-          Appearance = {
-            LineSpacing = 0;
-            BoldIntense = true;
-            CursorShape = 0;
-            UseFontBracketing = true;
-            UseFontLineCharacters = true;
-            AntiAliasFonts = true;
-            BidiTableDirOverride = true;
-          };
+        font = baseFont;
+        extraConfig = mkProfileExtraConfig {
           General = {
-            DimWhenInactive = false;
-            InvertSelectionColors = true;
-            SemanticInputClick = true;
-            SemanticUpDown = true;
-            TerminalCenter = true;
-            TerminalColumns = 160;
-            TerminalRows = 40;
-            Environment = "TERM=xterm-256color,COLORTERM=truecolor";
-            LocalTabTitleFormat = "%d : %n";
             RemoteTabTitleFormat = "[SSH] %h : %u";
             StartInCurrentSessionDir = false;
-            ShowTerminalSizeHint = true;
           };
-          Monitor = {
-            ActivityMode = 1;
-            SilenceMode = 1;
-            SilenceSeconds = 20;
-          };
-          "Interaction Options" = {
-            AllowEscapedLinks = false;
-            UnderlineLinksEnabled = true;
-            AutoCopySelectedText = false;
-            CopyTextAsHTML = false;
-            OpenLinksByDirectClickEnabled = false;
-            TextEditorCmd = 0;
-            TrimLeadingSpacesInSelectedText = true;
-            TrimTrailingSpacesInSelectedText = true;
-            UnderlineFilesEnabled = true;
-            WordCharacters = ":@-./_~?&=%+#";
-            TripleClickMode = 0;
-            MiddleClickPasteMode = 0;
-          };
-          "Scrolling" = {
-            HistoryMode = 1;
-            HistorySize = 40000;
-            ScrollBarPosition = 2;
-            ScrollFullPage = false;
-            ReflowLines = true;
-            HighlightScrolledLines = true;
-          };
-          "TabBar" = {
+          TabBar = {
             NewTabBehavior = 0;
             ExpandTabWidth = false;
-            TabBarPosition = 0;
-            CloseTabOnMiddleMouseButton = true;
-            TabBarVisibility = 2;
-          };
-          "Terminal Features" = {
-            BellMode = 1;
-            BlinkingCursorEnabled = true;
-            FlowControlEnabled = false;
-            UrlHintsModifiers = 67108864;
-            BidiRenderingEnabled = true;
-            LineNumbers = 0;
           };
         };
       };
@@ -204,72 +155,31 @@ in {
         name = "OpenCode";
         command = "${pkgs.opencode}/bin/opencode";
         colorScheme = "catppuccinMacchiato";
-        font = {
-          name = "FiraCode Nerd Font Med";
-          size = 11;
-        };
-        extraConfig = {
-          Appearance = {
-            LineSpacing = 0;
-            BoldIntense = true;
-            CursorShape = 0;
-            UseFontBracketing = true;
-            UseFontLineCharacters = true;
-            AntiAliasFonts = true;
-            BidiTableDirOverride = true;
-          };
+        font = baseFont;
+        extraConfig = mkProfileExtraConfig {
           General = {
-            DimWhenInactive = false;
-            InvertSelectionColors = true;
-            SemanticInputClick = true;
-            SemanticUpDown = true;
-            TerminalCenter = true;
             TerminalColumns = 180;
             TerminalRows = 50;
             Environment = "TERM=xterm-256color,COLORTERM=truecolor,SHELL=${pkgs.zsh}/bin/zsh";
             LocalTabTitleFormat = "[OpenCode] %d";
             RemoteTabTitleFormat = "[OpenCode] %h";
-            StartInCurrentSessionDir = true;
             ShowTerminalSizeHint = false;
           };
+          # SilenceMode is off here, so the inherited SilenceSeconds is inert.
           Monitor = {
             ActivityMode = 0;
             SilenceMode = 0;
           };
           "Interaction Options" = {
             AllowEscapedLinks = true;
-            UnderlineLinksEnabled = true;
-            AutoCopySelectedText = false;
             CopyTextAsHTML = true;
-            OpenLinksByDirectClickEnabled = false;
-            TextEditorCmd = 0;
-            TrimLeadingSpacesInSelectedText = true;
-            TrimTrailingSpacesInSelectedText = true;
-            UnderlineFilesEnabled = true;
-            WordCharacters = ":@-./_~?&=%+#";
             TripleClickMode = 1;
-            MiddleClickPasteMode = 0;
           };
-          "Scrolling" = {
-            HistoryMode = 1;
+          Scrolling = {
             HistorySize = 100000;
-            ScrollBarPosition = 2;
-            ScrollFullPage = false;
-            ReflowLines = true;
-            HighlightScrolledLines = true;
-          };
-          "TabBar" = {
-            TabBarPosition = 0;
-            CloseTabOnMiddleMouseButton = true;
-            TabBarVisibility = 2;
           };
           "Terminal Features" = {
             BellMode = 0;
-            BlinkingCursorEnabled = true;
-            FlowControlEnabled = false;
-            UrlHintsModifiers = 67108864;
-            BidiRenderingEnabled = true;
-            LineNumbers = 0;
           };
         };
       };

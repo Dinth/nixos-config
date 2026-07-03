@@ -470,30 +470,12 @@
   '';
 in {
   config = mkIf cfg.enable {
-    programs.nix-ld = {
-      enable = true;
-      libraries = with pkgs; [
-        # General logic and compression
-        stdenv.cc.cc
-        zlib
-        zstd
-      ];
-    };
-    environment.systemPackages = with pkgs; [
-      nix-output-monitor
-      mcp-nixos
-    ];
+    # nix-ld and the shared agentic dev toolchain (formatters, linters, LSP
+    # servers, rtk, mcp-nixos, nix-output-monitor, …) are declared once in
+    # modules/apps/opencode. The agenticAi toggle always co-enables both this
+    # module and opencode, so keeping the package set in a single place avoids
+    # the two lists drifting out of sync.
     home-manager.users.${primaryUsername} = {
-      home.packages = with pkgs; [
-        yamlfmt
-        php83Packages.php-cs-fixer
-        shfmt
-        shellcheck
-        prettier
-        djlint
-        ruff
-        rtk # Rust Token Killer - reduces LLM token consumption
-      ];
       # Export HOMEASSISTANT_MCP_URL for the project-scope .mcp.json files on the
       # HA config share (/mnt/haos, /mnt/haos/esphome). The URL contains a private
       # auth key so it lives in ragenix; read at shell startup so it's available

@@ -2,10 +2,23 @@
   config,
   lib,
   pkgs,
+  machineType ? "",
   ...
 }: let
   inherit (lib) mkIf mkMerge mkOption;
   cfg = config.clamav;
+
+  # Scale the scan thread pools to the host. The default (16/12) suits the
+  # multi-core desktop; the 2-core/4-thread Surface Go would just thrash, so
+  # the tablet gets a leaner pool. Server has clamav.enable = false anyway.
+  maxThreads =
+    if machineType == "tablet"
+    then 4
+    else 16;
+  onAccessMaxThreads =
+    if machineType == "tablet"
+    then 2
+    else 12;
 in {
   options = {
     clamav = {
@@ -75,7 +88,7 @@ in {
                 ScanOLE2 = true;
                 ScanPDF = true;
                 ScanSWF = true;
-                MaxThreads = 16;
+                MaxThreads = maxThreads;
                 MaxQueue = 200;
                 CrossFilesystems = false;
               };
@@ -137,7 +150,7 @@ in {
             OnAccessExtraScanning = false;
             OnAccessExcludeUname = "clamav";
             OnAccessMaxFileSize = "100M";
-            OnAccessMaxThreads = 12;
+            OnAccessMaxThreads = onAccessMaxThreads;
           };
           systemd.services."clamav-clamonacc" = {
             description = "ClamAV On-Access Scanner";
@@ -173,9 +186,6 @@ in {
           systemd.tmpfiles.rules = [
             "d /var/lib/quarantine 0755 root root - -"
           ];
-          environment.variables = {
-            CLAMAV_ONACCESS_FLAGS = "--fanotify"; # Avoid legacy inotify
-          };
         })
       ]
   );

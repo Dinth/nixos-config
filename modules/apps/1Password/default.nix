@@ -45,12 +45,10 @@ in {
   config = mkMerge [
     (mkIf cfg.enable {
       programs._1password.enable = true;
-      #      environment.systemPackages = with pkgs; [
-      #      ];
     })
     (mkIf (cfg.enable && config.graphical.enable) {
       programs._1password-gui.enable = true;
-      programs._1password-gui.polkitPolicyOwners = ["${config.primaryUser.name}"];
+      programs._1password-gui.polkitPolicyOwners = [primaryUsername];
 
       # System-wide native-messaging manifests (Chrome + Chromium read these
       # in addition to the per-profile dir; these are immune to the race above).

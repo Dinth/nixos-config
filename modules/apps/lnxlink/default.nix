@@ -117,7 +117,6 @@
       dbus-python
       pygobject3
       pydbus
-      pygobject3
       dasbus
       psutil
       distro
