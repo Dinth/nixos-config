@@ -209,6 +209,7 @@ in {
             # tools are pure read-only entity lookups, so neither warrants a
             # prompt. Claude Code grants the same via mcpReadOnly.
             "homeassistant_ha_get_skill_guide" = "allow";
+            "homeassistant_ha_search" = "allow";
             "homeassistant_ha_search_entities" = "allow";
             "homeassistant_ha_deep_search" = "allow";
             edit = "ask";

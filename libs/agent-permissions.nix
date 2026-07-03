@@ -298,6 +298,7 @@ in {
         "mcp__homeassistant__ha_get_operation_status"
         "mcp__homeassistant__ha_get_skill_home_assistant_best_practices"
         "mcp__homeassistant__ha_get_skill_guide"
+        "mcp__homeassistant__ha_search"
         "mcp__homeassistant__ha_search_entities"
         "mcp__homeassistant__ha_deep_search"
         "mcp__homeassistant__ha_list_floors_areas"
