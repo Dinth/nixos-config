@@ -32,6 +32,13 @@ in {
       ];
     };
   };
+  # Cap systemd-boot generations on the ESP. The rolling-latest workflow
+  # (`nh os switch -u` every rebuild) drops a fresh kernel+initrd into the
+  # small vfat /boot each time, and GC only prunes generations after 30d — a
+  # busy fortnight can fill the ESP and fail a switch mid-write. No-op on the
+  # GRUB server (r230). mkDefault so a host can override.
+  boot.loader.systemd-boot.configurationLimit = mkDefault 15;
+
   # Kernel: stable for servers, latest for desktops/tablets
   boot.kernelPackages = mkDefault (
     if machineType == "server"

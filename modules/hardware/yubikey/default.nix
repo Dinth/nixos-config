@@ -40,7 +40,10 @@ in {
         control = "sufficient";
         settings.cue = true; # prompt "touch your security key"
       };
-      security.pam.services.sudo.u2fAuth = true;
+      # doas is the escalation path on these hosts (sudo is disabled in
+      # modules/system/security.nix), so pam_u2f must attach to the doas
+      # service — targeting sudo would be inert.
+      security.pam.services.doas.u2f.enable = true;
     })
     (mkIf (cfg.enable && config.graphical.enable) {
       environment.systemPackages = with pkgs; [
