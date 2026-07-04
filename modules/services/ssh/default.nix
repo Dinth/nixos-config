@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: let
   inherit (lib) mkIf mkOption;
@@ -27,6 +26,28 @@ in {
         MaxAuthTries = 3;
         LoginGraceTime = 30;
         AllowUsers = [config.primaryUser.name];
+        # Make the publickey-only posture explicit so it survives any future
+        # change to upstream defaults.
+        AuthenticationMethods = "publickey";
+        # Reap hung/idle sessions: 2 missed 300s probes → disconnect.
+        ClientAliveInterval = 300;
+        ClientAliveCountMax = 2;
+        # Modern crypto only — drop legacy CBC/SHA1 primitives.
+        KexAlgorithms = [
+          "sntrup761x25519-sha512@openssh.com"
+          "curve25519-sha256"
+          "curve25519-sha256@libssh.org"
+        ];
+        Ciphers = [
+          "chacha20-poly1305@openssh.com"
+          "aes256-gcm@openssh.com"
+          "aes128-gcm@openssh.com"
+        ];
+        Macs = [
+          "hmac-sha2-512-etm@openssh.com"
+          "hmac-sha2-256-etm@openssh.com"
+          "umac-128-etm@openssh.com"
+        ];
       };
     };
     services.fail2ban = {

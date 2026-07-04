@@ -30,25 +30,39 @@
     exec ${pkgs.openssh}/bin/ssh "$@"
   '';
 
-  cifsOptions = credPath: [
-    "credentials=${credPath}"
-    "rw"
-    "noserverino"
-    "actimeo=1"
-    "noperm"
-    "cache=none"
-    "echo_interval=10"
-    "uid=${primaryUid}"
-    "gid=${primaryGid}"
-    "_netdev"
-    "nofail"
-    "vers=3.0"
-    "x-systemd.automount"
-    "x-systemd.requires=network-online.target"
-    "x-systemd.after=network-online.target"
-    "x-systemd.idle-timeout=60"
-    "x-systemd.mount-timeout=30s"
-  ];
+  # vers=3.1.1: all servers here (OMV, HAOS Samba, 10.10.1.19) speak SMB
+  # 3.1.1, which adds pre-auth integrity (downgrade protection) and
+  # AES-128-GCM over the 3.0 we used before.
+  #
+  # cache: defaults to "strict" (kernel-managed oplock caching) for
+  # throughput. The HAOS config share overrides to cache=none + sync so a
+  # config edit is flushed to the HAOS disk before save returns, otherwise
+  # HA reloads can miss freshly-written config.
+  cifsOptions = {
+    credPath,
+    cache ? "strict",
+    extra ? [],
+  }:
+    [
+      "credentials=${credPath}"
+      "rw"
+      "noserverino"
+      "actimeo=1"
+      "noperm"
+      "cache=${cache}"
+      "echo_interval=10"
+      "uid=${primaryUid}"
+      "gid=${primaryGid}"
+      "_netdev"
+      "nofail"
+      "vers=3.1.1"
+      "x-systemd.automount"
+      "x-systemd.requires=network-online.target"
+      "x-systemd.after=network-online.target"
+      "x-systemd.idle-timeout=60"
+      "x-systemd.mount-timeout=30s"
+    ]
+    ++ extra;
 in {
   options.services.networkMounts = {
     enable = mkOption {
@@ -81,16 +95,18 @@ in {
       fileSystems."/mnt/VM" = {
         device = "//10.10.1.19/VM";
         fsType = "cifs";
-        options = cifsOptions "/run/agenix/nas-vm-creds";
+        options = cifsOptions {credPath = "/run/agenix/nas-vm-creds";};
       };
     })
     (mkIf cfg.smb.haosConfig {
       fileSystems."/mnt/haos" = {
         device = "//10.10.1.11/config";
         fsType = "cifs";
-        # sync: force synchronous writes so edits flush to the HAOS disk before
-        # save returns, otherwise HA reloads can miss freshly-written config.
-        options = cifsOptions "/run/agenix/smb-haos-creds" ++ ["sync"];
+        options = cifsOptions {
+          credPath = "/run/agenix/smb-haos-creds";
+          cache = "none";
+          extra = ["sync"];
+        };
       };
     })
     (mkIf cfg.sftp.omv {

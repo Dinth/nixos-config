@@ -32,23 +32,30 @@
       forward_to = [loki.relabel.systemd.receiver]
     }
 
-    // Map any __journal*-prefixed labels to their plain names so unit
-    // and level fall out without us needing the exact prefix.
+    // Promote only a tight, low-cardinality set of journal fields to Loki
+    // index labels. A blanket labelmap of every __journal_* field (pid,
+    // cmdline, code_line, invocation_id, cgroup, ...) explodes stream
+    // cardinality and wrecks Loki query performance, so we map fields
+    // explicitly instead. Everything else stays in the log line / dropped.
     loki.relabel "systemd" {
       forward_to = [loki.write.omv_loki.receiver]
 
+      // _SYSTEMD_UNIT (fields starting with _ get a doubled underscore)
+      // with the .service suffix stripped → `unit`.
       rule {
-        action = "labelmap"
-        regex  = "__journal_+(.+)"
-      }
-      rule {
-        source_labels = ["systemd_unit"]
+        source_labels = ["__journal__systemd_unit"]
         regex         = "(.*)\\.service"
         target_label  = "unit"
       }
+      // Synthesized priority keyword (emerg..debug) → `level`.
       rule {
-        source_labels = ["priority_keyword"]
+        source_labels = ["__journal_priority_keyword"]
         target_label  = "level"
+      }
+      // Program name — low cardinality, handy for filtering.
+      rule {
+        source_labels = ["__journal_syslog_identifier"]
+        target_label  = "syslog_identifier"
       }
     }
   '';

@@ -72,7 +72,11 @@ in {
           "processes"
           "logind"
           "tcpstat"
+          # textfile: lets other units (backups, nixos-rebuild, etc.) drop
+          # *.prom files that get scraped as first-class metrics for free.
+          "textfile"
         ];
+        extraFlags = ["--collector.textfile.directory=/var/lib/node_exporter/textfile"];
       };
 
       # Per-unit state (active/failed), restart counts, task counts.
@@ -89,6 +93,10 @@ in {
         port = 9633;
       };
     };
+
+    # World-readable drop dir for the textfile collector. Other units write
+    # <name>.prom here; node_exporter (DynamicUser) only needs to read it.
+    systemd.tmpfiles.rules = ["d /var/lib/node_exporter/textfile 0755 root root -"];
 
     networking.firewall = {
       extraCommands = iptablesStart;

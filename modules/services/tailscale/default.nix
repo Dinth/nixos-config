@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: let
   inherit (lib) mkIf mkOption;
@@ -33,6 +32,10 @@ in {
         then "both"
         else "client";
       authKeyFile = lib.mkIf (cfg.authKeyFile != null) cfg.authKeyFile;
+      # useRoutingFeatures only flips the kernel IP-forwarding sysctls; the
+      # node still has to *advertise* itself as an exit node via `up`, or it
+      # never appears as an exit option in the tailnet.
+      extraUpFlags = lib.optionals cfg.exitNode ["--advertise-exit-node"];
     };
 
     # Ensure the autoconnect service waits for an active network connection.
@@ -46,7 +49,7 @@ in {
       trustedInterfaces = ["tailscale0"];
       allowedUDPPorts = [config.services.tailscale.port];
     };
-
-    environment.systemPackages = [pkgs.tailscale];
+    # The upstream services.tailscale module already adds the CLI to
+    # environment.systemPackages, so no need to duplicate it here.
   };
 }

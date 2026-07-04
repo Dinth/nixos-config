@@ -85,18 +85,32 @@ in {
       requires = ["docker.service"];
       wantedBy = ["multi-user.target"];
 
+      # Cap crash-loop hammering of the docker daemon.
+      startLimitIntervalSec = 300;
+      startLimitBurst = 5;
+
       environment = {
         DOCKER_HOST = "unix:///run/docker.sock";
         DOCKER_CONFIG = "${dockerConfig}";
       };
 
       serviceConfig = {
-        Type = "simple";
+        Type = "exec";
         ExecStart = "${komodo-periphery-pkg}/bin/periphery --config-path ${configFile}";
         Restart = "on-failure";
         RestartSec = "10s";
         StateDirectory = "komodo komodo/stacks komodo/repos komodo/builds";
         WorkingDirectory = "/var/lib/komodo";
+
+        # Modest hardening. Kept compatible with docker-socket access and
+        # arbitrary compose-stack management under /var/lib/komodo, so no
+        # ProtectSystem=strict / ProtectHome here.
+        NoNewPrivileges = true;
+        PrivateTmp = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictSUIDSGID = true;
       };
     };
 
