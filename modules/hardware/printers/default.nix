@@ -37,7 +37,6 @@ in {
         enable = true;
         userServices = true;
       };
-      saned.enable = true;
     };
     hardware = {
       printers = {

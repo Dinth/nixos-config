@@ -88,6 +88,10 @@ in {
         Type = "oneshot";
         User = primaryUsername;
         ExecStart = backupScript;
+        # Large card syncs are background work — keep them off the critical path
+        # so the desktop stays responsive while footage copies.
+        IOSchedulingClass = "idle";
+        Nice = 19;
       };
     };
   };

@@ -21,14 +21,12 @@ in {
     hardware.graphics = {
       enable = true;
       enable32Bit = true;
+      # extraPackages is the *driver closure* fed to the graphics stack — only
+      # runtime ICDs / loadable layers belong here. It is NOT on $PATH, so CLI
+      # tools must go in environment.systemPackages instead (see below).
       extraPackages = with pkgs; [
-        rocmPackages.clr.icd
-        vulkan-tools
-        vulkan-loader
-        vulkan-validation-layers
-        clinfo
-        radeontop
-        amdgpu_top # AMD graphic card resource monitor
+        rocmPackages.clr.icd # OpenCL runtime (ROCm)
+        vulkan-validation-layers # loadable Vulkan layer, discovered via the loader
       ];
       # 32-bit Vulkan stack for Wine/Proton (DXVK + VKD3D-Proton are both
       # Vulkan-backed). Without the 32-bit vulkan-loader, DXVK in a 32-bit
@@ -37,6 +35,22 @@ in {
         mesa
         vulkan-loader
       ];
+    };
+
+    # GPU inspection / monitoring CLIs. These were previously (incorrectly) in
+    # hardware.graphics.extraPackages, where they never reached $PATH.
+    environment.systemPackages = with pkgs; [
+      vulkan-tools # vulkaninfo, vkcube
+      clinfo # OpenCL device query
+      radeontop # GPU load meter
+      amdgpu_top # AMD GPU resource monitor
+    ];
+
+    # Route VA-API/VDPAU through radeonsi so browsers/mpv get hardware video
+    # decode on the Navi22 iGPU/dGPU instead of falling back to CPU.
+    environment.variables = {
+      LIBVA_DRIVER_NAME = "radeonsi";
+      VDPAU_DRIVER = "radeonsi";
     };
   };
 }
