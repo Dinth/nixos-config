@@ -17,12 +17,12 @@ nix-instantiate --show-trace /path/to/file.nix
 # Rebuild and switch (requires root)
 sudo nixos-rebuild switch --flake .#<hostname>
 
-# Hostnames: dinth-nixos-desktop, michal-surface-go, r230-nixos
+# Hostnames (live nixosConfigurations): dinth-nixos-desktop, michal-surface-go, r230-nixos
 ```
 
 ## Architecture
 
-**Flake-based NixOS configuration managing 3 hosts with integrated Home Manager.**
+**Flake-based NixOS configuration managing 3 live hosts with integrated Home Manager.**
 
 - `flake.nix` — Entry point defining inputs (nixpkgs, home-manager, plasma-manager, catppuccin, nixos-hardware, agenix) and `nixosConfigurations` outputs
 - System and Home Manager configs are **mixed in the same modules** — a single file may contain both `environment.systemPackages` and `home-manager.users.${user}.programs.*`
@@ -34,8 +34,11 @@ sudo nixos-rebuild switch --flake .#<hostname>
 | `dinth-nixos-desktop` | desktop | Primary workstation (KDE Plasma 6, gaming, graphical tools) |
 | `michal-surface-go` | tablet | Mobile Surface Go 3 (KDE with tablet optimizations) |
 | `r230-nixos` | server | Dell PowerEdge R230 (Docker only, no GUI) |
+| `michal-macbook-pro` | laptop | **WIP / not wired** — scaffolding for an aarch64-darwin (nix-darwin) host. The `nix-darwin` input and `darwinConfigurations` block in `flake.nix` are commented out ("Doesnt work"), so this host does **not** build yet. See `modules/system/darwin.nix`. |
 
 Host configs branch on `machineType` via `config.specialArgs.machineType`.
+
+**Darwin support is aspirational, not functional.** `modules/system/darwin.nix` is an empty stub gated on `pkgs.stdenv.isDarwin`, and `hosts/michal-macbook-pro/` exists but is unreachable until the commented-out `nix-darwin` input and `darwinConfigurations` output in `flake.nix` are restored. Do not assume darwin builds work; only the three NixOS hosts above are live.
 
 ### Module Layout
 
