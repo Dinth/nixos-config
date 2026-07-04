@@ -55,6 +55,17 @@
     }
   ];
 
+  # zram: compressed RAM swap for this low-memory tablet. Gets a higher
+  # priority than the nvme swap partition above, so the kernel spills to
+  # compressed RAM first and only touches the eMMC/SSD swap under real
+  # pressure — cutting flash wear and swap-in latency. zstd gives the best
+  # ratio/speed trade-off. vm.swappiness=10 above still applies.
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;
+  };
+
   hardware = {
     graphics = {
       enable = true; # replaces hardware.opengl.enable

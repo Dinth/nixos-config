@@ -19,7 +19,15 @@ in {
       tcpClients = mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
-        description = "IP addresses allowed to reach Docker's TCP socket on port 2375.";
+        description = ''
+          IP addresses allowed to reach Docker's TCP socket on port 2375.
+
+          SECURITY: port 2375 is the UNENCRYPTED, UNAUTHENTICATED Docker API —
+          anyone who can reach it (or spoof one of these source IPs on the LAN)
+          gets root-equivalent control of the host. The firewall allowlist below
+          is the only guard. Prefer a TLS socket (2376) or a socket-proxy that
+          exposes a read-only subset before enabling this anywhere sensitive.
+        '';
         example = ["10.10.1.11"];
       };
     };

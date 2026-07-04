@@ -115,6 +115,27 @@ in {
       "kernel.unprivileged_bpf_disabled" = 1;
       "net.core.bpf_jit_harden" = 2;
       "kernel.ftrace_enabled" = 0;
+      # Block kexec — stops loading a replacement kernel at runtime, closing a
+      # path that bypasses Secure Boot / signed-kernel guarantees. One-way latch.
+      "kernel.kexec_load_disabled" = 1;
+      # Deny unprivileged access to perf_event_open (kernel-info leak / attack
+      # surface). Level 3 is the hardened-kernel max; treated as 2 on mainline.
+      "kernel.perf_event_paranoid" = 3;
+      # ── Network hardening (IPv4; IPv6 is disabled below) ──────────────
+      # Reverse-path filtering: drop spoofed source addresses.
+      "net.ipv4.conf.all.rp_filter" = 1;
+      "net.ipv4.conf.default.rp_filter" = 1;
+      # Ignore ICMP redirects — a MITM can't reroute our traffic.
+      "net.ipv4.conf.all.accept_redirects" = 0;
+      "net.ipv4.conf.default.accept_redirects" = 0;
+      "net.ipv4.conf.all.secure_redirects" = 0;
+      "net.ipv4.conf.default.secure_redirects" = 0;
+      # We are not a router — never send ICMP redirects.
+      "net.ipv4.conf.all.send_redirects" = 0;
+      "net.ipv4.conf.default.send_redirects" = 0;
+      # Reject source-routed packets (classic spoofing vector).
+      "net.ipv4.conf.all.accept_source_route" = 0;
+      "net.ipv4.conf.default.accept_source_route" = 0;
       # Disable IPv6 per-interface rather than ipv6.disable=1 — the kernel
       # param removes AF_INET6 entirely, breaking services that bind [::] (e.g. periphery, dhcpcd)
       "net.ipv6.conf.all.disable_ipv6" = 1;
@@ -403,6 +424,9 @@ in {
     tmpfiles.rules = [
       "d /var/log/audit 0750 root wheel - -"
       "f /var/log/audit/audit.log 0640 root wheel - -"
+      # lynis-scan writes --report-file here; without the dir the weekly
+      # report is silently lost (the service redirects output to /dev/null).
+      "d /var/log/lynis 0750 root wheel - -"
     ];
     user.services.apparmor-notify = {
       description = "AppArmor Desktop Notifications";

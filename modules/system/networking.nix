@@ -7,7 +7,10 @@
   networking.firewall = {
     enable = true;
     allowPing = true;
-    logRefusedPackets = true;
+    # Refused-packet logging is useful security signal on headless servers but
+    # just noise in a workstation's journal (combined with log_martians). Gate
+    # it to non-graphical hosts; graphical.enable is the workstation marker.
+    logRefusedPackets = lib.mkDefault (!config.graphical.enable);
   };
 
   # mDNS only where there's a desktop to benefit from discovery / .local

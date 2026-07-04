@@ -6,6 +6,10 @@
 }: {
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nix.settings.trusted-users = ["root" "@wheel"];
+  # Rolling-latest workflow pulls large closures every rebuild; the default
+  # 64 MiB download buffer overflows and logs "download buffer is full".
+  # 256 MiB keeps the substituter fed without stalling on decompression.
+  nix.settings.download-buffer-size = 268435456;
   nix.optimise.automatic = true;
   nix.gc = {
     automatic = true;
