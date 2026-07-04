@@ -15,7 +15,16 @@
     initrd = {
       availableKernelModules = ["xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc"];
       kernelModules = ["xhci_pci" "nvme" "usbhid" "i915"];
-      luks.devices."luks-8159708a-cba7-4234-b4a5-9e643f481a00".device = "/dev/disk/by-uuid/8159708a-cba7-4234-b4a5-9e643f481a00";
+      luks.devices."luks-8159708a-cba7-4234-b4a5-9e643f481a00" = {
+        device = "/dev/disk/by-uuid/8159708a-cba7-4234-b4a5-9e643f481a00";
+        # dm-crypt blocks discard passthrough by default, which made fstrim
+        # a silent no-op on / — extra important on this tablet's small,
+        # wear-sensitive flash. See the desktop's hardware config for the
+        # allowDiscards trade-off note.
+        allowDiscards = true;
+        # Skip dm-crypt's read/write workqueues — lower latency on flash.
+        bypassWorkqueues = true;
+      };
     };
     # ipu3-imgu: Intel IPU3 image processing unit — required for built-in cameras
     kernelModules = ["kvm-intel" "ipu3-cio2"];
@@ -130,6 +139,11 @@
       IdleActionSec = "5min";
       HandleLidSwitch = "suspend-then-hibernate";
     };
+    # Intel thermal daemon — proactively caps power before the SoC hits its
+    # trip points. On this fanless Pentium Gold it delays hard throttling
+    # under sustained load (the passive chassis is the only heatsink).
+    # AMD desktop correctly leaves this off (thermald is Intel-only).
+    thermald.enable = true;
     #   power-profiles-daemon.enable = false;  # Disable conflicting service
     #   tlp = {
     #     enable = true;
@@ -144,7 +158,6 @@
     #       RUNTIME_PM_ON_BAT = "auto";
     #     };
     #   };
-    #  thermald.enable = true;
   };
 
   systemd = {

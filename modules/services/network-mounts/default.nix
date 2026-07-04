@@ -30,6 +30,30 @@
     exec ${pkgs.openssh}/bin/ssh "$@"
   '';
 
+  # Shared by both OMV subtree mounts below.
+  sshfsOptions = [
+    "ssh_command=${sshfsSshWrapper}"
+    "IdentityFile=${config.age.secrets.id-ed25519.path}"
+    "IdentitiesOnly=yes"
+    "allow_other"
+    "default_permissions"
+    "uid=${primaryUid}"
+    "gid=${primaryGid}"
+    "reconnect"
+    "workaround=rename"
+    "ServerAliveInterval=15"
+    "ServerAliveCountMax=3"
+    "StrictHostKeyChecking=accept-new"
+    "UserKnownHostsFile=/root/.ssh/known_hosts"
+    "_netdev"
+    "nofail"
+    "x-systemd.automount"
+    "x-systemd.requires=network-online.target"
+    "x-systemd.after=network-online.target"
+    "x-systemd.idle-timeout=300"
+    "x-systemd.mount-timeout=30s"
+  ];
+
   # vers=3.1.1: all servers here (OMV, HAOS Samba, 10.10.1.19) speak SMB
   # 3.1.1, which adds pre-auth integrity (downgrade protection) and
   # AES-128-GCM over the 3.0 we used before.
@@ -83,7 +107,7 @@ in {
     sftp.omv = mkOption {
       type = lib.types.bool;
       default = isWorkstation;
-      description = "sshfs root@10.10.1.13:/ at /mnt/omv.";
+      description = "sshfs the OMV data subtrees (/Data, /opt/docker) under /mnt/omv.";
     };
   };
 
@@ -114,31 +138,20 @@ in {
       systemd.tmpfiles.rules = [
         "d /root/.ssh 0700 root root -"
       ];
-      fileSystems."/mnt/omv" = {
-        device = "root@10.10.1.13:/";
+      # Only the data subtrees, not the NAS root. Mounting root@omv:/ gave
+      # any workstation compromise (or a stray rm -rf through the automount)
+      # root-level write to the entire OMV system disk — /etc, /root, /var.
+      # The mountpoints mirror the server paths under /mnt/omv so existing
+      # /mnt/omv/Data and /mnt/omv/opt/docker references keep working.
+      fileSystems."/mnt/omv/Data" = {
+        device = "root@10.10.1.13:/Data";
         fsType = "fuse.sshfs";
-        options = [
-          "ssh_command=${sshfsSshWrapper}"
-          "IdentityFile=${config.age.secrets.id-ed25519.path}"
-          "IdentitiesOnly=yes"
-          "allow_other"
-          "default_permissions"
-          "uid=${primaryUid}"
-          "gid=${primaryGid}"
-          "reconnect"
-          "workaround=rename"
-          "ServerAliveInterval=15"
-          "ServerAliveCountMax=3"
-          "StrictHostKeyChecking=accept-new"
-          "UserKnownHostsFile=/root/.ssh/known_hosts"
-          "_netdev"
-          "nofail"
-          "x-systemd.automount"
-          "x-systemd.requires=network-online.target"
-          "x-systemd.after=network-online.target"
-          "x-systemd.idle-timeout=300"
-          "x-systemd.mount-timeout=30s"
-        ];
+        options = sshfsOptions;
+      };
+      fileSystems."/mnt/omv/opt/docker" = {
+        device = "root@10.10.1.13:/opt/docker";
+        fsType = "fuse.sshfs";
+        options = sshfsOptions;
       };
     })
   ]);

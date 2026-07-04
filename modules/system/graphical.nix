@@ -89,6 +89,13 @@ in {
       enable = true;
     };
     xdg.mime.enable = true;
+    # Run downloaded AppImages directly (binfmt hands them to appimage-run
+    # transparently). Dolphin already thumbnails them (appimagethumbnail in
+    # kde.nix); this makes them executable too.
+    programs.appimage = {
+      enable = true;
+      binfmt = true;
+    };
     home-manager.users.${primaryUsername} = {
       xdg = {
         enable = true;

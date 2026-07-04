@@ -19,6 +19,16 @@ in {
   config = mkIf cfg.enable {
     boot.kernelModules = ["ntsync"];
 
+    # sched-ext userspace scheduler tuned for interactive/gaming latency:
+    # LAVD (Latency-criticality Aware Virtual Deadline) prioritises the
+    # wake-up chains games sit on over batch work. Needs CONFIG_SCHED_CLASS_EXT
+    # (kernel ≥ 6.12 — gaming hosts run linuxPackages_latest). Reversible at
+    # runtime with `systemctl stop scx` (falls back to EEVDF).
+    services.scx = {
+      enable = true;
+      scheduler = "scx_lavd";
+    };
+
     programs.gamemode = {
       enable = true;
       settings = {

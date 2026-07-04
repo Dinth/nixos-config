@@ -34,7 +34,18 @@
         "hid_generic"
       ];
       kernelModules = [];
-      luks.devices."luks-4110bc56-975a-4d51-b39e-9452ea0294f7".device = "/dev/disk/by-uuid/4110bc56-975a-4d51-b39e-9452ea0294f7";
+      luks.devices."luks-4110bc56-975a-4d51-b39e-9452ea0294f7" = {
+        device = "/dev/disk/by-uuid/4110bc56-975a-4d51-b39e-9452ea0294f7";
+        # dm-crypt blocks discard passthrough by default, which made the
+        # weekly fstrim a silent no-op on / — the NVMe was never trimmed.
+        # The theoretical cost is leaking which blocks are unused; on a
+        # single-user desktop that trade is worth working TRIM.
+        allowDiscards = true;
+        # Skip dm-crypt's read/write workqueues — they add latency and
+        # throughput loss on NVMe (the queues were designed for spinning
+        # rust). Recommended by cryptsetup upstream for SSDs.
+        bypassWorkqueues = true;
+      };
     };
     kernelModules = [
       "kvm-amd"

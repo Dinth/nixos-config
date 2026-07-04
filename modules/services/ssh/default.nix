@@ -60,11 +60,16 @@ in {
         enable = true;
         maxtime = "48h";
       };
-      # Don't lock ourselves out over the LAN / tailnet.
+      # Don't lock ourselves out — but only from where we actually SSH from:
+      # workstations and the tailnet. SSH flows workstation → server here,
+      # never the other way, so servers/network gear aren't whitelisted. The
+      # old blanket 10.10.0.0/16 also covered IoT (10.10.25.0/24) and CCTV
+      # (10.10.30.0/24), i.e. the devices most likely to be compromised and
+      # used to brute-force SSH.
       ignoreIP = [
         "127.0.0.0/8"
-        "10.10.0.0/16"
-        "100.64.0.0/10"
+        "10.10.10.0/24" # workstations / DHCP pool
+        "100.64.0.0/10" # tailnet
       ];
     };
   };

@@ -49,6 +49,16 @@ in {
       amdgpu_top # AMD GPU resource monitor
     ];
 
+    # LACT — fan curves, undervolt, power caps and clock control for the
+    # dGPU, with a GUI (`lact gui`) talking to the lactd daemon. Settings
+    # are runtime state in /etc/lact/config.yaml (deliberately not managed
+    # via services.lact.settings, so the GUI stays writable).
+    services.lact.enable = true;
+    # Unlock the amdgpu overdrive bit (ppfeaturemask) so LACT can actually
+    # change clocks/voltages; without it the driver exposes read-only
+    # sysfs. Uses the conservative default mask (less flicker-prone).
+    hardware.amdgpu.overdrive.enable = true;
+
     # Route VA-API/VDPAU through radeonsi so browsers/mpv get hardware video
     # decode on the Navi22 iGPU/dGPU instead of falling back to CPU.
     environment.variables = {
