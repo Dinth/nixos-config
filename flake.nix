@@ -34,8 +34,8 @@
     };
     # lnxlink — Linux companion app for Home Assistant. Tracked as a
     # source input so `nix flake update lnxlink` brings the latest
-    # upstream commit; the buildPythonPackage logic still lives in
-    # modules/apps/lnxlink/default.nix.
+    # upstream commit; packaged by modules/apps/lnxlink/package.nix and
+    # exposed as pkgs.lnxlink via lnxlinkOverlay below.
     lnxlink = {
       url = "github:bkbilly/lnxlink";
       flake = false;
@@ -114,6 +114,12 @@
             })
           ];
       };
+    # lnxlink is a non-flake source input; the packaging lives beside its
+    # module. Exposing it as pkgs.lnxlink keeps the input out of specialArgs
+    # and lets the module consume it through a normal `package` option.
+    lnxlinkOverlay = final: _: {
+      lnxlink = final.callPackage ./modules/apps/lnxlink/package.nix {src = lnxlink;};
+    };
     llmAgentsOverlay = final: _: let
       callPkg = path: final.callPackage (llm-agents + path) {};
       wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
@@ -180,7 +186,7 @@
         inherit system;
         specialArgs = {
           machineType = "desktop";
-          inherit catppuccin home-manager lnxlink;
+          inherit catppuccin home-manager;
         };
         modules = [
           ./libs
@@ -193,7 +199,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -207,7 +213,7 @@
         inherit system;
         specialArgs = {
           machineType = "server";
-          inherit catppuccin home-manager lnxlink;
+          inherit catppuccin home-manager;
         };
         modules = [
           ./libs
@@ -222,7 +228,7 @@
           # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [wazuh-agent.overlays.wazuh wazuhFixOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -236,7 +242,7 @@
         inherit system;
         specialArgs = {
           machineType = "tablet";
-          inherit catppuccin home-manager lnxlink;
+          inherit catppuccin home-manager;
         };
         modules = [
           ./libs
@@ -249,7 +255,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
