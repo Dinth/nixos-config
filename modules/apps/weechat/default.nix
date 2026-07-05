@@ -120,8 +120,11 @@ in {
         X-KDE-autostart-phase=1
       '';
 
+      # Pinned to the last commit that touched weemoji.json — fetching from
+      # `master` with a fixed hash breaks every fresh build the moment
+      # upstream edits the file (hash mismatch). Same content, stable ref.
       home.file.".weechat/weemoji.json".source = pkgs.fetchurl {
-        url = "https://raw.githubusercontent.com/wee-slack/wee-slack/master/weemoji.json";
+        url = "https://raw.githubusercontent.com/wee-slack/wee-slack/6da7c8ee4bdfff291536bb7cd0201f1df00005ea/weemoji.json";
         sha256 = "sha256-dQkHlLLGtxUv7WSv/HxJza6CNBIjLt5FxO+iTOSH6oA=";
       };
     };

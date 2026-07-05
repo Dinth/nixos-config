@@ -72,7 +72,21 @@ in {
     openFirewall = mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Open the Periphery port in the firewall.";
+      description = "Open the Periphery port in the firewall (LAN-wide unless allowFrom is set).";
+    };
+
+    allowFrom = mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      example = ["10.10.1.13"];
+      description = ''
+        Source IPs allowed to reach the Periphery port. When non-empty, the
+        port is opened only for these addresses instead of LAN-wide —
+        Periphery deploys arbitrary compose stacks with docker-socket access,
+        so core_public_keys auth shouldn't be the only guard. Uses the same
+        dual-backend (iptables active, nftables for the eventual migration)
+        pattern as modules/services/prometheus-exporters.
+      '';
     };
   };
 
@@ -114,6 +128,26 @@ in {
       };
     };
 
-    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.port];
+    networking.firewall = mkIf cfg.openFirewall (
+      if cfg.allowFrom == []
+      then {allowedTCPPorts = [cfg.port];}
+      else {
+        extraCommands =
+          lib.concatMapStrings (ip: ''
+            iptables -A nixos-fw -s ${ip} -p tcp --dport ${toString cfg.port} -j nixos-fw-accept
+          '')
+          cfg.allowFrom;
+        extraStopCommands =
+          lib.concatMapStrings (ip: ''
+            iptables -D nixos-fw -s ${ip} -p tcp --dport ${toString cfg.port} -j nixos-fw-accept || true
+          '')
+          cfg.allowFrom;
+        extraInputRules =
+          lib.concatMapStrings (ip: ''
+            ip saddr ${ip} tcp dport ${toString cfg.port} accept
+          '')
+          cfg.allowFrom;
+      }
+    );
   };
 }

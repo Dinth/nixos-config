@@ -83,6 +83,9 @@
   komodo-periphery = {
     enable = true;
     corePublicKeys = ["MCowBQYDK2VuAyEAfIXxIx7Ls5qTL3fODOxzXc0b+7AA0h0KQA5Dj0YDmXk="];
+    # Only Komodo Core on omv may reach the agent — it deploys arbitrary
+    # stacks with docker-socket access, so don't expose it LAN-wide.
+    allowFrom = ["10.10.1.13"];
   };
   # node_exporter + systemd_exporter for Prometheus on omv. smartctl
   # left off — r230 is a Proxmox VM, no real disks to read SMART from.

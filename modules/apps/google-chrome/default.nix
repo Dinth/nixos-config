@@ -14,7 +14,13 @@
   tabletFlags =
     baseFlags
     ++ [
-      "--enable-features=TouchpadOverscrollHistoryNavigation,SmoothScrolling"
+      # VA-API decode via intel-media-driver — offloading video to the iGPU
+      # is a battery win on the fanless tablet. Kept inside the single
+      # --enable-features flag: Chrome doesn't merge repeated
+      # --enable-features, the last one silently wins. The desktop's
+      # Vulkan/ANGLE experiments are deliberately not carried over
+      # (dGPU-oriented, unproven on Gen9 graphics).
+      "--enable-features=TouchpadOverscrollHistoryNavigation,SmoothScrolling,VaapiVideoDecoder,VaapiIgnoreDriverChecks"
       "--touch-events=enabled"
       "--force-device-scale-factor=1.25"
     ];
