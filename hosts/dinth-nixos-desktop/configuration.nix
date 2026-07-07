@@ -29,6 +29,7 @@
   printers.enable = true;
   weechat.enable = true;
   nomachine-client.enable = true;
+  krdp.enable = true; # KDE RDP server sharing the live Plasma session (port 3389, LAN-only)
   docker.enable = false;
   yubikey.enable = true;
   agenticAi.enable = true;

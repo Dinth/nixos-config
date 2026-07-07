@@ -6,6 +6,7 @@
   imports = [
     ./alloy
     ./komodo-periphery
+    ./krdp
     ./network-mounts
     ./prometheus-exporters
     ./ssh
