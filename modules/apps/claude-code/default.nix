@@ -104,13 +104,13 @@
       pr = "";
     };
 
-    # Flicker-free rendering + visible extended thinking. Force thinking on for
-    # every session (not just on trigger words) and show the reasoning summaries;
-    # the budget itself is raised via MAX_THINKING_TOKENS in `env` below so the
-    # displayed thought process is more detailed.
+    # Flicker-free rendering + visible extended thinking.
     tui = "fullscreen";
     showThinkingSummaries = true;
-    alwaysThinkingEnabled = true;
+
+    # Keep completed thinking blocks and command outputs in the transcript
+    # instead of collapsing/clearing them once they finish.
+    verbose = true;
 
     # Never auto-continue an unanswered AskUserQuestion dialog (the design /
     # decision prompts). Default is already "never", but pin it so a stray
@@ -139,9 +139,6 @@
     env = {
       # Defer MCP tool schemas to keep context lean.
       ENABLE_TOOL_SEARCH = "true";
-      # Raise the extended-thinking budget so the reasoning shown via
-      # showThinkingSummaries is more detailed. Set 0 to disable thinking.
-      MAX_THINKING_TOKENS = "16000";
       # Raise per-tool output ceiling for large MCP responses.
       MAX_MCP_OUTPUT_TOKENS = "50000";
       # Give slow MCP servers more time to start.
