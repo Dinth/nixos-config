@@ -104,9 +104,18 @@
       pr = "";
     };
 
-    # Flicker-free rendering + visible extended thinking.
+    # Flicker-free rendering + visible extended thinking. Force thinking on for
+    # every session (not just on trigger words) and show the reasoning summaries;
+    # the budget itself is raised via MAX_THINKING_TOKENS in `env` below so the
+    # displayed thought process is more detailed.
     tui = "fullscreen";
     showThinkingSummaries = true;
+    alwaysThinkingEnabled = true;
+
+    # Never auto-continue an unanswered AskUserQuestion dialog (the design /
+    # decision prompts). Default is already "never", but pin it so a stray
+    # `/config` change or a future default flip can't reintroduce timeouts.
+    askUserQuestionTimeout = "never";
 
     # Pinned channel — the binary is Nix-managed anyway, so the latest channel
     # buys nothing but extra regressions.
@@ -130,6 +139,9 @@
     env = {
       # Defer MCP tool schemas to keep context lean.
       ENABLE_TOOL_SEARCH = "true";
+      # Raise the extended-thinking budget so the reasoning shown via
+      # showThinkingSummaries is more detailed. Set 0 to disable thinking.
+      MAX_THINKING_TOKENS = "16000";
       # Raise per-tool output ceiling for large MCP responses.
       MAX_MCP_OUTPUT_TOKENS = "50000";
       # Give slow MCP servers more time to start.
