@@ -107,79 +107,86 @@
   mkProfileExtraConfig = overrides: lib.recursiveUpdate baseProfileExtraConfig overrides;
 in {
   config = mkIf cfg.enable {
-    home-manager.users.${primaryUsername}.programs.konsole = {
-      enable = true;
-      customColorSchemes = {
-        catppuccinLatte = catppuccin_konsole + /themes/catppuccin-latte.colorscheme;
-        catppuccinFrappe = catppuccin_konsole + /themes/catppuccin-frappe.colorscheme;
-        catppuccinMacchiato = catppuccin_konsole + /themes/catppuccin-macchiato.colorscheme;
-        catppuccinMocha = catppuccin_konsole + /themes/catppuccin-mocha.colorscheme;
+    # Not customColorSchemes: plasma-manager c551f068 (#564) routes those
+    # values through builtins.isPath, which is false for store-path strings
+    # like "${drv}/file", so fetched scheme files no longer evaluate. Install
+    # the files where konsole looks for them, same as the option used to.
+    home-manager.users.${primaryUsername} = {
+      xdg.dataFile = {
+        "konsole/catppuccinLatte.colorscheme".source = "${catppuccin_konsole}/themes/catppuccin-latte.colorscheme";
+        "konsole/catppuccinFrappe.colorscheme".source = "${catppuccin_konsole}/themes/catppuccin-frappe.colorscheme";
+        "konsole/catppuccinMacchiato.colorscheme".source = "${catppuccin_konsole}/themes/catppuccin-macchiato.colorscheme";
+        "konsole/catppuccinMocha.colorscheme".source = "${catppuccin_konsole}/themes/catppuccin-mocha.colorscheme";
       };
-      defaultProfile = "Default";
-      extraConfig = {
-        "Konsole" = {
-          RemoveExtension = false;
-          RunPrefix = "";
-          SetEditor = false;
-          KonsoleEscKeyBehaviour = true;
-          KonsoleEscKeyExceptions = "vi,vim,nvim,git";
-        };
-        KonsoleWindow = {
-          RememberWindowSize = false;
-        };
-      };
-      profiles.Default = {
-        name = "Default";
-        command = "${pkgs.zsh}/bin/zsh";
-        colorScheme = defaultColorScheme;
-        font = baseFont;
-        extraConfig = baseProfileExtraConfig;
-      };
-      profiles.SSH = {
-        name = "SSH - 10.10.1.13";
-        command = "${pkgs.openssh}/bin/ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 root@10.10.1.13";
-        colorScheme = "catppuccinFrappe";
-        font = baseFont;
-        extraConfig = mkProfileExtraConfig {
-          General = {
-            RemoteTabTitleFormat = "[SSH] %h : %u";
-            StartInCurrentSessionDir = false;
+
+      programs.konsole = {
+        enable = true;
+        defaultProfile = "Default";
+        extraConfig = {
+          "Konsole" = {
+            RemoveExtension = false;
+            RunPrefix = "";
+            SetEditor = false;
+            KonsoleEscKeyBehaviour = true;
+            KonsoleEscKeyExceptions = "vi,vim,nvim,git";
           };
-          TabBar = {
-            NewTabBehavior = 0;
-            ExpandTabWidth = false;
+          KonsoleWindow = {
+            RememberWindowSize = false;
           };
         };
-      };
-      profiles.OpenCode = {
-        name = "OpenCode";
-        command = "${pkgs.opencode}/bin/opencode";
-        colorScheme = "catppuccinMacchiato";
-        font = baseFont;
-        extraConfig = mkProfileExtraConfig {
-          General = {
-            TerminalColumns = 180;
-            TerminalRows = 50;
-            Environment = "TERM=xterm-256color,COLORTERM=truecolor,SHELL=${pkgs.zsh}/bin/zsh";
-            LocalTabTitleFormat = "[OpenCode] %d";
-            RemoteTabTitleFormat = "[OpenCode] %h";
-            ShowTerminalSizeHint = false;
+        profiles.Default = {
+          name = "Default";
+          command = "${pkgs.zsh}/bin/zsh";
+          colorScheme = defaultColorScheme;
+          font = baseFont;
+          extraConfig = baseProfileExtraConfig;
+        };
+        profiles.SSH = {
+          name = "SSH - 10.10.1.13";
+          command = "${pkgs.openssh}/bin/ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 root@10.10.1.13";
+          colorScheme = "catppuccinFrappe";
+          font = baseFont;
+          extraConfig = mkProfileExtraConfig {
+            General = {
+              RemoteTabTitleFormat = "[SSH] %h : %u";
+              StartInCurrentSessionDir = false;
+            };
+            TabBar = {
+              NewTabBehavior = 0;
+              ExpandTabWidth = false;
+            };
           };
-          # SilenceMode is off here, so the inherited SilenceSeconds is inert.
-          Monitor = {
-            ActivityMode = 0;
-            SilenceMode = 0;
-          };
-          "Interaction Options" = {
-            AllowEscapedLinks = true;
-            CopyTextAsHTML = true;
-            TripleClickMode = 1;
-          };
-          Scrolling = {
-            HistorySize = 100000;
-          };
-          "Terminal Features" = {
-            BellMode = 0;
+        };
+        profiles.OpenCode = {
+          name = "OpenCode";
+          command = "${pkgs.opencode}/bin/opencode";
+          colorScheme = "catppuccinMacchiato";
+          font = baseFont;
+          extraConfig = mkProfileExtraConfig {
+            General = {
+              TerminalColumns = 180;
+              TerminalRows = 50;
+              Environment = "TERM=xterm-256color,COLORTERM=truecolor,SHELL=${pkgs.zsh}/bin/zsh";
+              LocalTabTitleFormat = "[OpenCode] %d";
+              RemoteTabTitleFormat = "[OpenCode] %h";
+              ShowTerminalSizeHint = false;
+            };
+            # SilenceMode is off here, so the inherited SilenceSeconds is inert.
+            Monitor = {
+              ActivityMode = 0;
+              SilenceMode = 0;
+            };
+            "Interaction Options" = {
+              AllowEscapedLinks = true;
+              CopyTextAsHTML = true;
+              TripleClickMode = 1;
+            };
+            Scrolling = {
+              HistorySize = 100000;
+            };
+            "Terminal Features" = {
+              BellMode = 0;
+            };
           };
         };
       };
