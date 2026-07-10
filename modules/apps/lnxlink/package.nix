@@ -66,6 +66,16 @@ in
             # runtime config already lives in ~/.local/state/lnxlink (see
             # setupScript + ExecStart -c path), so lnxlink.log lands there.
 
+            # Upstream's on_publish handler tears the connection down
+            # (disconnect + 5s of time.sleep) from inside paho's network-loop
+            # thread whenever a publish is acked with a non-Success reason.
+            # Once one ack fails, every reconnect republishes all discovery,
+            # another ack fails, and the client hangs up on itself ~2x/second
+            # forever (observed: 165k broker disconnects/day, one CPU core
+            # pegged). paho's loop_start() already auto-reconnects on real
+            # drops, so keep the log line and drop the teardown.
+            substituteInPlace lnxlink/mqtt.py --replace-fail '            self.reconnect()' '            pass  # nixos-config patch: rely on paho auto-reconnect'
+
             # Replace GNOME-specific keep_alive with systemd-inhibit version (works on KDE)
             cat > lnxlink/modules/keep_alive.py << 'EOF'
       """Prevent system sleep using systemd-inhibit (works on KDE, GNOME, etc.)"""
