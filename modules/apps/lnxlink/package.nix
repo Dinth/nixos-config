@@ -76,6 +76,17 @@ in
             # drops, so keep the log line and drop the teardown.
             substituteInPlace lnxlink/mqtt.py --replace-fail '            self.reconnect()' '            pass  # nixos-config patch: rely on paho auto-reconnect'
 
+            # media.py's get_thumbnail() base64-encodes the album-art file with
+            # no size cap and publishes it on every media-info change. A large
+            # cover image exceeds the broker's max_packet_size, so Mosquitto
+            # rejects the connection ("oversize packet"), LNXlink reconnects and
+            # republishes, and the connect->reject->reconnect storm (~1/s)
+            # saturates the single-threaded broker enough to drop other clients'
+            # keepalives (collateral: Valetudo vacuums flap unavailable). The HA
+            # Thumbnail entity is disabled by default anyway, so never publish
+            # album art — media controls (play/pause/volume/title) are untouched.
+            substituteInPlace lnxlink/modules/media.py --replace-fail 'return image_thumbnail' 'return b" "  # nixos-config patch: never publish album art (oversize MQTT payload self-DoSes broker)'
+
             # Replace GNOME-specific keep_alive with systemd-inhibit version (works on KDE)
             cat > lnxlink/modules/keep_alive.py << 'EOF'
       """Prevent system sleep using systemd-inhibit (works on KDE, GNOME, etc.)"""
