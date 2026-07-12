@@ -6,6 +6,23 @@
 }: let
   inherit (lib) mkIf mkOption;
   cfg = config.wazuh;
+
+  # Replacement for the fork's broken agent-auth ExecStart: upstream chains
+  # `agent-auth … && touch /var/ossec/.agent-registered` directly in
+  # ExecStart, but systemd runs no shell there — the `&& touch …` is passed
+  # to agent-auth as ignored extra argv, the marker guarding
+  # ConditionPathExists is never created, and every later activation re-runs
+  # enrolment, which the manager rejects with "Duplicate agent name". Treat a
+  # populated client.keys (the real enrolment state) as already-registered
+  # and create the marker properly.
+  enrolScript = pkgs.writeShellScript "wazuh-agent-enrol" ''
+    set -euo pipefail
+    if [ ! -s /var/ossec/etc/client.keys ]; then
+      ${config.services.wazuh-agent.package}/bin/agent-auth \
+        -m ${cfg.managerHost} -p ${toString cfg.registrationPort}
+    fi
+    touch /var/ossec/.agent-registered
+  '';
 in {
   options.wazuh = {
     enable = mkOption {
@@ -18,8 +35,9 @@ in {
         `services.wazuh-agent.*` options come from the `wazuh-agent` flake
         input (community fork), wired in at the flake level. This module is a
         thin homelab toggle that pins the manager and keeps host configs to a
-        single `wazuh.enable = true;`. The agent compiles from source on the
-        first rebuild.
+        single `wazuh.enable = true;`. The agent is built once against the
+        pinned `wazuh-nixpkgs` toolchain (see flake.nix) and never rebuilds
+        on nixpkgs bumps.
       '';
     };
 
@@ -67,11 +85,37 @@ in {
       registration.port = cfg.registrationPort;
     };
 
-    # Install the enrolment password into authd.pass before agent-auth runs.
-    # agent-auth reads /var/ossec/etc/authd.pass automatically; runs as the
-    # wazuh user, which owns both the secret and the ossec etc dir.
-    systemd.services.wazuh-agent-auth.serviceConfig.ExecStartPre = [
-      "${lib.getExe' pkgs.coreutils "install"} -m 0640 ${config.age.secrets.wazuh-enrolment.path} /var/ossec/etc/authd.pass"
-    ];
+    systemd.services =
+      {
+        # Install the enrolment password into authd.pass before agent-auth
+        # runs. agent-auth reads /var/ossec/etc/authd.pass automatically; runs
+        # as the wazuh user, which owns both the secret and the ossec etc dir.
+        wazuh-agent-auth.serviceConfig = {
+          ExecStartPre = [
+            "${lib.getExe' pkgs.coreutils "install"} -m 0640 ${config.age.secrets.wazuh-enrolment.path} /var/ossec/etc/authd.pass"
+          ];
+          ExecStart = lib.mkForce "${enrolScript}";
+        };
+      }
+      # The fork's daemon units ship no Restart policy, so a crashed daemon
+      # stays dead until the next reboot. Restart them automatically; the
+      # start-limit guard stops a genuinely broken daemon from flapping
+      # forever.
+      // lib.genAttrs [
+        "wazuh-agentd"
+        "wazuh-execd"
+        "wazuh-logcollector"
+        "wazuh-modulesd"
+        "wazuh-syscheckd"
+      ] (_: {
+        serviceConfig = {
+          Restart = "on-failure";
+          RestartSec = "30s";
+        };
+        unitConfig = {
+          StartLimitIntervalSec = "10min";
+          StartLimitBurst = 5;
+        };
+      });
   };
 }

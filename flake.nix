@@ -43,12 +43,22 @@
     # Wazuh agent (XDR/SIEM endpoint) — not in nixpkgs. Community flake
     # providing a from-source `wazuh-agent` package + a journald-aware NixOS
     # module (`services.wazuh-agent`). Pinned to nealfennimore's fork at
-    # agent 4.12.0 (≤ our 4.14.5 manager, as Wazuh requires). The overlay and
-    # module are applied per-host below; `wazuh.enable` (modules/services/
-    # wazuh-agent) is the homelab toggle. Compiles from source on first build.
+    # agent 4.12.0 (≤ our 4.14.5 manager, as Wazuh requires).
+    #
+    # Deliberately NOT following our nixpkgs: the agent is a huge C/C++ build
+    # that upstream only tests against its own lock. Following rolling
+    # unstable meant recompiling on every nixpkgs bump and chasing toolchain
+    # regressions (four fix commits for GCC 14/15/Clang 21, since deleted).
+    # `wazuh-nixpkgs` pins the exact rev from the fork's own flake.lock
+    # (Oct 2024, GCC 13), where 4.12.0 compiles clean with no patches — the
+    # agent builds once and its store path never changes until these pins are
+    # bumped (keep them in step: fork commit + rev from its flake.lock).
+    # Runtime is self-contained under /var/ossec, so the older glibc in its
+    # closure is irrelevant. See wazuhOverlay below.
+    wazuh-nixpkgs.url = "github:nixos/nixpkgs/1997e4aa514312c1af7e2bda7fad1644e778ff26";
     wazuh-agent = {
       url = "github:nealfennimore/wazuh.nix/384ddd35d27a77d7ef0681efd60f46a92a43e1b4";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "wazuh-nixpkgs";
     };
 
     #     nix-darwin = {
@@ -125,60 +135,23 @@
       wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
       versionCheckHomeHook = callPkg "/packages/versionCheckHomeHook/package.nix";
     in {
-      claude-code = final.callPackage (llm-agents + "/packages/claude-code/package.nix") {inherit wrapBuddy;};
+      # llm-agents' claude-code/package.nix (>= 2026-07-12) takes a `flake`
+      # arg, used only for `flake.lib.licenses.unfree` in meta. llm-agents is a
+      # non-flake source here, so hand it a shim exposing nixpkgs lib (which
+      # has licenses.unfree) rather than the flake's own extended lib.
+      claude-code = final.callPackage (llm-agents + "/packages/claude-code/package.nix") {
+        inherit wrapBuddy;
+        flake = {inherit (final) lib;};
+      };
       opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") {inherit wrapBuddy versionCheckHomeHook;};
       rtk = callPkg "/packages/rtk/package.nix";
     };
-    # Compiler-compatibility fixes for Wazuh 4.12.0 on NixOS 26.05
-    # (GCC 14/15 and Clang 21 regressions):
-    #
-    # 1. GCC 14+ made -Wincompatible-pointer-types a hard error; Wazuh's
-    #    bundled Berkeley DB 18.1 triggers it. Suppressed via NIX_CFLAGS_COMPILE
-    #    so the cc-wrapper injects the flag into every compiler call.
-    #
-    # 2. GCC 15 / Clang 21 default to C23. libbpf-bootstrap's vmlinux.h uses
-    #    `typedef _Bool bool` and `false = 0` — both reserved in C23.
-    #    Fixed by prepending -std=gnu11 to CMAKE_C_FLAGS (host shared library
-    #    compile path) and to the BPF clang command in FindBpfObject.cmake.
-    #
-    # 3. GCC 15 libstdc++ no longer transitively includes <cstdint> via
-    #    <string> / <vector>, even in C++17 mode. Wazuh's C++ modules use
-    #    uint8_t / uint32_t in dozens of headers without explicit <cstdint>.
-    #    Fixed by prepending -include cstdint to CMAKE_CXX_FLAGS in every
-    #    cmake build that resets the variable from scratch, plus inserting it
-    #    into the top-level src cmake for the subdirectory modules (utils,
-    #    router, content_manager, http-request, indexer_connector, etc.).
-    wazuhFixOverlay = _: prev: {
-      wazuh-agent = prev.wazuh-agent.overrideAttrs (old: {
-        NIX_CFLAGS_COMPILE = "-Wno-incompatible-pointer-types";
-        postPatch =
-          (old.postPatch or "")
-          + ''
-            substituteInPlace src/external/libbpf-bootstrap/CMakeLists.txt \
-              --replace-warn \
-              '-Wno-error=implicit-function-declaration -Wno-error=int-conversion' \
-              '-std=gnu11 -Wno-error=implicit-function-declaration -Wno-error=int-conversion'
-            substituteInPlace src/external/libbpf-bootstrap/tools/cmake/FindBpfObject.cmake \
-              --replace-warn "-g -O2 -target bpf" "-std=gnu11 -g -O2 -target bpf"
-
-            for f in \
-              src/data_provider/CMakeLists.txt \
-              src/shared_modules/dbsync/CMakeLists.txt \
-              src/shared_modules/rsync/CMakeLists.txt \
-              src/wazuh_modules/syscollector/CMakeLists.txt; do
-              substituteInPlace "$f" \
-                --replace-warn \
-                'CMAKE_CXX_FLAGS "-Wall' \
-                'CMAKE_CXX_FLAGS "-include cstdint -Wall'
-            done
-            substituteInPlace src/shared_modules/keystore/CMakeLists.txt \
-              --replace-warn \
-              'CMAKE_CXX_FLAGS "-fPIC"' \
-              'CMAKE_CXX_FLAGS "-include cstdint -fPIC"'
-            sed -i '/set(CMAKE_CXX_STANDARD_REQUIRED ON)/a set(CMAKE_CXX_FLAGS "-include cstdint")' \
-              src/CMakeLists.txt
-          '';
-      });
+    # The fork's NixOS module reads its agent from pkgs.wazuh-agent
+    # (mkPackageOption). Supply the fork's own prebuilt output — evaluated
+    # against the fork's locked nixpkgs, not ours — so nixpkgs bumps never
+    # rebuild or break it (see the wazuh-agent input comment).
+    wazuhOverlay = _: _: {
+      wazuh-agent = wazuh-agent.packages.${system}.wazuh-agent;
     };
   in {
     nixosConfigurations = {
@@ -199,7 +172,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay valkeyOverlay wazuhOverlay i686LeanOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -228,7 +201,7 @@
           # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay wazuhOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -255,7 +228,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay valkeyOverlay wazuh-agent.overlays.wazuh wazuhFixOverlay i686LeanOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay valkeyOverlay wazuhOverlay i686LeanOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
