@@ -25,4 +25,5 @@ in {
   "ha-mcp-url.age".publicKeys = users ++ systems;
   "nextcloud-mcp-auth.age".publicKeys = users ++ systems;
   "wazuh-enrolment.age".publicKeys = users ++ systems;
+  "krdp-password.age".publicKeys = users ++ systems;
 }
