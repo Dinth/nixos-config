@@ -18,6 +18,7 @@
     ./htop
     ./kate
     ./konsole
+    ./krdc
     ./lnxlink
     ./mc
     ./neovim
