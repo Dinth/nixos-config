@@ -32,8 +32,18 @@ virsh="/run/current-system/sw/bin/virsh"
 grep="/run/current-system/sw/bin/grep"
 ssh="/run/current-system/sw/bin/ssh"
 umount="/run/current-system/sw/bin/umount"
+mktemp="/run/current-system/sw/bin/mktemp"
+chmod="/run/current-system/sw/bin/chmod"
+rm="/run/current-system/sw/bin/rm"
 
 log() { $logger -t "nas-power-hook" "$*"; }
+
+# systemd-run gives this script a PATH built from the mount units' dependencies
+# — coreutils is not on it. Every external command must therefore be called by
+# absolute path; a bare one fails ENOENT and, under `set -e`, kills the script
+# with no output at all. This trap makes that failure mode visible instead of
+# silent, which is what hid the missing mktemp for three rounds of fixes.
+trap 'log "ERROR: hook aborted (exit $?) at line $LINENO: ${BASH_COMMAND}"' ERR
 
 nas_reachable() {
     $ping -c 1 -W 2 "$NAS_IP" &>/dev/null
@@ -105,9 +115,9 @@ shutdown_nas() {
         # id_ed25519 is passphrase-protected; feed the passphrase via SSH_ASKPASS
         # so ssh can unlock it non-interactively (same trick as the sshfs mount).
         local _askpass rc
-        _askpass=$(mktemp)
-        printf '#!/bin/sh\nexec cat /run/agenix/id-ed25519-passphrase\n' > "$_askpass"
-        chmod 0700 "$_askpass"
+        _askpass=$($mktemp)
+        printf '#!/bin/sh\nexec /run/current-system/sw/bin/cat /run/agenix/id-ed25519-passphrase\n' > "$_askpass"
+        $chmod 0700 "$_askpass"
         # QTS `poweroff` is a busybox applet that signals init. Run plainly as
         # `ssh host poweroff` the shutdown tears down sshd and SIGHUPs poweroff
         # before it completes, so the box never goes down. Detach it with setsid
@@ -121,7 +131,7 @@ shutdown_nas() {
             admin@"$NAS_IP" \
             'setsid sh -c "sleep 2; /sbin/poweroff" </dev/null >/dev/null 2>&1 &' \
             && rc=0 || rc=$?
-        rm -f "$_askpass"
+        $rm -f "$_askpass"
         log "NAS poweroff dispatched (ssh rc=$rc) — verifying"
         # Confirm it actually powered off; harmless to block here since this runs
         # in the transient nas-power-shutdown service, and it records a verdict.
