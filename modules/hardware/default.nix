@@ -9,6 +9,7 @@
     ./dashcam-sd
     ./eizo
     ./logitech
+    ./ntfs
     ./printers
     ./yubikey
   ];
