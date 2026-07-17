@@ -32,13 +32,30 @@
       forward_to = [loki.relabel.systemd.receiver]
     }
 
+    // Drop known-noise floods before they reach Loki:
+    //  1. pipewire-pulse "Bad file descriptor" storms from clients that
+    //     connect-and-drop the pulse socket every poll (lnxlink) — peaked
+    //     at ~113k lines/day before the lnxlink interval fix.
+    //  2. kernel "audit: error in audit_log_subj_ctx" — audit+AppArmor
+    //     noise on kernels >= 7.0, logged at err priority (~1k/day).
+    loki.process "drop_noise" {
+      forward_to = [loki.write.omv_loki.receiver]
+
+      stage.drop {
+        expression = ".*mod.protocol-pulse.*Bad file descriptor.*"
+      }
+      stage.drop {
+        expression = ".*audit: error in audit_log_subj_ctx.*"
+      }
+    }
+
     // Promote only a tight, low-cardinality set of journal fields to Loki
     // index labels. A blanket labelmap of every __journal_* field (pid,
     // cmdline, code_line, invocation_id, cgroup, ...) explodes stream
     // cardinality and wrecks Loki query performance, so we map fields
     // explicitly instead. Everything else stays in the log line / dropped.
     loki.relabel "systemd" {
-      forward_to = [loki.write.omv_loki.receiver]
+      forward_to = [loki.process.drop_noise.receiver]
 
       // _SYSTEMD_UNIT (fields starting with _ get a doubled underscore)
       // with the .service suffix stripped → `unit`.
