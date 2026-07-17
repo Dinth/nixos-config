@@ -124,6 +124,21 @@ in {
       serviceConfig = {
         Type = "oneshot";
         User = "root";
+        # Full sandbox — the script only reads two /run symlinks and writes
+        # one file into the textfile drop dir.
+        ProtectSystem = "strict";
+        ReadWritePaths = ["/var/lib/node_exporter/textfile"];
+        ProtectHome = true;
+        PrivateTmp = true;
+        PrivateNetwork = true;
+        NoNewPrivileges = true;
+        CapabilityBoundingSet = [""];
+        ProtectKernelModules = true;
+        ProtectKernelTunables = true;
+        ProtectControlGroups = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        RestrictRealtime = true;
       };
     };
     systemd.timers.reboot-required-metric = {

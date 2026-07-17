@@ -448,6 +448,9 @@ in {
       # Run vulnix daily
       vulnix-scan = {
         script = "${lib.getExe pkgs.vulnix} --system --gc-roots --whitelist ${./vulnix-whitelist.toml} --verbose > /var/log/vulnix.log 2>&1";
+        # vulnix's NVD cache defaults to ~/.cache; point it at the
+        # systemd-provided CacheDirectory so ProtectHome can stay on.
+        environment.XDG_CACHE_HOME = "/var/cache/vulnix";
         serviceConfig = {
           Type = "oneshot";
           User = "root";
@@ -458,6 +461,21 @@ in {
           # 2 = vulnerabilities found. All three are successful scans, not
           # service failures — the report lands in /var/log/vulnix.log.
           SuccessExitStatus = [0 1 2];
+          # Sandbox: vulnix only reads the store + gc-roots and talks to the
+          # NVD mirror. read-only /home (not full ProtectHome) because
+          # --gc-roots follows result symlinks into user checkouts.
+          CacheDirectory = "vulnix";
+          ProtectSystem = "strict";
+          ReadWritePaths = ["/var/log"];
+          ProtectHome = "read-only";
+          PrivateTmp = true;
+          NoNewPrivileges = true;
+          ProtectKernelModules = true;
+          ProtectKernelTunables = true;
+          ProtectControlGroups = true;
+          RestrictSUIDSGID = true;
+          LockPersonality = true;
+          RestrictRealtime = true;
         };
         after = ["network-online.target"];
         wants = ["network-online.target"];
@@ -468,6 +486,14 @@ in {
         serviceConfig = {
           Type = "oneshot";
           User = "root";
+          # Deliberately NOT filesystem/namespace-sandboxed: lynis audits the
+          # real system state (mount options, /tmp perms, home dirs, ...), so
+          # ProtectSystem/ProtectHome/PrivateTmp would make it audit the
+          # sandbox instead. Only side-effect-free restrictions here.
+          NoNewPrivileges = true;
+          LockPersonality = true;
+          RestrictRealtime = true;
+          ProtectClock = true;
         };
       };
       # Workaround for https://github.com/NixOS/nixpkgs/issues/483085
