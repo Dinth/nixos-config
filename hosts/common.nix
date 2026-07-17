@@ -45,6 +45,12 @@ in {
     then pkgs.linuxPackages
     else pkgs.linuxPackages_latest
   );
+  # Kernel ≥ 7.0 builds DAMON_STAT=y with DAMON_STAT_ENABLED_DEFAULT=y, so a
+  # kdamond kernel thread samples memory-access patterns from boot (~9% of a
+  # core observed on the desktop) for telemetry nothing here consumes. Scoped
+  # to workstations: servers run the stable 6.12 kernel without DAMON_STAT,
+  # where the unknown param would only log a boot-time notice.
+  boot.kernelParams = lib.optionals (machineType != "server") ["damon_stat.enabled=0"];
   # boot.tmp is fully configured in modules/system/security.nix (with tmpfsSize).
   services.fwupd.enable = true;
   # Userspace OOM-prevention daemon — workstations only. Its value is keeping
