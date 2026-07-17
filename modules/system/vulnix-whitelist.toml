@@ -1,0 +1,8 @@
+# Vulnix whitelist — known false positives from vulnix's name-based CVE
+# matching. Referenced by the vulnix-scan service in security.nix.
+# Whitelisted findings still appear in the report (marked whitelisted) and
+# flip the exit code from 2 to 1. Review entries when bumping nixpkgs.
+
+["zlib"]
+cve = ["CVE-2023-45853"]
+comment = "Flaw is in contrib/minizip, which nixpkgs' zlib output does not build or ship."

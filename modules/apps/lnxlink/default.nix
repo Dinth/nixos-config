@@ -71,8 +71,23 @@ in {
 
       exclude = mkOption {
         type = types.listOf types.str;
-        default = ["beacondb"];
+        # camera_used: shells out to `fuser /dev/video*` every poll — fuser
+        # scans all of /proc, which on a busy desktop cost ~1 full CPU core
+        # continuously. active_window (Wayland unsupported) and boot_select
+        # (needs efibootmgr) just error at every start.
+        default = ["beacondb" "camera_used" "active_window" "boot_select"];
         description = "lnxlink modules to exclude (passed as `-e` on the command line).";
+      };
+
+      updateInterval = mkOption {
+        type = types.int;
+        default = 15;
+        description = ''
+          Seconds between sensor polls. The upstream default of 5 made the
+          audio modules (pulsectl) hammer the pipewire-pulse socket with
+          short-lived connections — ~113k warning lines/day in the journal —
+          and multiplied the cost of every subprocess-based module.
+        '';
       };
     };
   };
@@ -133,7 +148,7 @@ in {
             enabled: true
             qos: 1
           clear_on_off: false
-        update_interval: 5
+        update_interval: ${toString cfg.updateInterval}
         update_on_change: true
         modules:
         custom_modules:
