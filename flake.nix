@@ -3,7 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-    nixos-hardware.url = "github:nixos/nixos-hardware/master"; # Hardware Specific Configurations
+    # Hardware Specific Configurations. Its own nixpkgs input is only used by
+    # upstream's CI/examples, so follow ours — otherwise the lock pins a
+    # second, unused nixpkgs snapshot that every fresh clone has to fetch.
+    nixos-hardware = {
+      url = "github:nixos/nixos-hardware/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     catppuccin.url = "github:catppuccin/nix/release-26.05";
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
