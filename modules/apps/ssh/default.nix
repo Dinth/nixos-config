@@ -14,7 +14,8 @@ in {
       settings = {
         "r230-nixos r230 10.10.1.12" = {
           HostName = "10.10.1.12";
-          User = "michal";
+          # r230's login user is the same repo-defined primary user as here.
+          User = primaryUsername;
           IdentityFile = [config.age.secrets."id-ed25519".path];
           IdentitiesOnly = true;
         };
