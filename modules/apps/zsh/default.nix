@@ -180,38 +180,33 @@ in {
           htop()     { _modern_hint htop     btop   "modern TUI with GPU + sensors";           command htop     "$@"; }
           unzip()    { _modern_hint unzip    unar   "also handles rar / 7z / tar / etc.";      command unzip    "$@"; }
 
-          ${lib.optionalString (
-              lib.any (tool: lib.hasAttr tool pkgs) ["wl-clipboard" "xclip" "xsel"]
-            ) ''
-              function pbcopy() {
-                local content
-                content="$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
+          # The old lib.hasAttr guards around these branches were tautological
+          # (they test whether the attr exists in nixpkgs, which is always
+          # true, not whether the tool is installed) — selection is a runtime
+          # concern, decided by the checks below. Store-path references keep
+          # all three tools in the closure, same as before.
+          function pbcopy() {
+            local content
+            content="$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
 
-                ${lib.optionalString (lib.hasAttr "wl-clipboard" pkgs) ''
-                if command -v ${getExe' pkgs.wl-clipboard "wl-copy"} &>/dev/null; then
-                  echo -n "$content" | ${getExe' pkgs.wl-clipboard "wl-copy"}
-                  return $?
-                fi
-              ''}
+            if command -v ${getExe' pkgs.wl-clipboard "wl-copy"} &>/dev/null; then
+              echo -n "$content" | ${getExe' pkgs.wl-clipboard "wl-copy"}
+              return $?
+            fi
 
-                ${lib.optionalString (lib.hasAttr "xclip" pkgs) ''
-                if ${getExe pkgs.xclip} -version &>/dev/null 2>&1; then
-                  echo -n "$content" | ${getExe pkgs.xclip} -selection clipboard
-                  return $?
-                fi
-              ''}
+            if ${getExe pkgs.xclip} -version &>/dev/null 2>&1; then
+              echo -n "$content" | ${getExe pkgs.xclip} -selection clipboard
+              return $?
+            fi
 
-                ${lib.optionalString (lib.hasAttr "xsel" pkgs) ''
-                if ${getExe pkgs.xsel} --version &>/dev/null 2>&1; then
-                  echo -n "$content" | ${getExe pkgs.xsel} -ib
-                  return $?
-                fi
-              ''}
+            if ${getExe pkgs.xsel} --version &>/dev/null 2>&1; then
+              echo -n "$content" | ${getExe pkgs.xsel} -ib
+              return $?
+            fi
 
-                echo "pbcopy: No clipboard utility found (wl-clipboard, xclip, or xsel)" >&2
-                return 1
-              }
-            ''}
+            echo "pbcopy: No clipboard utility found (wl-clipboard, xclip, or xsel)" >&2
+            return 1
+          }
 
         '';
       };
