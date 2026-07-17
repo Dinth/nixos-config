@@ -447,15 +447,17 @@ in {
     services = {
       # Run vulnix daily
       vulnix-scan = {
-        script = "${lib.getExe pkgs.vulnix} --system --gc-roots --verbose > /var/log/vulnix.log 2>&1";
+        script = "${lib.getExe pkgs.vulnix} --system --gc-roots --whitelist ${./vulnix-whitelist.toml} --verbose > /var/log/vulnix.log 2>&1";
         serviceConfig = {
           Type = "oneshot";
           User = "root";
           Nice = 5;
           IOSchedulingClass = 2;
           IOSchedulingPriority = 6;
-          # exit 1 means vulnerabilities found — not a service failure
-          SuccessExitStatus = [0 1];
+          # vulnix exit codes: 0 = clean, 1 = only whitelisted findings,
+          # 2 = vulnerabilities found. All three are successful scans, not
+          # service failures — the report lands in /var/log/vulnix.log.
+          SuccessExitStatus = [0 1 2];
         };
         after = ["network-online.target"];
         wants = ["network-online.target"];
