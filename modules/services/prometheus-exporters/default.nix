@@ -98,6 +98,42 @@ in {
     # <name>.prom here; node_exporter (DynamicUser) only needs to read it.
     systemd.tmpfiles.rules = ["d /var/lib/node_exporter/textfile 0755 root root -"];
 
+    # "Reboot needed" metric. With the rolling `nh os switch -u` workflow the
+    # booted kernel can silently lag the current generation's for weeks (27
+    # days observed). Compare the two and publish via the textfile collector;
+    # Grafana alerts on nixos_reboot_required == 1.
+    systemd.services.reboot-required-metric = {
+      script = ''
+        set -euo pipefail
+        booted=$(readlink /run/booted-system/kernel)
+        current=$(readlink /run/current-system/kernel)
+        dir=/var/lib/node_exporter/textfile
+        tmp=$(mktemp "$dir/.reboot_required.XXXXXX")
+        {
+          echo "# HELP nixos_reboot_required 1 when the booted kernel differs from the current generation's kernel."
+          echo "# TYPE nixos_reboot_required gauge"
+          if [ "$booted" = "$current" ]; then
+            echo "nixos_reboot_required 0"
+          else
+            echo "nixos_reboot_required 1"
+          fi
+        } > "$tmp"
+        chmod 0644 "$tmp"
+        mv "$tmp" "$dir/reboot_required.prom"
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        User = "root";
+      };
+    };
+    systemd.timers.reboot-required-metric = {
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnBootSec = "2min";
+        OnUnitActiveSec = "15min";
+      };
+    };
+
     networking.firewall = {
       extraCommands = iptablesStart;
       extraStopCommands = iptablesStop;
