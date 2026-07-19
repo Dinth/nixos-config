@@ -35,13 +35,34 @@
     shopt -s nullglob
     found=0
     total_new=0
+    total_failed=0
+    failed_names=""
     for card in "$MEDIA_ROOT"/*/; do
       src="''${card}DCIM/Movie/RO/"
       [ -d "$src" ] || continue
       found=1
 
       count_before=$(find "$TARGET" -type f 2>/dev/null | wc -l)
-      ${lib.getExe pkgs.rsync} -av --ignore-existing "$src" "$TARGET"
+
+      # Copy newest clips first. The card carries the odd unreadable clip —
+      # typically a recording truncated when the car was switched off mid-write.
+      # A single I/O error used to abort rsync before it reached the recent
+      # footage, silently dropping the clips that matter most while older ones
+      # were already saved. Feeding an explicit newest-first file list secures
+      # recent footage first, and per-file transfers stop one unreadable clip
+      # from killing the whole batch.
+      while IFS= read -r -d "" clip; do
+        name=$(${pkgs.coreutils}/bin/basename "$clip")
+        if ${lib.getExe pkgs.rsync} -a --ignore-existing "$clip" "$TARGET"; then
+          :
+        else
+          total_failed=$((total_failed + 1))
+          failed_names="''${failed_names}''${name}\n"
+        fi
+      done < <(${pkgs.findutils}/bin/find "$src" -maxdepth 1 -type f -printf '%T@\t%p\0' \
+        | ${pkgs.coreutils}/bin/sort -z -rn \
+        | ${pkgs.gnused}/bin/sed -z 's/^[^\t]*\t//')
+
       count_after=$(find "$TARGET" -type f | wc -l)
       total_new=$((total_new + count_after - count_before))
     done
@@ -49,7 +70,10 @@
     # No dashcam card present (path unit also fires for other removable media).
     [ "$found" -eq 1 ] || exit 0
 
-    if [ "$total_new" -gt 0 ]; then
+    if [ "$total_failed" -gt 0 ]; then
+      notify "Backup: $total_failed unreadable" \
+        "$total_new new synced; $total_failed clip(s) unreadable (likely truncated mid-write):\n''${failed_names}"
+    elif [ "$total_new" -gt 0 ]; then
       notify "Backup Complete" "$total_new new files synced to ~/Documents/Dashcam"
     else
       notify "Backup Complete" "No new files to sync"
