@@ -140,13 +140,20 @@
       callPkg = path: final.callPackage (llm-agents + path) {};
       wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
       versionCheckHomeHook = callPkg "/packages/versionCheckHomeHook/package.nix";
+      # llm-agents' claude-code/package.nix (>= 2026-07-19) selects its prebuilt
+      # release artifact via a `platformSource` helper the flake normally injects
+      # through its package scope. We call the package directly (bypassing that
+      # scope), so build the helper the same way the flake does and hand it in.
+      platformSource = import (llm-agents + "/lib/platform-source.nix") {
+        inherit (final) stdenv fetchurl;
+      };
     in {
       # llm-agents' claude-code/package.nix (>= 2026-07-12) takes a `flake`
       # arg, used only for `flake.lib.licenses.unfree` in meta. llm-agents is a
       # non-flake source here, so hand it a shim exposing nixpkgs lib (which
       # has licenses.unfree) rather than the flake's own extended lib.
       claude-code = final.callPackage (llm-agents + "/packages/claude-code/package.nix") {
-        inherit wrapBuddy;
+        inherit wrapBuddy platformSource;
         flake = {inherit (final) lib;};
       };
       opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") {inherit wrapBuddy versionCheckHomeHook;};
