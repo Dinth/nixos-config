@@ -136,28 +136,53 @@
     lnxlinkOverlay = final: _: {
       lnxlink = final.callPackage ./modules/apps/lnxlink/package.nix {src = lnxlink;};
     };
+    # llm-agents.nix ships plain package.nix files that expect to be called from
+    # the flake's own package scope (its flake.nix builds one with lib.makeScope,
+    # providing platformSource, wrapBuddy and the other ~140 packages by name).
+    #
+    # We can't consume llm-agents.packages.${system} directly: it goes through
+    # blueprint, which evaluates the whole set eagerly, including `apm`, which
+    # fails to build under our nixpkgs pin.
+    #
+    # We also no longer call each package.nix with a hand-written argument list.
+    # That couples us to argument lists upstream never promised to keep stable,
+    # and it broke twice in eight days -- once when they added a `flake` arg,
+    # again when they added `platformSource`. Instead, reconstruct the same scope
+    # they use, so every helper and sibling package resolves *by name* and any
+    # argument they add later is satisfied automatically.
+    #
+    # Attribute values in Nix are lazy, so declaring all ~140 packages costs
+    # nothing and `apm` is never forced -- we only pull out the three we install.
     llmAgentsOverlay = final: _: let
-      callPkg = path: final.callPackage (llm-agents + path) {};
-      wrapBuddy = callPkg "/packages/wrapBuddy/package.nix";
-      versionCheckHomeHook = callPkg "/packages/versionCheckHomeHook/package.nix";
-      # llm-agents' claude-code/package.nix (>= 2026-07-19) selects its prebuilt
-      # release artifact via a `platformSource` helper the flake normally injects
-      # through its package scope. We call the package directly (bypassing that
-      # scope), so build the helper the same way the flake does and hand it in.
-      platformSource = import (llm-agents + "/lib/platform-source.nix") {
-        inherit (final) stdenv fetchurl;
-      };
+      inherit (final) lib;
+      packageNames =
+        builtins.attrNames
+        (lib.filterAttrs (_: type: type == "directory")
+          (builtins.readDir (llm-agents + "/packages")));
+      scope = lib.makeScope final.newScope (
+        self:
+          {
+            system = final.stdenv.hostPlatform.system;
+            # Upstream reads `flake.lib.licenses.unfree` in meta only. llm-agents
+            # is a non-flake source input here, so hand it nixpkgs lib, which has
+            # licenses.unfree, rather than the flake's own extended lib.
+            flake = {inherit lib;};
+            platformSource = import (llm-agents + "/lib/platform-source.nix") {
+              inherit (final) stdenv fetchurl;
+            };
+            allPackages = lib.genAttrs packageNames (name: self.${name});
+            # Only reachable from packages we don't install (bun2nix-built ones).
+            # Left as lazy throws so they never fire for claude-code/opencode/rtk
+            # but give a clear message if a future arg change pulls them in.
+            inputs = throw "llm-agents: `inputs` unavailable -- it is a non-flake source input here.";
+            bun2nixLib = throw "llm-agents: `bun2nixLib` unavailable -- requires the upstream bun2nix input.";
+          }
+          // lib.genAttrs packageNames (
+            name: self.callPackage (llm-agents + "/packages/${name}/package.nix") {}
+          )
+      );
     in {
-      # llm-agents' claude-code/package.nix (>= 2026-07-12) takes a `flake`
-      # arg, used only for `flake.lib.licenses.unfree` in meta. llm-agents is a
-      # non-flake source here, so hand it a shim exposing nixpkgs lib (which
-      # has licenses.unfree) rather than the flake's own extended lib.
-      claude-code = final.callPackage (llm-agents + "/packages/claude-code/package.nix") {
-        inherit wrapBuddy platformSource;
-        flake = {inherit (final) lib;};
-      };
-      opencode = final.callPackage (llm-agents + "/packages/opencode/package.nix") {inherit wrapBuddy versionCheckHomeHook;};
-      rtk = callPkg "/packages/rtk/package.nix";
+      inherit (scope) claude-code opencode rtk;
     };
     # The fork's NixOS module reads its agent from pkgs.wazuh-agent
     # (mkPackageOption). Supply the fork's own prebuilt output — evaluated
