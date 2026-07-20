@@ -50,18 +50,9 @@
       ];
   };
 
-  chromePackage =
-    (pkgs.google-chrome.override {
-      commandLineArgs = chromeFlags;
-    }).overrideAttrs
-    (_: {
-      # Run this after the standard install to fix the desktop file
-      # postInstall = (old.postInstall or "") + ''
-      #   if ! grep -q "StartupWMClass=" $out/share/applications/google-chrome.desktop; then
-      #     echo "StartupWMClass=google-chrome" >> $out/share/applications/google-chrome.desktop
-      #   fi
-      # '';
-    });
+  chromePackage = pkgs.google-chrome.override {
+    commandLineArgs = chromeFlags;
+  };
 in {
   config = mkIf cfg.enable {
     environment.systemPackages = [
