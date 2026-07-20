@@ -30,9 +30,20 @@
     exec ${pkgs.openssh}/bin/ssh "$@"
   '';
 
+  # ssh_command must be referenced through a *stable* path, not the store path
+  # of the wrapper. switch-to-configuration diffs /etc/fstab and reloads any
+  # mount whose options string changed (switch-to-configuration-ng main.rs:1987
+  # — unconditional, X-ReloadIfChanged is not consulted for fstab mounts).
+  # Reloading a mount means `mount -o remount`, which FUSE rejects outright
+  # ("fuse: unknown option(s): `-o remount'"), failing the whole activation.
+  # The wrapper's store path rehashes on every openssh bump, so embedding it
+  # directly broke activation on each such rebuild. /etc/sshfs-omv-ssh is a
+  # symlink to the current wrapper, so the fstab line never changes.
+  sshfsSshWrapperPath = "/etc/sshfs-omv-ssh";
+
   # Shared by both OMV subtree mounts below.
   sshfsOptions = [
-    "ssh_command=${sshfsSshWrapper}"
+    "ssh_command=${sshfsSshWrapperPath}"
     "IdentityFile=${config.age.secrets.id-ed25519.path}"
     "IdentitiesOnly=yes"
     "allow_other"
@@ -135,6 +146,9 @@ in {
     })
     (mkIf cfg.sftp.omv {
       system.fsPackages = [pkgs.sshfs];
+      # Symlink into the store: the target rehashes on openssh bumps but this
+      # path does not, keeping the fstab options stable (see sshfsSshWrapperPath).
+      environment.etc."sshfs-omv-ssh".source = sshfsSshWrapper;
       systemd.tmpfiles.rules = [
         "d /root/.ssh 0700 root root -"
       ];
