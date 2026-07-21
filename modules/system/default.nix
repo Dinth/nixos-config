@@ -6,6 +6,7 @@
   imports = [
     ./cli.nix
     ./darwin.nix
+    ./dictionaries.nix
     ./docker.nix
     ./gaming.nix
     ./graphical.nix

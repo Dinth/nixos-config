@@ -50,6 +50,16 @@
       ];
   };
 
+  # Chrome never touches the system hunspell dictionaries — it ships its own
+  # .bdic files and downloads one per language enabled for spell check. Enabling
+  # a language under Settings > Languages only adds it to accept_languages; the
+  # spellcheck list is separate, which is why Polish text went unchecked.
+  # SpellcheckLanguage force-enables both and triggers the pl bdic download.
+  spellcheckPolicy = builtins.toJSON {
+    SpellcheckEnabled = true;
+    SpellcheckLanguage = ["en-GB" "pl"];
+  };
+
   chromePackage = pkgs.google-chrome.override {
     commandLineArgs = chromeFlags;
   };
@@ -65,6 +75,7 @@ in {
           config.age.secrets.chrome-enrolment.path;
         "/opt/chrome/policies/enrollment/CloudManagementEnrollmentOptions".text = "Mandatory";
         "opt/chrome/policies/managed/extensions.json".text = extensionsPolicy;
+        "opt/chrome/policies/managed/spellcheck.json".text = spellcheckPolicy;
       }
       // lib.optionalAttrs (config.kde.enable or false) {
         "opt/chrome/native-messaging-hosts/org.kde.plasma.browser_integration.json".source = "${pkgs.kdePackages.plasma-browser-integration}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";

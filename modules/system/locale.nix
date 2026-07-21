@@ -32,6 +32,9 @@ in {
       layout = "pl";
       variant = "legacy";
     };
+    # aspell is kept only because weechat's spell plugin is built against it
+    # (see modules/apps/weechat). Everything graphical now goes through the
+    # hunspell/nuspell stack in modules/system/dictionaries.nix.
     environment.systemPackages = with pkgs; [
       aspellDicts.en
       aspellDicts.en-computers
