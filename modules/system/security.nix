@@ -141,9 +141,12 @@ in {
       "net.ipv6.conf.all.disable_ipv6" = 1;
       "net.ipv6.conf.default.disable_ipv6" = 1;
     };
-    kernelParams = lib.mkAfter [
-      "audit_backlog_wait_time=0" # Drop events instead of blocking when hold queue full
-    ];
+    # NOTE: there is no `audit_backlog_wait_time` kernel command-line
+    # parameter — the kernel only accepts `audit=` and `audit_backlog_limit=`
+    # (both set for us by security.audit.{enable,backlogLimit}). Passing it
+    # here got it logged as "Unknown kernel command line parameters" and
+    # handed to userspace as an env var, leaving backlog_wait_time at its
+    # 60000 (60s) default. It is set at runtime by the rule loader below.
     tmp = {
       useTmpfs = true;
       tmpfsSize = "50%";
@@ -157,6 +160,20 @@ in {
     vulnix # Nix derivations vulnerability scanner
     #    aide
   ];
+  # Upstream nixpkgs bug: apparmor-utils declares pythonPath = [notify2 psutil
+  # libapparmor] but omits tkinter, while aa-notify (4.1.x) imports
+  # apparmor.gui unconditionally at import time — and apparmor/gui.py does
+  # `import tkinter`. So aa-notify dies with ModuleNotFoundError: No module
+  # named '_tkinter' before parsing a single argument. Applied as an overlay
+  # rather than only in the unit's ExecStart so an interactive `aa-notify`
+  # works too.
+  nixpkgs.overlays = [
+    (_final: prev: {
+      apparmor-utils = prev.apparmor-utils.overrideAttrs (old: {
+        pythonPath = (old.pythonPath or []) ++ [prev.python3Packages.tkinter];
+      });
+    })
+  ];
   services.journald.extraConfig = ''
     SystemMaxFileSize=200M
     SystemMaxUse=2G
@@ -166,19 +183,38 @@ in {
   security = {
     audit = {
       enable = true;
-      backlogLimit = 8192;
-      rateLimit = 200;
+      # Queue depth for records the kernel has generated but auditd has not
+      # drained yet. 8192 was being overrun: `auditctl -s` reported a growing
+      # `lost` counter and the kernel logged "audit: rate limit exceeded".
+      backlogLimit = 32768;
+      # Records/second ceiling, enforced by the kernel. This was 200, which is
+      # below what this host actually produces (execve bursts during a
+      # nixos-rebuild alone exceed it), so the kernel was silently dropping
+      # audit records — holes in the log exactly when it matters most. 0 =
+      # unlimited; overflow protection is backlogLimit plus the -f 1 below.
+      rateLimit = 0;
       rules = [
-        # Exclude high-volume low-value message types to prevent kauditd queue overflow
+        # ── Exclusions ────────────────────────────────────────────────
+        # Standalone record types that are pure volume here. These work:
+        # a post-fix `ausearch` over the log shows none of them landing.
         "-a always,exclude -F msgtype=SERVICE_START"
         "-a always,exclude -F msgtype=SERVICE_STOP"
         "-a always,exclude -F msgtype=BPF"
-        "-a always,exclude -F msgtype=PROCTITLE"
-        "-a always,exclude -F msgtype=CWD"
         # Docker generates these constantly (iptables/netfilter changes, network setup)
         "-a always,exclude -F msgtype=NETFILTER_CFG"
         "-a always,exclude -F msgtype=NETFILTER_PKT"
-        "-a always,exclude -F msgtype=PATH"
+        # PROCTITLE stays excluded: it is a hex-encoded copy of the command
+        # line attached to *every* syscall event, and for the execve rules
+        # below the EXECVE record already carries argv.
+        "-a always,exclude -F msgtype=PROCTITLE"
+        #
+        # PATH and CWD are deliberately NOT excluded. They used to be, which
+        # quietly defeated every file rule in this list: PATH is the ancillary
+        # record naming the file a syscall touched, and CWD resolves relative
+        # paths. Without them a `-F dir=`/`-F path=` rule still fires, but the
+        # resulting SYSCALL record says only "a write-open happened" with no
+        # filename — the one fact the rule exists to capture. They are the
+        # payload of a file watch, not overhead.
 
         # AppArmor configuration changes
         "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/apparmor.d/ -F perm=wa -F key=apparmor_changes"
@@ -193,13 +229,13 @@ in {
         "-a always,exit -F arch=b32 -S execve -C auid!=euid -F auid!=unset -F euid=0 -F key=privesc_execve"
 
         # NixOS configuration changes. This is a flake setup — the real config
-        # lives in the user's repo, not /etc/nixos (which stays empty here), so
-        # watch the repo path. /etc/nixos is kept too: it costs nothing and
-        # still catches any legacy/out-of-band write there. The repo watch is a
-        # no-op on hosts where it isn't checked out (e.g. r230); the rule loader
-        # tolerates a failing watch per its `|| true` workaround below.
-        "-a always,exit -F arch=b64 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
-        "-a always,exit -F arch=b32 -S openat,openat2 -F dir=/etc/nixos/ -F perm=wa -F key=nixos-config"
+        # lives in the user's repo, so watch the repo path. /etc/nixos no longer
+        # exists (a stale unstable-channel flake lived there and got picked up
+        # by bare `nixos-rebuild`, which resolves it by default); watches on a
+        # missing directory never load, so keeping them would be dead config
+        # rather than a tripwire. The repo watch is a no-op on hosts where it
+        # isn't checked out (e.g. r230); the rule loader tolerates a failing
+        # watch per its `|| true` workaround below.
         "-a always,exit -F arch=b64 -S openat,openat2 -F dir=${config.users.users.${primaryUsername}.home}/Documents/nixos-config/ -F perm=wa -F key=nixos-config"
         "-a always,exit -F arch=b32 -S openat,openat2 -F dir=${config.users.users.${primaryUsername}.home}/Documents/nixos-config/ -F perm=wa -F key=nixos-config"
 
@@ -230,7 +266,31 @@ in {
         "-a always,exit -F arch=b32 -S openat,openat2 -F path=/etc/ssh/sshd_config -F perm=wa -F key=sshd_config"
       ];
     };
-    auditd.enable = true;
+    auditd = {
+      enable = true;
+      # The NixOS module only defaults space_left/admin_space_left, and
+      # auditd's own default is num_logs = 0, i.e. *no rotation at all*.
+      # /var/log/audit/audit.log had therefore been growing as a single file
+      # since January. Cap and rotate it.
+      settings = {
+        max_log_file = 64; # MiB per file
+        max_log_file_action = "rotate";
+        num_logs = 8; # → 512 MiB ceiling for the whole audit trail
+        # Percentages, not the module's absolute-MiB defaults (75/50 MiB on a
+        # 3.6T root means "warn once the disk is already full").
+        space_left = "5%";
+        space_left_action = "syslog";
+        admin_space_left = "2%";
+        admin_space_left_action = "syslog";
+        # Default here is SUSPEND, which stops audit logging and needs a manual
+        # restart. Rotate instead: losing the oldest log beats losing the newest.
+        disk_full_action = "rotate";
+        # auditd recreates audit.log on every rotation as root:root 0600,
+        # which would undo the systemd.tmpfiles rules below (they only run at
+        # boot) and break the user-session aa-notify that tails this file.
+        log_group = "wheel";
+      };
+    };
     apparmor = {
       enable = true;
       killUnconfinedConfinables = false;
@@ -420,13 +480,31 @@ in {
   # No wrapped binaries - AppArmor handles everyday apps
   programs.firejail.enable = true;
   systemd = {
-    # Allow wheel group to read audit logs
+    # Allow wheel group to read audit logs, so the user-session aa-notify can
+    # tail them. These only run at boot and auditd rewrites the log's
+    # ownership when it starts and on every rotation, so they are the
+    # belt to `security.auditd.settings.log_group = "wheel"`'s braces.
     tmpfiles.rules = [
       "d /var/log/audit 0750 root wheel - -"
       "f /var/log/audit/audit.log 0640 root wheel - -"
       # lynis-scan writes --report-file here; without the dir the weekly
       # report is silently lost (the service redirects output to /dev/null).
       "d /var/log/lynis 0750 root wheel - -"
+      # nixpkgs' apparmor module writes `profiledir = /var/cache/apparmor/logprof`
+      # into logprof.conf, but nothing ever creates that directory —
+      # /var/cache/apparmor is made by apparmor_parser as its 0700 root-only
+      # cache-loc and has no logprof/ inside. The python tooling resolves
+      # profiledir with find_first_dir(), which returns None for a missing or
+      # unreadable path and then silently falls back to /etc/apparmor.d. On
+      # NixOS that tree is an incomplete 38-entry closure (upstream ships 124),
+      # so aa-notify's read_profiles() died on the first unresolvable include
+      # — "tunables/global not found", then "abstractions/crypto not found".
+      # Creating the directory makes profiledir resolve as intended. Empty is
+      # correct: it only feeds can_allow_rule's "add this rule" suggestions,
+      # which are meaningless against read-only store profiles anyway.
+      # 0711 on the parent grants traverse without exposing the policy cache.
+      "d /var/cache/apparmor 0711 root root - -"
+      "d /var/cache/apparmor/logprof 0755 root root - -"
     ];
     user.services.apparmor-notify = {
       description = "AppArmor Desktop Notifications";
@@ -434,17 +512,50 @@ in {
       after = ["graphical-session.target"];
       wantedBy = ["graphical-session.target"];
       partOf = ["graphical-session.target"];
-      unitConfig.ConditionPathExists = "/var/log/audit/audit.log";
+      # NB: no ConditionPathExists on the audit log. A user unit cannot order
+      # itself after the system-level auditd.service, so the condition was
+      # racing it — and a failed condition means "skip", evaluated once, with
+      # no retry. That is exactly what happened: the log was unreadable to
+      # this user at graphical-session time, the unit was skipped, and it then
+      # sat inactive for the entire uptime. Restart=always below turns that
+      # same situation into a retry loop that recovers on its own.
+      unitConfig.StartLimitIntervalSec = 0; # never give up permanently
       serviceConfig = {
         # -p: poll mode
         # -s 1: show summary
         # -w 5: wait 5 seconds (to group bursts of notifications)
         ExecStart = "${pkgs.apparmor-utils}/bin/aa-notify -p -s 1 -w 5 -f /var/log/audit/audit.log";
-        Restart = "on-failure";
+        # aa-notify is a forking daemon: notify_about_new_entries() calls
+        # os.fork() and the parent immediately os._exit(0), leaving the child
+        # to tail the log. Under the default Type=simple systemd sees that
+        # parent exit as the service ending — and since it also kills any
+        # other running aa-notify by process name on startup, Restart would
+        # have torn down and respawned the real daemon every RestartSec
+        # forever, even with zero errors.
+        Type = "forking";
+        # `always`, not `on-failure`: aa-notify also exits 0 in cases we want
+        # to recover from (log rotated out from under it, transient read
+        # failure). It is a tailer — it should never stay stopped.
+        Restart = "always";
         RestartSec = "10s";
       };
     };
     services = {
+      # auditd only reads auditd.conf at startup, and nothing in the unit
+      # references that file — so `nixos-rebuild switch` would install a new
+      # /etc/audit/auditd.conf while leaving the running daemon on its old
+      # in-memory settings indefinitely (observed: rotation and log_group
+      # changes not taking effect against an auditd from a 4-day-old boot).
+      #
+      # This has to be a *reload*, not a restart: upstream's auditd.service
+      # sets RefuseManualStop=yes, so systemd will not stop it and a
+      # restartTrigger is silently a no-op. Upstream also ships no ExecReload,
+      # so supply one — auditd re-reads its config on SIGHUP and records a
+      # DAEMON_CONFIG event on success.
+      auditd = {
+        reloadTriggers = [config.environment.etc."audit/auditd.conf".source];
+        serviceConfig.ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+      };
       # Run vulnix daily
       vulnix-scan = {
         script = "${lib.getExe pkgs.vulnix} --system --gc-roots --whitelist ${./vulnix-whitelist.toml} --verbose > /var/log/vulnix.log 2>&1";
@@ -506,6 +617,11 @@ in {
           ${lib.getExe' pkgs.audit "auditctl"} -b ${toString config.security.audit.backlogLimit}
           ${lib.getExe' pkgs.audit "auditctl"} -f 1
           ${lib.getExe' pkgs.audit "auditctl"} -r ${toString config.security.audit.rateLimit}
+          # Never let a full backlog block the syscall that generated the
+          # record — a stalled auditd would otherwise freeze userspace for up
+          # to 60s. This is the runtime equivalent of the kernel parameter
+          # that does not exist (see boot.kernelParams above).
+          ${lib.getExe' pkgs.audit "auditctl"} --backlog_wait_time 0
           ${lib.concatMapStringsSep "\n" (
               rule: "${lib.getExe' pkgs.audit "auditctl"} ${rule} || true"
             )
