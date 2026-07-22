@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  machineType ? "",
   ...
 }: let
   inherit (lib) mkIf mkOption;
@@ -32,11 +31,17 @@ in {
     inputMethod = {
       enable = mkOption {
         type = lib.types.bool;
-        # Desktop only. KWin allows exactly one input method, claimed via
-        # kwinrc [Wayland] InputMethod, and on the tablet maliit-keyboard
-        # (kde.nix) wants that same slot for the on-screen keyboard. Losing the
-        # OSK on a detachable is a worse trade than not having Japanese there.
-        default = config.graphical.enable && machineType == "desktop";
+        # Wherever there's something to type into — desktop and tablet, not the
+        # server. Same gate dictionaries.nix uses.
+        #
+        # On the tablet this claims kwinrc [Wayland] InputMethod, which KWin
+        # also offers to maliit-keyboard (kde.nix, tablet-only) for the
+        # on-screen keyboard; it allows exactly one. Nothing is lost today —
+        # that key isn't declared anywhere, and plasma-manager runs with
+        # overrideConfig = true, so it strips any value set by hand in the
+        # Virtual Keyboard KCM on the next activation. Wiring maliit up would
+        # mean declaring it here too, and then picking one.
+        default = config.graphical.enable;
         description = "Enable the fcitx5 input method with Japanese (mozc) support.";
       };
     };
