@@ -42,17 +42,26 @@
 
   # Sonnet stores config via QSettings("KDE", "Sonnet") -> ~/.config/KDE/Sonnet.conf.
   # Ungrouped keys land in [General]. Verified against sonnet 6.26 settingsimpl.cpp.
-  sonnetConf = ''
-    [General]
-    defaultClient=hunspell
-    defaultLanguage=en_GB
-    preferredLanguages=en_GB, pl_PL
-    autodetectLanguage=true
-    backgroundCheckerEnabled=true
-    checkerEnabledByDefault=true
-    checkUppercase=false
-    skipRunTogether=true
-  '';
+  #
+  # Handed to plasma-manager rather than xdg.configFile: KDE/Sonnet.conf is in
+  # plasma-manager's default resetFiles, and write_config.py deletes every reset
+  # file it doesn't itself manage (`reset_files - set(d.keys())`). Its activation
+  # entry runs after writeBoundary, so it removed the Home Manager symlink right
+  # after HM created it -- force = true doesn't help, the file was simply gone.
+  #
+  # preferredLanguages stays "en_GB, pl_PL": QSettings parses a comma-bearing
+  # value into a QStringList for restore()'s .toStringList(), and plasma-manager's
+  # escape() passes commas and interior spaces through untouched.
+  sonnetConf = {
+    defaultClient = "hunspell";
+    defaultLanguage = "en_GB";
+    preferredLanguages = "en_GB, pl_PL";
+    autodetectLanguage = true;
+    backgroundCheckerEnabled = true;
+    checkerEnabledByDefault = true;
+    checkUppercase = false;
+    skipRunTogether = true;
+  };
 in {
   options = {
     dictionaries = {
@@ -81,10 +90,8 @@ in {
 
       # autodetectLanguage lets Sonnet switch dictionaries per paragraph, so a
       # Polish reply inside an English thread stops being flagged wholesale.
-      xdg.configFile."KDE/Sonnet.conf" = mkIf config.kde.enable {
-        force = true;
-        text = sonnetConf;
-      };
+      programs.plasma.configFile."KDE/Sonnet.conf".General =
+        mkIf config.kde.enable sonnetConf;
     };
   };
 }
