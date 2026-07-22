@@ -10,6 +10,7 @@
     ./docker.nix
     ./gaming.nix
     ./graphical.nix
+    ./input-method.nix
     ./locale.nix
     ./kde.nix
     ./networking.nix
