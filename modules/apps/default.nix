@@ -5,6 +5,7 @@
 }: {
   imports = [
     ./1Password
+    ./anki
     ./bat
     ./btop
     ./clamav
