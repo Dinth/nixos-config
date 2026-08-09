@@ -151,6 +151,32 @@
     wazuhOverlay = _: _: {
       wazuh-agent = wazuh-agent.packages.${system}.wazuh-agent;
     };
+    # NoMachine retires old builds from their download server and the stale URL
+    # then 301s to the vendor homepage, so fetchurl silently hashes an HTML page
+    # and the build dies on a hash mismatch. nixpkgs' pin (9.5.7_2) went that way
+    # when 10.0 shipped -- the whole 9.x tree is gone and the artifact was renamed
+    # from nomachine_* to nomachine-personal-edition_*.
+    #
+    # Only the source moved: 10.0 still ships nxplayer.tar.gz / nxrunner.tar.gz at
+    # the paths the upstream postUnpack digs them out of, so overriding src alone
+    # is enough and the rest of the packaging is reused as-is.
+    #
+    # Drop this once nixpkgs bumps nomachine-client past 9.5.7.
+    nomachineOverlay = final: prev: {
+      nomachine-client = prev.nomachine-client.overrideAttrs (_: {
+        version = "10.0.57";
+        src = final.fetchurl {
+          url =
+            if final.stdenv.hostPlatform.system == "i686-linux"
+            then "https://download.nomachine.com/download/10.0/Linux/nomachine-personal-edition_10.0.57_2_i686.tar.gz"
+            else "https://download.nomachine.com/download/10.0/Linux/nomachine-personal-edition_10.0.57_2_x86_64.tar.gz";
+          sha256 =
+            if final.stdenv.hostPlatform.system == "i686-linux"
+            then "sha256-xBnL9/m1i/3m4lGbhqnLdMTrpl2vJiSmPajcyTnkXh8="
+            else "sha256-5jeGX1H92zKnO1qGv0/0oVdS2AhSlrDZsfmD/RqT0Ak=";
+        };
+      });
+    };
   in {
     nixosConfigurations = {
       dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
@@ -170,7 +196,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay nomachineOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -199,7 +225,7 @@
           # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay wazuhOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay wazuhOverlay nomachineOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -226,7 +252,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay nomachineOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
