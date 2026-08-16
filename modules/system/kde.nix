@@ -148,6 +148,19 @@ in {
         '';
       };
 
+      # workspace.cursor.theme below names catppuccin-mocha-dark-cursors, but
+      # nothing installed a cursor theme by that name — only NixOS's
+      # fallback-cursor-theme was in the closure, so Plasma silently fell back
+      # to Breeze. This module installs the package and produces exactly that
+      # name (catppuccin-<flavor>-<accent>-cursors). Size is pinned to match
+      # kscreenlockerrc/kcminputrc's cursorSize = 36 below, so GTK apps don't
+      # end up on the 24px default.
+      catppuccin.cursors = {
+        enable = true;
+        accent = "dark";
+      };
+      home.pointerCursor.size = 36;
+
       programs.plasma = {
         enable = true;
         overrideConfig = true;

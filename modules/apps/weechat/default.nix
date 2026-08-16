@@ -84,6 +84,26 @@
     };
   };
   aspellDicts = pkgs.aspellWithDicts (d: [d.en d.en-computers d.pl]);
+
+  # weechat's spell.so links libaspell in-process, so it never runs the
+  # aspellWithDicts wrapper script — it only reads aspell's compiled-in
+  # dict-dir, which points at a plain aspell store path holding zero language
+  # dictionaries. The result was `/set spell.check.enabled on` with
+  # default_dict "en,pl" resolving nothing at all. ASPELL_CONF is the only
+  # override libaspell honours, so set it on weechat itself, mirroring what
+  # aspellWithDicts puts on its own bin/aspell.
+  weechatWithDicts = pkgs.symlinkJoin {
+    name = "weechat-with-dicts-${weechatCustom.version or "0"}";
+    paths = [weechatCustom];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      for bin in weechat weechat-headless; do
+        [ -e "$out/bin/$bin" ] || continue
+        wrapProgram "$out/bin/$bin" \
+          --set-default ASPELL_CONF "dict-dir ${aspellDicts}/lib/aspell; data-dir ${aspellDicts}/lib/aspell"
+      done
+    '';
+  };
 in {
   options = {
     weechat = {
@@ -101,7 +121,7 @@ in {
     ];
     home-manager.users.${primaryUsername} = {
       home.packages = [
-        weechatCustom
+        weechatWithDicts
         aspellDicts
       ];
 
@@ -112,7 +132,7 @@ in {
         Name=WeeChat
         GenericName=IRC Client
         Comment=Fast, light and extensible chat client
-        Exec=${pkgs.kdePackages.konsole}/bin/konsole -e ${weechatCustom}/bin/weechat
+        Exec=${pkgs.kdePackages.konsole}/bin/konsole -e ${weechatWithDicts}/bin/weechat
         Terminal=false
         Categories=Network;IRCClient;
         Icon=weechat
