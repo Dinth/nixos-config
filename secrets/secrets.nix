@@ -14,7 +14,6 @@ in {
   "nas-vm-creds.age".publicKeys = users ++ systems;
   "smb-haos-creds.age".publicKeys = users ++ systems;
   "opencode-gemini.age".publicKeys = users ++ systems;
-  "cloudflare-mdm.age".publicKeys = users ++ systems;
   "lnxlink-mqtt.age".publicKeys = users ++ systems;
   "tailscale-auth-key.age".publicKeys = users ++ systems;
   "id-ed25519-sk-rk-1.age".publicKeys = users ++ systems;
