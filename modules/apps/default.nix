@@ -10,7 +10,6 @@
     ./btop
     ./clamav
     ./claude-code
-    ./cloudflarewarp
     ./direnv
     ./eza
     ./fzf
