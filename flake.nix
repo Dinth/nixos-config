@@ -184,29 +184,40 @@
     wazuhOverlay = _: _: {
       wazuh-agent = wazuh-agent.packages.${system}.wazuh-agent;
     };
-    # NoMachine retires old builds from their download server and the stale URL
-    # then 301s to the vendor homepage, so fetchurl silently hashes an HTML page
-    # and the build dies on a hash mismatch. nixpkgs' pin (9.5.7_2) went that way
-    # when 10.0 shipped -- the whole 9.x tree is gone and the artifact was renamed
-    # from nomachine_* to nomachine-personal-edition_*.
+    # NoMachine retires old builds from their download server the moment the
+    # next one ships, and the stale URL then 302s to the vendor homepage -- so
+    # fetchurl silently hashes an HTML page and the build dies on a hash
+    # mismatch. nixpkgs' pin (9.5.7_2) went that way when 10.0 shipped: the
+    # whole 9.x tree is gone and the artifact was renamed from nomachine_* to
+    # nomachine-personal-edition_*.
     #
-    # Only the source moved: 10.0 still ships nxplayer.tar.gz / nxrunner.tar.gz at
-    # the paths the upstream postUnpack digs them out of, so overriding src alone
-    # is enough and the rest of the packaging is reused as-is.
+    # Only the source moved: 10.x still ships nxplayer.tar.gz / nxrunner.tar.gz
+    # at the paths the upstream postUnpack digs them out of, so overriding src
+    # alone is enough and the rest of the packaging is reused as-is.
     #
-    # Drop this once nixpkgs bumps nomachine-client past 9.5.7.
-    nomachineOverlay = final: prev: {
+    # There is nothing to pin against -- the vendor keeps exactly one build
+    # alive -- so this *will* rot again on their next release. It is not worth
+    # rediscovering the URL scheme each time, hence pin.json (data, no logic)
+    # plus modules/apps/nomachine-client/update.sh, which scrapes the current
+    # build off NoMachine's stable download page and rewrites the pin. When a
+    # rebuild fails on a nomachine hash mismatch, run that script.
+    #
+    # Drop all of it once nixpkgs bumps nomachine-client past 9.5.7.
+    nomachineOverlay = final: prev: let
+      pin = builtins.fromJSON (builtins.readFile ./modules/apps/nomachine-client/pin.json);
+      inherit (final.stdenv.hostPlatform) system;
+      arch =
+        if system == "i686-linux"
+        then "i686"
+        else "x86_64";
+    in {
       nomachine-client = prev.nomachine-client.overrideAttrs (_: {
-        version = "10.0.57";
+        inherit (pin) version;
         src = final.fetchurl {
-          url =
-            if final.stdenv.hostPlatform.system == "i686-linux"
-            then "https://download.nomachine.com/download/10.0/Linux/nomachine-personal-edition_10.0.57_2_i686.tar.gz"
-            else "https://download.nomachine.com/download/10.0/Linux/nomachine-personal-edition_10.0.57_2_x86_64.tar.gz";
-          sha256 =
-            if final.stdenv.hostPlatform.system == "i686-linux"
-            then "sha256-xBnL9/m1i/3m4lGbhqnLdMTrpl2vJiSmPajcyTnkXh8="
-            else "sha256-5jeGX1H92zKnO1qGv0/0oVdS2AhSlrDZsfmD/RqT0Ak=";
+          url = "https://download.nomachine.com/download/${final.lib.versions.majorMinor pin.version}/Linux/nomachine-personal-edition_${pin.version}_${pin.build}_${arch}.tar.gz";
+          hash =
+            pin.hashes.${system}
+            or (throw "nomachine-client: no pinned hash for ${system} -- see modules/apps/nomachine-client/update.sh");
         };
       });
     };
