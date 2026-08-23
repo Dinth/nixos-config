@@ -490,21 +490,6 @@ in {
       # lynis-scan writes --report-file here; without the dir the weekly
       # report is silently lost (the service redirects output to /dev/null).
       "d /var/log/lynis 0750 root wheel - -"
-      # nixpkgs' apparmor module writes `profiledir = /var/cache/apparmor/logprof`
-      # into logprof.conf, but nothing ever creates that directory —
-      # /var/cache/apparmor is made by apparmor_parser as its 0700 root-only
-      # cache-loc and has no logprof/ inside. The python tooling resolves
-      # profiledir with find_first_dir(), which returns None for a missing or
-      # unreadable path and then silently falls back to /etc/apparmor.d. On
-      # NixOS that tree is an incomplete 38-entry closure (upstream ships 124),
-      # so aa-notify's read_profiles() died on the first unresolvable include
-      # — "tunables/global not found", then "abstractions/crypto not found".
-      # Creating the directory makes profiledir resolve as intended. Empty is
-      # correct: it only feeds can_allow_rule's "add this rule" suggestions,
-      # which are meaningless against read-only store profiles anyway.
-      # 0711 on the parent grants traverse without exposing the policy cache.
-      "d /var/cache/apparmor 0711 root root - -"
-      "d /var/cache/apparmor/logprof 0755 root root - -"
     ];
     user.services.apparmor-notify = {
       description = "AppArmor Desktop Notifications";
@@ -541,6 +526,29 @@ in {
       };
     };
     services = {
+      # nixpkgs' apparmor module writes `profiledir = /var/cache/apparmor/logprof`
+      # into logprof.conf, and the same module has apparmor.service create both
+      # that directory and its parent via CacheDirectory=, with
+      # CacheDirectoryMode=0700. The python tooling resolves profiledir with
+      # find_first_dir(), which returns None for a path it cannot reach and
+      # then silently falls back to /etc/apparmor.d. On NixOS that tree is an
+      # incomplete 38-entry closure (upstream ships 124), so the user-session
+      # aa-notify's read_profiles() dies on the first unresolvable include —
+      # "tunables/global not found". 0700 root-only is exactly such a path for
+      # a unit running as a normal user, so aa-notify never started.
+      #
+      # An earlier attempt at this set the modes from tmpfiles.rules, which
+      # never held: systemd re-applies CacheDirectoryMode over them on every
+      # apparmor.service start (and on reload during a switch), so the two
+      # fought over the same directories and systemd always won. Override the
+      # mode at its source instead — the directories then have one owner.
+      #
+      # Only the mode is forced, not the CacheDirectory list, so a future
+      # upstream change to *which* cache directories exist still applies.
+      # These hold compiled policy, which is a build product of the
+      # world-readable profiles in /etc/apparmor.d and the store; nothing in
+      # them is secret.
+      apparmor.serviceConfig.CacheDirectoryMode = lib.mkForce "0755";
       # auditd only reads auditd.conf at startup, and nothing in the unit
       # references that file — so `nixos-rebuild switch` would install a new
       # /etc/audit/auditd.conf while leaving the running daemon on its old
