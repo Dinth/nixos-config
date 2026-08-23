@@ -119,17 +119,50 @@
         builtins.attrNames
         (lib.filterAttrs (_: type: type == "directory")
           (builtins.readDir (llm-agents + "/packages")));
+      # The scope also has to carry upstream's shared helpers (platformSource,
+      # mkUpdater, fetchurlTemplate, ...). Hand-listing those is the same trap
+      # as hand-listing package arguments -- it broke again when opencode
+      # gained `mkUpdater`. So derive them from lib/ too: every lib/<foo-bar>.nix
+      # becomes scope.fooBar, and the ones that take an argument set are put
+      # through callPackage so *their* dependencies also resolve by name from
+      # the scope (mk-updater wants `lib`, platform-source wants `stdenv` and
+      # `fetchurlTemplate`, and so on). A new helper upstream adds needs no
+      # change here; it just appears in the scope under its camelCased name.
+      #
+      # default.nix is upstream's extended lib, not a scope helper -- it wants
+      # the flake `inputs` we don't have, and `flake` below covers its only use.
+      libNames =
+        builtins.filter (name: name != "default.nix" && lib.hasSuffix ".nix" name)
+        (builtins.attrNames (builtins.readDir (llm-agents + "/lib")));
+      libHelpers = self:
+        lib.listToAttrs (map (
+            fileName: let
+              path = llm-agents + "/lib/${fileName}";
+              # foo-bar.nix -> fooBar, matching the names upstream's own flake
+              # binds these helpers to.
+              base = lib.removeSuffix ".nix" fileName;
+              parts = lib.splitString "-" base;
+              camel = lib.concatStrings (lib.take 1 parts ++ map lib.toSentenceCase (lib.drop 1 parts));
+            in
+              lib.nameValuePair camel (
+                # Curried helpers (interpolate) take no argument set, so
+                # callPackage would apply them to `{}` and hand back a
+                # half-applied function; import those as-is.
+                if builtins.functionArgs (import path) == {}
+                then import path
+                else self.callPackage path {}
+              )
+          )
+          libNames);
       scope = lib.makeScope final.newScope (
         self:
-          {
+          libHelpers self
+          // {
             system = final.stdenv.hostPlatform.system;
             # Upstream reads `flake.lib.licenses.unfree` in meta only. llm-agents
             # is a non-flake source input here, so hand it nixpkgs lib, which has
             # licenses.unfree, rather than the flake's own extended lib.
             flake = {inherit lib;};
-            platformSource = import (llm-agents + "/lib/platform-source.nix") {
-              inherit (final) stdenv fetchurl;
-            };
             allPackages = lib.genAttrs packageNames (name: self.${name});
             # Only reachable from packages we don't install (bun2nix-built ones).
             # Left as lazy throws so they never fire for claude-code/opencode/rtk
