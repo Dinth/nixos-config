@@ -64,8 +64,11 @@ wake_nas() {
     return 1
 }
 
+# /mnt/VM is a noauto fstab entry (see modules/services/network-mounts) — there
+# is no mnt-VM.automount to reset or arm. Starting the .mount unit by hand is
+# the only thing that ever mounts this share.
 remount_nas() {
-    $systemctl reset-failed mnt-VM.automount mnt-VM.mount 2>/dev/null || true
+    $systemctl reset-failed mnt-VM.mount 2>/dev/null || true
     $systemctl start mnt-VM.mount 2>/dev/null || true
 }
 
@@ -96,13 +99,13 @@ any_vm_running() {
 unmount_nas() {
     # Tear down /mnt/VM before the NAS disappears. A CIFS mount left pointing
     # at a powered-off server goes stale: every stat() against it (df, file
-    # managers, shell path completion) blocks for the CIFS timeout, and the
-    # x-systemd.automount trigger re-arms on access so it keeps coming back —
-    # this is what makes the whole system lag once the QNAP is off. Stop the
-    # automount first so nothing re-triggers, then unmount while the share is
-    # still reachable so it flushes cleanly.
+    # managers, shell path completion) blocks for the CIFS timeout — this is
+    # what makes the whole system lag once the QNAP is off. The fstab entry is
+    # noauto precisely so nothing re-triggers it behind our back (an earlier
+    # x-systemd.automount here came back armed on every reboot); all that is
+    # left to do is unmount while the share is still reachable so it flushes
+    # cleanly.
     log "Unmounting /mnt/VM ahead of NAS poweroff"
-    $systemctl stop mnt-VM.automount 2>/dev/null || true
     $systemctl stop mnt-VM.mount 2>/dev/null || true
     # Belt-and-braces: force + lazy unmount in case systemd left a stale handle
     # behind (e.g. the NAS vanished before this ran).

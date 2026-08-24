@@ -73,9 +73,17 @@
   # throughput. The HAOS config share overrides to cache=none + sync so a
   # config edit is flushed to the HAOS disk before save returns, otherwise
   # HA reloads can miss freshly-written config.
+  #
+  # automount = false is for shares whose server is not always powered on.
+  # An x-systemd.automount against an offline server is actively harmful: every
+  # stat() into the mountpoint (Dolphin/KIO, zsh path completion, df,
+  # node_exporter's filesystem collector) blocks for the full mount-timeout,
+  # and the automount re-arms on each access so it never stops. Such a share
+  # gets "noauto" and is started explicitly by whatever powers the server on.
   cifsOptions = {
     credPath,
     cache ? "strict",
+    automount ? true,
     extra ? [],
   }:
     [
@@ -91,12 +99,18 @@
       "_netdev"
       "nofail"
       "vers=3.1.1"
-      "x-systemd.automount"
       "x-systemd.requires=network-online.target"
       "x-systemd.after=network-online.target"
-      "x-systemd.idle-timeout=60"
       "x-systemd.mount-timeout=30s"
     ]
+    ++ (
+      if automount
+      then [
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=60"
+      ]
+      else ["noauto"]
+    )
     ++ extra;
 in {
   options.services.networkMounts = {
@@ -127,10 +141,22 @@ in {
       environment.systemPackages = [pkgs.cifs-utils];
     }
     (mkIf cfg.smb.vm {
+      # The QNAP at 10.10.1.19 is powered off except while the LinuxMint VM
+      # runs — modules/system/virtualisation/nas-power-hook.sh wakes it on
+      # domain prepare and shuts it down 600 s after release, starting and
+      # stopping mnt-VM.mount around that window. So this must be noauto:
+      # the hook already stops the automount before poweroff, but `systemctl
+      # stop` is runtime-only and the fstab entry re-arms it on the next boot,
+      # leaving the desktop stat()-blocking on a dead host until someone
+      # notices. noauto keeps the unit startable by the hook without ever
+      # arming an automount of its own.
       fileSystems."/mnt/VM" = {
         device = "//10.10.1.19/VM";
         fsType = "cifs";
-        options = cifsOptions {credPath = "/run/agenix/nas-vm-creds";};
+        options = cifsOptions {
+          credPath = "/run/agenix/nas-vm-creds";
+          automount = false;
+        };
       };
     })
     (mkIf cfg.smb.haosConfig {
