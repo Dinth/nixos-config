@@ -86,6 +86,19 @@
       url = "http://10.10.1.13:5136/mcp";
       headers.Authorization = "Basic \${NEXTCLOUD_MCP_AUTH:-}";
     };
+    # Firefly III MCP (firefly-iii-mcp, 10.10.1.13:5137) — personal finance:
+    # accounts, transactions, budgets, categories, bills. Streamable HTTP on
+    # the root path (no /mcp suffix). Bearer token is a Firefly Passport JWT
+    # (user id 1, expires 2027-08-12) held in the ragenix `firefly-mcp-token`
+    # secret and exported as FIREFLY_MCP_TOKEN at shell startup, same
+    # env-expansion trick as nextcloud above. Write tools (create/update/
+    # delete/bulk) are deliberately absent from agentPermissions.mcpReadOnly,
+    # so every mutation still prompts.
+    firefly = {
+      type = "http";
+      url = "http://10.10.1.13:5137/";
+      headers.Authorization = "Bearer \${FIREFLY_MCP_TOKEN:-}";
+    };
   };
 
   # Settings attrset — serialised to JSON and installed as a real mutable
@@ -495,6 +508,9 @@ in {
         fi
         if [ -r "${config.age.secrets.nextcloud-mcp-auth.path}" ]; then
           export NEXTCLOUD_MCP_AUTH="$(< "${config.age.secrets.nextcloud-mcp-auth.path}")"
+        fi
+        if [ -r "${config.age.secrets.firefly-mcp-token.path}" ]; then
+          export FIREFLY_MCP_TOKEN="$(< "${config.age.secrets.firefly-mcp-token.path}")"
         fi
       '';
       # Register the claude-cli:// URL scheme handler declaratively. Claude Code

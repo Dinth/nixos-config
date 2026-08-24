@@ -83,15 +83,18 @@ in {
         source = ./skills;
         recursive = true;
       };
-      # Export the Home Assistant MCP URL (private auth key) from the ragenix
-      # secret so opencode's `homeassistant` MCP can resolve `{env:...}` at
-      # launch. Declared here (not only in the claude-code module) so opencode
-      # doesn't silently depend on claude-code being enabled. Home Manager
-      # merges this with any other initContent fragment; a double export is
-      # harmless and idempotent.
+      # Export the MCP credentials (HA URL with its private auth key, Firefly
+      # bearer token) from their ragenix secrets so opencode's `homeassistant`
+      # and `firefly` MCPs can resolve `{env:...}` at launch. Declared here (not
+      # only in the claude-code module) so opencode doesn't silently depend on
+      # claude-code being enabled. Home Manager merges this with any other
+      # initContent fragment; a double export is harmless and idempotent.
       programs.zsh.initContent = lib.mkAfter ''
         if [ -r "${config.age.secrets.ha-mcp-url.path}" ]; then
           export HOMEASSISTANT_MCP_URL="$(< "${config.age.secrets.ha-mcp-url.path}")"
+        fi
+        if [ -r "${config.age.secrets.firefly-mcp-token.path}" ]; then
+          export FIREFLY_MCP_TOKEN="$(< "${config.age.secrets.firefly-mcp-token.path}")"
         fi
       '';
       # Drop the HA marker (AGENTS.md) onto the /mnt/haos CIFS share so working
@@ -395,6 +398,22 @@ in {
               url = "{env:HOMEASSISTANT_MCP_URL}";
               enabled = true;
               timeout = 20000;
+            };
+            # Firefly III MCP (firefly-iii-mcp, 10.10.1.13:5137) — personal
+            # finance: accounts, transactions, budgets, categories, bills.
+            # Streamable HTTP on the root path (no /mcp suffix). The bearer
+            # token is a Firefly Passport JWT (user id 1, expires 2027-08-12)
+            # from the ragenix `firefly-mcp-token` secret, exported as
+            # $FIREFLY_MCP_TOKEN in zsh below and resolved by opencode's
+            # `{env:...}` at launch, so it never lands in the nix store.
+            firefly = {
+              type = "remote";
+              url = "http://10.10.1.13:5137/";
+              enabled = true;
+              timeout = 20000;
+              headers = {
+                Authorization = "Bearer {env:FIREFLY_MCP_TOKEN}";
+              };
             };
           };
         };

@@ -97,6 +97,12 @@
       group = "users";
       mode = "0400";
     };
+    firefly-mcp-token = {
+      file = ./firefly-mcp-token.age;
+      owner = "michal";
+      group = "users";
+      mode = "0400";
+    };
     nextcloud-mcp-auth = {
       file = ./nextcloud-mcp-auth.age;
       owner = "michal";
