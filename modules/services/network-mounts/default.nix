@@ -74,43 +74,51 @@
   # config edit is flushed to the HAOS disk before save returns, otherwise
   # HA reloads can miss freshly-written config.
   #
-  # automount = false is for shares whose server is not always powered on.
-  # An x-systemd.automount against an offline server is actively harmful: every
-  # stat() into the mountpoint (Dolphin/KIO, zsh path completion, df,
-  # node_exporter's filesystem collector) blocks for the full mount-timeout,
-  # and the automount re-arms on each access so it never stops. Such a share
-  # gets "noauto" and is started explicitly by whatever powers the server on.
+  # The kernel-level cifs options only — no fstab directives, and no
+  # vers= (each caller appends it, so the fstab line keeps its historical
+  # option order and does not read as "changed" to switch-to-configuration). Shared by the
+  # fstab-backed mounts below and by the native .mount unit for /mnt/VM,
+  # which must not carry x-systemd.*/_netdev/noauto (systemd-fstab-generator
+  # translates those; a hand-written unit does not).
+  cifsBaseOptions = {
+    credPath,
+    cache ? "strict",
+  }: [
+    "credentials=${credPath}"
+    "rw"
+    "noserverino"
+    "actimeo=1"
+    "noperm"
+    "cache=${cache}"
+    "echo_interval=10"
+    "uid=${primaryUid}"
+    "gid=${primaryGid}"
+  ];
+
+  # For fstab entries (always-on servers). There is deliberately no
+  # "automount = false" escape hatch here: a noauto entry in /etc/fstab
+  # breaks activation outright — switch-to-configuration-ng parses /etc/fstab
+  # and calls the D-Bus GetUnit on every entry, but systemd garbage-collects
+  # an inactive generated unit out of memory, and GetUnit (unlike
+  # `systemctl show`) will not load it back. Result:
+  # "Failed to get unit mnt-VM.mount / Unit mnt-VM.mount not loaded".
+  # A sometimes-off server gets a native systemd.mounts unit instead.
   cifsOptions = {
     credPath,
     cache ? "strict",
-    automount ? true,
     extra ? [],
   }:
-    [
-      "credentials=${credPath}"
-      "rw"
-      "noserverino"
-      "actimeo=1"
-      "noperm"
-      "cache=${cache}"
-      "echo_interval=10"
-      "uid=${primaryUid}"
-      "gid=${primaryGid}"
+    cifsBaseOptions {inherit credPath cache;}
+    ++ [
       "_netdev"
       "nofail"
       "vers=3.1.1"
       "x-systemd.requires=network-online.target"
       "x-systemd.after=network-online.target"
       "x-systemd.mount-timeout=30s"
+      "x-systemd.automount"
+      "x-systemd.idle-timeout=60"
     ]
-    ++ (
-      if automount
-      then [
-        "x-systemd.automount"
-        "x-systemd.idle-timeout=60"
-      ]
-      else ["noauto"]
-    )
     ++ extra;
 in {
   options.services.networkMounts = {
@@ -144,20 +152,37 @@ in {
       # The QNAP at 10.10.1.19 is powered off except while the LinuxMint VM
       # runs — modules/system/virtualisation/nas-power-hook.sh wakes it on
       # domain prepare and shuts it down 600 s after release, starting and
-      # stopping mnt-VM.mount around that window. So this must be noauto:
-      # the hook already stops the automount before poweroff, but `systemctl
-      # stop` is runtime-only and the fstab entry re-arms it on the next boot,
-      # leaving the desktop stat()-blocking on a dead host until someone
-      # notices. noauto keeps the unit startable by the hook without ever
-      # arming an automount of its own.
-      fileSystems."/mnt/VM" = {
-        device = "//10.10.1.19/VM";
-        fsType = "cifs";
-        options = cifsOptions {
-          credPath = "/run/agenix/nas-vm-creds";
-          automount = false;
-        };
-      };
+      # stopping mnt-VM.mount around that window. So this must never arm an
+      # automount of its own: an x-systemd.automount against a dead host makes
+      # every stat() into the mountpoint (Dolphin/KIO, zsh completion, df,
+      # node_exporter) block for the full mount-timeout, re-arming on each
+      # access so it never settles.
+      #
+      # This is a native systemd.mounts unit rather than a fileSystems entry
+      # with "noauto", because a noauto line in /etc/fstab breaks activation —
+      # see the cifsOptions comment above. A unit with no wantedBy is never
+      # started by systemd and never reaches /etc/fstab, so switch-to-
+      # configuration never enumerates it, while the hook can still
+      # `systemctl start mnt-VM.mount` exactly as before.
+      systemd.mounts = [
+        {
+          what = "//10.10.1.19/VM";
+          where = "/mnt/VM";
+          type = "cifs";
+          options = lib.concatStringsSep "," (cifsBaseOptions {
+              credPath = "/run/agenix/nas-vm-creds";
+            }
+            ++ ["vers=3.1.1"]);
+          # Deliberately no wantedBy: started on demand by the NAS power hook.
+          requires = ["network-online.target"];
+          after = ["network-online.target"];
+          mountConfig.TimeoutSec = "30s";
+        }
+      ];
+
+      # fileSystems would have pulled the mount.cifs helper in automatically;
+      # a hand-written .mount unit does not, so declare it.
+      system.fsPackages = [pkgs.cifs-utils];
     })
     (mkIf cfg.smb.haosConfig {
       fileSystems."/mnt/haos" = {
