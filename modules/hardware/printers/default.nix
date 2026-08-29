@@ -44,9 +44,11 @@ in {
           {
             name = "Canon_MF270_Series";
             location = "Wickhay";
-            # Wait up to 60s for printer to wake from sleep
-            # If still fails, try: "beh:/3/10/ipp://10.10.10.40/ipp" (retries 3x, 10s apart - may cause duplicates)
-            deviceUri = "ipp://10.10.10.40/ipp?contimeout=60";
+            # No query string: lpadmin -m everywhere fetches IPP attributes from this
+            # URI verbatim, so backend options like ?contimeout= make the resource
+            # path 404 and PPD creation fails with "No IPP attributes".
+            # /ipp/print is the path the printer advertises in printer-uri-supported.
+            deviceUri = "ipp://10.10.10.40/ipp/print";
             model = "everywhere";
             ppdOptions = {
               PageSize = "A4";
@@ -62,11 +64,12 @@ in {
       };
     };
 
-    # Make ensure-printers service fault-tolerant - don't fail boot if printer is unreachable
+    # Retry ensure-printers if the printer is asleep/offline at boot.
+    # NB: do NOT add SuccessExitStatus = [0 1] here - lpadmin exits 1 on real
+    # config errors too, so it both hides them and stops Restart=on-failure
+    # from ever firing.
     systemd.services.ensure-printers = {
       serviceConfig = {
-        # Don't fail if printer is asleep/offline during boot
-        SuccessExitStatus = [0 1];
         Restart = "on-failure";
         RestartSec = "30s";
       };
