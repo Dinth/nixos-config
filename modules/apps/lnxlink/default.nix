@@ -76,7 +76,13 @@ in {
         # continuously. active_window (Wayland unsupported) and boot_select
         # (needs efibootmgr) just error at every start.
         default = ["beacondb" "camera_used" "active_window" "boot_select"];
-        description = "lnxlink modules to exclude (passed as `-e` on the command line).";
+        description = ''
+          lnxlink modules to exclude. Passed as a single comma-separated `-e`
+          argument: upstream parses the flag with
+          `type=lambda t: [s.strip() for s in t.split(",")]`, so a
+          space-separated list makes argparse reject the extra words with
+          "unrecognized arguments" and exit 2.
+        '';
       };
 
       updateInterval = mkOption {
@@ -113,7 +119,7 @@ in {
           Type = "simple";
           ExecStartPre = "${setupScript}";
           ExecStart = "${lib.getExe cfg.package} -c %h/.local/state/lnxlink/config.yaml${
-            lib.optionalString (cfg.exclude != []) " -e ${lib.concatStringsSep " " cfg.exclude}"
+            lib.optionalString (cfg.exclude != []) " -e ${lib.concatStringsSep "," cfg.exclude}"
           }";
           Restart = "on-failure";
           RestartSec = "10s";
