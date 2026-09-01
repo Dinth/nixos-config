@@ -15,6 +15,37 @@
   networking.hostName = "dinth-nixos-desktop"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking via NM
 
+  # Static wired address, declared here rather than left as an imperative NM
+  # profile so it survives a reinstall and is reviewable in git.
+  #
+  # ensureProfiles renders these into /run/NetworkManager/system-connections,
+  # while nmcli-created profiles live in /etc/NetworkManager/system-connections
+  # and win on conflict. Any imperative profile for enp5s0 must therefore be
+  # deleted (`nmcli con delete "Wired connection 2"`) for this one to take
+  # effect.
+  #
+  # Keyfile syntax, not nmcli property syntax: the gateway is the second field
+  # of address1, and dns is a semicolon-terminated list.
+  networking.networkmanager.ensureProfiles.profiles = {
+    wired-enp5s0 = {
+      connection = {
+        id = "wired-enp5s0";
+        type = "802-3-ethernet";
+        interface-name = "enp5s0";
+        autoconnect = true;
+      };
+      ipv4 = {
+        method = "manual";
+        address1 = "10.40.0.10/24,10.40.0.1";
+        dns = "10.10.1.12;";
+      };
+      ipv6 = {
+        method = "auto";
+        addr-gen-mode = "stable-privacy";
+      };
+    };
+  };
+
   boot.plymouth.enable = true;
 
   cli.enable = true;
