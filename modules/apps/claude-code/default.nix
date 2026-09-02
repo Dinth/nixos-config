@@ -280,14 +280,25 @@
         if [ -d ${lib.escapeShellArg projectPath} ]; then
           SETTINGS=${lib.escapeShellArg "${projectPath}/.claude/settings.local.json"}
           NEW=${lib.escapeShellArg (builtins.toJSON overrides)}
-          ${lib.getExe' pkgs.coreutils "mkdir"} -p ${lib.escapeShellArg "${projectPath}/.claude"}
-          if [ ! -s "$SETTINGS" ]; then
-            echo '{}' > "$SETTINGS"
-          fi
-          TMP="$(${lib.getExe' pkgs.coreutils "mktemp"} "$SETTINGS.XXXXXX")"
-          ${lib.getExe pkgs.jq} --argjson new "$NEW" '. * $new' \
-            "$SETTINGS" > "$TMP"
-          ${lib.getExe' pkgs.coreutils "mv"} "$TMP" "$SETTINGS"
+          # Best-effort, like mergeHaosMarkersScript below. `-d` also succeeds
+          # on an autofs mountpoint whose backing mount is failing (/mnt/haos
+          # when HAOS rejects the CIFS auth): the directory exists, but every
+          # write into it returns ENODEV. Unguarded, that aborts the whole
+          # home-manager activation under `set -e`, which in turn fails the
+          # switch and silently strands every other user unit on its old
+          # generation.
+          # Chained with && rather than newlines: `set -e` is suspended inside
+          # a group on the left of `||`, so a plain sequence would run every
+          # remaining write after the first ENODEV and emit a cascade of
+          # errors. This stops at the first failure instead.
+          {
+            ${lib.getExe' pkgs.coreutils "mkdir"} -p ${lib.escapeShellArg "${projectPath}/.claude"} &&
+            { [ -s "$SETTINGS" ] || echo '{}' > "$SETTINGS"; } &&
+            TMP="$(${lib.getExe' pkgs.coreutils "mktemp"} "$SETTINGS.XXXXXX")" &&
+            ${lib.getExe pkgs.jq} --argjson new "$NEW" '. * $new' \
+              "$SETTINGS" > "$TMP" &&
+            ${lib.getExe' pkgs.coreutils "mv"} "$TMP" "$SETTINGS"
+          } || echo "claude-code: skipped project settings for ${projectPath} (unwritable)" >&2
         fi
       '')
       projectOverrides)}
