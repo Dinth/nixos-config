@@ -16,11 +16,11 @@
   komodo-periphery-pkg = pkgs.stdenv.mkDerivation rec {
     pname = "komodo-periphery";
     # Keep in step with the komodo-core image on omv (10.10.1.13).
-    version = "2.3.1";
+    version = "2.3.3";
 
     src = pkgs.fetchurl {
       url = "https://github.com/moghtech/komodo/releases/download/v${version}/periphery-x86_64";
-      hash = "sha256-22cWUvOhGIwNFkNaZVL7MOs78xCSw23Wt9Y1L0vKtnY=";
+      hash = "sha256-QLePN3YmeZr62DMSRqUB8HfU68+22QlolM9Vtk9tzxM=";
     };
 
     dontUnpack = true;
