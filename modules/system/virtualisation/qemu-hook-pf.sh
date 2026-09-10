@@ -18,7 +18,7 @@ iptables='/run/current-system/sw/sbin/iptables'
 
 # Ideally, rewrite as ERB template and fetch this from Puppet
 external_ifs='enp5s0 virbr0'
-external_ip='10.10.10.10'
+external_ip='10.40.0.10'
 
 # List the machines here
 machines=( 'linuxmint' )
