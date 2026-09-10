@@ -76,16 +76,15 @@ in
             # drops, so keep the log line and drop the teardown.
             substituteInPlace lnxlink/mqtt.py --replace-fail '            self.reconnect()' '            pass  # nixos-config patch: rely on paho auto-reconnect'
 
-            # media.py's get_thumbnail() base64-encodes the album-art file with
-            # no size cap and publishes it on every media-info change. A large
-            # cover image exceeds the broker's max_packet_size, so Mosquitto
-            # rejects the connection ("oversize packet"), LNXlink reconnects and
-            # republishes, and the connect->reject->reconnect storm (~1/s)
-            # saturates the single-threaded broker enough to drop other clients'
-            # keepalives (collateral: Valetudo vacuums flap unavailable). The HA
-            # Thumbnail entity is disabled by default anyway, so never publish
-            # album art — media controls (play/pause/volume/title) are untouched.
-            substituteInPlace lnxlink/modules/media.py --replace-fail 'return image_thumbnail' 'return b" "  # nixos-config patch: never publish album art (oversize MQTT payload self-DoSes broker)'
+            # NOTE: the old album-art patch (never publish, return b" ") is gone.
+            # It existed because get_thumbnail() base64-encoded the cover with no
+            # size cap, overflowing the broker's max_packet_size and touching off a
+            # connect->reject->reconnect storm. Upstream now caps thumbnails itself:
+            # MAX_THUMBNAIL_BYTES (64 KiB, ~85 KiB base64 -- under the 128 KiB broker
+            # limit), a MAX_THUMBNAIL_PIXELS decode-bomb guard, progressive downscale
+            # via THUMBNAIL_PROFILES, and b" " on every failure path. That is strictly
+            # better than blanking it, so album art is published again (bounded).
+            # To disable it again, patch get_thumbnail's tail instead of that line.
 
             # Replace GNOME-specific keep_alive with systemd-inhibit version (works on KDE)
             cat > lnxlink/modules/keep_alive.py << 'EOF'
@@ -140,6 +139,10 @@ in
         beaupy
         aiohttp
         jeepney
+        # media.py loads Pillow via import_install_package() to resize album art;
+        # without it in the closure the pip fallback fails on the read-only Nix
+        # store and `self.image = pillow.Image` blows up on None.
+        pillow
       ]
       ++ [dbus-mediaplayer];
 
