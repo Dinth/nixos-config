@@ -19,6 +19,9 @@
       endpoint {
         url = "${cfg.lokiUrl}"
       }
+      external_labels = {
+        host = "${config.networking.hostName}",
+      }
     }
 
     // Read journald. host is set statically; job is the source tag.
