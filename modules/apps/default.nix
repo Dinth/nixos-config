@@ -23,7 +23,6 @@
     ./mc
     ./neovim
     ./nextcloud-client
-    ./nomachine-client
     ./opencode
     ./OrcaSlicer
     ./sddm

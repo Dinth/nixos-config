@@ -184,43 +184,6 @@
     wazuhOverlay = _: _: {
       wazuh-agent = wazuh-agent.packages.${system}.wazuh-agent;
     };
-    # NoMachine retires old builds from their download server the moment the
-    # next one ships, and the stale URL then 302s to the vendor homepage -- so
-    # fetchurl silently hashes an HTML page and the build dies on a hash
-    # mismatch. nixpkgs' pin (9.5.7_2) went that way when 10.0 shipped: the
-    # whole 9.x tree is gone and the artifact was renamed from nomachine_* to
-    # nomachine-personal-edition_*.
-    #
-    # Only the source moved: 10.x still ships nxplayer.tar.gz / nxrunner.tar.gz
-    # at the paths the upstream postUnpack digs them out of, so overriding src
-    # alone is enough and the rest of the packaging is reused as-is.
-    #
-    # There is nothing to pin against -- the vendor keeps exactly one build
-    # alive -- so this *will* rot again on their next release. It is not worth
-    # rediscovering the URL scheme each time, hence pin.json (data, no logic)
-    # plus modules/apps/nomachine-client/update.sh, which scrapes the current
-    # build off NoMachine's stable download page and rewrites the pin. When a
-    # rebuild fails on a nomachine hash mismatch, run that script.
-    #
-    # Drop all of it once nixpkgs bumps nomachine-client past 9.5.7.
-    nomachineOverlay = final: prev: let
-      pin = builtins.fromJSON (builtins.readFile ./modules/apps/nomachine-client/pin.json);
-      inherit (final.stdenv.hostPlatform) system;
-      arch =
-        if system == "i686-linux"
-        then "i686"
-        else "x86_64";
-    in {
-      nomachine-client = prev.nomachine-client.overrideAttrs (_: {
-        inherit (pin) version;
-        src = final.fetchurl {
-          url = "https://download.nomachine.com/download/${final.lib.versions.majorMinor pin.version}/Linux/nomachine-personal-edition_${pin.version}_${pin.build}_${arch}.tar.gz";
-          hash =
-            pin.hashes.${system}
-            or (throw "nomachine-client: no pinned hash for ${system} -- see modules/apps/nomachine-client/update.sh");
-        };
-      });
-    };
   in {
     nixosConfigurations = {
       dinth-nixos-desktop = nixpkgs.lib.nixosSystem {
@@ -240,7 +203,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay nomachineOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -269,7 +232,7 @@
           # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay wazuhOverlay nomachineOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay wazuhOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -296,7 +259,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay nomachineOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;

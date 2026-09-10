@@ -1,8 +1,0 @@
-{
-  "version": "10.0.59",
-  "build": "1",
-  "hashes": {
-    "x86_64-linux": "sha256-idrB+BUq1v5350qvHzuxUva3kGzUpnNrmwuuDTn7Kw4=",
-    "i686-linux": "sha256-C0+KyFTKfZ9u8fPTa/JSiGOTxOC4VfZmUZX/MphsdvA="
-  }
-}
