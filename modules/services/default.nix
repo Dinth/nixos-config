@@ -7,6 +7,7 @@
     ./alloy
     ./komodo-periphery
     ./krdp
+    ./llama-cpp
     ./network-mounts
     ./prometheus-exporters
     ./ssh

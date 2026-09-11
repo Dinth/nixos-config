@@ -63,6 +63,11 @@
   docker.enable = false;
   yubikey.enable = true;
   agenticAi.enable = true;
+  # Local inference stack: llama-server (Vulkan/RDNA2) on 127.0.0.1:8080,
+  # SillyTavern on 127.0.0.1:8000 as its frontend. Both loopback-only; the
+  # Ollama instance on omv stays where it is for everything else.
+  llamaCpp.enable = true;
+  sillytavern.enable = true;
   lnxlink.enable = true;
   lnxlink.mqtt.secretsFile = config.age.secrets.lnxlink-mqtt.path;
   services.networkMounts.smb.vm = true;
