@@ -7,6 +7,8 @@
   inherit (lib) mkIf mkOption;
   cfg = config.llamaCpp;
   primaryUsername = config.primaryUser.name;
+  primaryHome = config.users.users.${primaryUsername}.home;
+  primaryGroup = config.users.users.${primaryUsername}.group;
 in {
   options.llamaCpp = {
     enable = mkOption {
@@ -23,11 +25,12 @@ in {
 
     modelsDir = mkOption {
       type = lib.types.path;
-      default = "/var/lib/llama-models";
+      default = "${primaryHome}/Models";
+      defaultText = lib.literalExpression ''"''${primaryHome}/Models"'';
       description = ''
-        Directory llama-server scans for GGUF files. Owned by the primary user
-        so models can be dropped in without root; kept outside the unit's
-        StateDirectory because DynamicUser puts that behind /var/lib/private.
+        Directory llama-server scans for GGUF files. Lives in the primary
+        user's home so models can be managed like any other file; reaching it
+        is what forces the DynamicUser/ProtectHome relaxation below.
       '';
     };
 
@@ -70,6 +73,22 @@ in {
     };
 
     systemd.services.llama-cpp = {
+      # The upstream unit runs under DynamicUser with ProtectHome=true, which
+      # makes /home an empty tmpfs for the service -- a transient UID could not
+      # traverse 0700 ~michal anyway. Serving models out of the user's home
+      # therefore means running as that user, with /home merely read-only:
+      # llama-server only ever reads the GGUFs, and writes stay in its
+      # StateDirectory / CacheDirectory.
+      #
+      # The trade is real: the process can now read everything the user can.
+      # It listens on loopback only, which is what keeps that acceptable.
+      serviceConfig = {
+        DynamicUser = lib.mkForce false;
+        User = primaryUsername;
+        Group = primaryGroup;
+        ProtectHome = lib.mkForce "read-only";
+      };
+
       environment = {
         # Pin the ICD to RADV so device enumeration can't land on lavapipe,
         # the CPU-software Vulkan driver that also ships in the Mesa ICD dir.
@@ -81,13 +100,13 @@ in {
     };
 
     # /dev/dri/renderD128 is mode 0666 under systemd's default udev rules, so
-    # the DynamicUser needs no video/render membership -- only PrivateDevices
-    # off, which the upstream module already sets for GPU access.
+    # the service needs no video/render membership -- only PrivateDevices off,
+    # which the upstream module already sets for GPU access.
     systemd.tmpfiles.settings.llama-models = {
       "${cfg.modelsDir}".d = {
         mode = "0755";
         user = primaryUsername;
-        group = "users";
+        group = primaryGroup;
       };
     };
   };
