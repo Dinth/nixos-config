@@ -72,6 +72,16 @@
   # unit is gated on a checkpoint existing in ~/Models/sd, so it stays
   # dormant until one is downloaded.
   stableDiffusion.enable = true;
+  # Three checkpoints, switched at runtime with `sd-switch <name>`. The active
+  # one is a symlink seeded only when absent, so a switch is not undone by the
+  # next rebuild. anime is the default: it is what the RP prompt prefixes
+  # ("best quality, absurdres, masterpiece") are written for.
+  stableDiffusion.checkpoints = {
+    anime = "/home/michal/Models/sd/waiNSFWIllustrious_v14.safetensors";
+    photo = "/home/michal/Models/sd/Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors";
+    base = "/home/michal/Models/sd/model.safetensors";
+  };
+  stableDiffusion.defaultCheckpoint = "anime";
   # SDXL parks 6.6 GiB in VRAM, which the LLM also wants; --offload-to-cpu
   # keeps the weights in RAM (there is 62 GiB of it) and pulls them in only
   # while an image is actually being generated.
