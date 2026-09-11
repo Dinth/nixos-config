@@ -35,9 +35,15 @@ in {
     };
 
     contextSize = mkOption {
-      type = lib.types.ints.positive;
-      default = 8192;
-      description = "Default context window, in tokens, for models loaded without a preset.";
+      type = lib.types.ints.unsigned;
+      default = 32768;
+      description = ''
+        Default context window, in tokens, for models loaded without a preset.
+        0 means "whatever the model was trained for", which on a modern model
+        can be 128k and will not fit alongside the weights -- hence a cap.
+        The KV cache is the cost: quantised to q8_0 below, it is roughly half
+        what it would otherwise be.
+      '';
     };
   };
 
@@ -69,6 +75,15 @@ in {
         "-c"
         (toString cfg.contextSize)
         "--jinja" # honour the model's own chat template
+        # Flash attention is a prerequisite for quantising the KV cache, and
+        # q8_0 K/V roughly halves it -- the difference between 8k and 32k of
+        # context fitting next to the weights on a 12 GB card.
+        "-fa"
+        "on"
+        "-ctk"
+        "q8_0"
+        "-ctv"
+        "q8_0"
       ];
     };
 
