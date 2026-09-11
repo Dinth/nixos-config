@@ -34,6 +34,20 @@ in {
     services.sillytavern = {
       enable = true;
       inherit (cfg) port;
+
+      # The module's configFile default points at
+      # lib/node_modules/sillytavern/config.yaml, which 1.18.0 no longer ships
+      # -- the default moved to default/config.yaml. That leaves the tmpfiles
+      # "L+" rule pointing at a dangling symlink, and SillyTavern dies on
+      # startup trying to create it:
+      #   EROFS: read-only file system, open '/var/lib/SillyTavern/config.yaml'
+      # Pointing at the file the package actually ships fixes it, and keeps
+      # config in lockstep with whatever version is installed.
+      #
+      # Its defaults already match what we want (listen: false,
+      # whitelistMode: true); dataRoot is ignored because the package runs in
+      # global mode, where data always lives under XDG_DATA_HOME.
+      configFile = "${config.services.sillytavern.package}/lib/node_modules/sillytavern/default/config.yaml";
       # listen is deliberately left null rather than false: the module builds
       # flags as "--${name}=${toString x}", and toString false is the empty
       # string, so listen = false emits a bare "--listen=" for SillyTavern's
