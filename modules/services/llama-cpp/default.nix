@@ -34,6 +34,19 @@ in {
       '';
     };
 
+    presetFile = mkOption {
+      type = lib.types.path;
+      default = "${primaryHome}/Models/models.ini";
+      defaultText = lib.literalExpression ''"''${primaryHome}/Models/models.ini"'';
+      description = ''
+        Per-model settings, as an INI whose section names match the model ids
+        the router reports. Deliberately a runtime file next to the weights
+        rather than generated from Nix: model choices are not configuration
+        this repo should carry. Created empty by tmpfiles if absent, so the
+        flag is always valid.
+      '';
+    };
+
     contextSize = mkOption {
       type = lib.types.ints.unsigned;
       default = 32768;
@@ -92,6 +105,11 @@ in {
         "1"
         "--sleep-idle-seconds"
         "300"
+        # Per-model overrides (context, --n-cpu-moe, samplers) keyed by model
+        # id. Passed as a path, not generated from an attrset, so which models
+        # exist and how each is tuned stays runtime state in ~/Models.
+        "--models-preset"
+        (toString cfg.presetFile)
       ];
     };
 
@@ -128,6 +146,14 @@ in {
     systemd.tmpfiles.settings.llama-models = {
       "${cfg.modelsDir}".d = {
         mode = "0755";
+        user = primaryUsername;
+        group = primaryGroup;
+      };
+      # `f` creates the preset file only when absent, leaving hand-written
+      # entries alone; without it --models-preset points at nothing on a fresh
+      # install and llama-server refuses to start.
+      "${toString cfg.presetFile}".f = {
+        mode = "0644";
         user = primaryUsername;
         group = primaryGroup;
       };
