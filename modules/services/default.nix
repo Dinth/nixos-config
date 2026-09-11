@@ -11,6 +11,7 @@
     ./network-mounts
     ./prometheus-exporters
     ./ssh
+    ./stable-diffusion
     ./tailscale
     ./wazuh-agent
   ];

@@ -68,6 +68,10 @@
   # Ollama instance on omv stays where it is for everything else.
   llamaCpp.enable = true;
   sillytavern.enable = true;
+  # Image generation for SillyTavern, same Vulkan story as llama-cpp. The
+  # unit is gated on a checkpoint existing in ~/Models/sd, so it stays
+  # dormant until one is downloaded.
+  stableDiffusion.enable = true;
   lnxlink.enable = true;
   lnxlink.mqtt.secretsFile = config.age.secrets.lnxlink-mqtt.path;
   services.networkMounts.smb.vm = true;
