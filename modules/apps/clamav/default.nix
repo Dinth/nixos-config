@@ -149,6 +149,13 @@ in {
             OnAccessPrevention = false;
             OnAccessExtraScanning = false;
             OnAccessExcludeUname = "clamav";
+            # clamonacc runs as root (fanotify needs CAP_SYS_ADMIN), so its own
+            # reads of a watched file re-trigger the event that caused them and
+            # the same file gets rescanned forever. ExcludeUname only covers
+            # clamd's uid, not clamonacc's. Note this is the *RootUID* knob --
+            # OnAccessExcludeUID with a value of 0 disables exclusions entirely
+            # rather than excluding root.
+            OnAccessExcludeRootUID = true;
             OnAccessMaxFileSize = "100M";
             OnAccessMaxThreads = onAccessMaxThreads;
           };
