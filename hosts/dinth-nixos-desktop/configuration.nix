@@ -72,6 +72,10 @@
   # unit is gated on a checkpoint existing in ~/Models/sd, so it stays
   # dormant until one is downloaded.
   stableDiffusion.enable = true;
+  # SDXL parks 6.6 GiB in VRAM, which the LLM also wants; --offload-to-cpu
+  # keeps the weights in RAM (there is 62 GiB of it) and pulls them in only
+  # while an image is actually being generated.
+  stableDiffusion.extraFlags = ["--offload-to-cpu"];
   lnxlink.enable = true;
   lnxlink.mqtt.secretsFile = config.age.secrets.lnxlink-mqtt.path;
   services.networkMounts.smb.vm = true;

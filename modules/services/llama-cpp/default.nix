@@ -84,6 +84,14 @@ in {
         "q8_0"
         "-ctv"
         "q8_0"
+        # The card is shared with sd-server, so the router must not hoard it:
+        # one model resident at a time (upstream default is 4, which on 12 GB
+        # means a second model simply fails to load), and release the GPU after
+        # five minutes of silence so image generation can have it.
+        "--models-max"
+        "1"
+        "--sleep-idle-seconds"
+        "300"
       ];
     };
 
