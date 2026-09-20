@@ -92,6 +92,9 @@
   prometheus-exporters = {
     enable = true;
     scrapeAllowFrom = ["10.10.1.13"];
+    # Per-container metrics, closing the gap against omv (which has had
+    # cAdvisor all along). Scraped on 9338 by the `cadvisor` job.
+    cadvisor.enable = true;
   };
   # Ship journald → omv Loki via Grafana Alloy.
   alloy.enable = true;

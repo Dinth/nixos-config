@@ -15,7 +15,16 @@
   # is the nftables equivalent and is silently no-op on iptables
   # hosts — kept for the eventual migration so we don't have to
   # touch this module again.
-  ports = ["9100" "9558"] ++ lib.optional cfg.smartctl.enable "9633";
+  # 9338 is the Prometheus-registered *alternate* cAdvisor port. cAdvisor's
+  # conventional 8080 is deliberately avoided: the UniFi Network Application
+  # on r230 wants host 8080 for AP device-inform, and a latent collision there
+  # would break adoption rather than just monitoring.
+  cadvisorPort = 9338;
+
+  ports =
+    ["9100" "9558"]
+    ++ lib.optional cfg.smartctl.enable "9633"
+    ++ lib.optional cfg.cadvisor.enable (toString cadvisorPort);
   ipPortList = lib.concatStringsSep "," ports;
   nftPortList = lib.concatStringsSep ", " ports;
 
@@ -58,6 +67,17 @@ in {
         Enable on physical hosts with NVMe/SATA drives.
       '';
     };
+
+    cadvisor.enable = mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Enable cAdvisor for per-container CPU/memory/network/disk metrics.
+        Off by default — only useful on hosts running Docker, and it needs
+        root plus broad read access to /sys, the cgroup tree and
+        /var/lib/docker. Requires `docker.enable`.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -93,6 +113,39 @@ in {
         port = 9633;
       };
     };
+
+    # Per-container metrics. Runs natively rather than as a container (as it
+    # does on omv) because r230's other exporters are already host services
+    # here and share the source-restricted firewall rules below — no extra
+    # stack, no Komodo deploy. Flags mirror the omv container so both hosts
+    # produce the same series at the same resolution.
+    services.cadvisor = {
+      inherit (cfg.cadvisor) enable;
+      listenAddress = "0.0.0.0";
+      port = cadvisorPort;
+      extraOptions = [
+        # Matches the 120s scrape interval — cAdvisor is the single most
+        # expensive exporter here and per-container housekeeping at the
+        # 10s default is wasted work on a 4-core VM.
+        "--housekeeping_interval=120s"
+        "--docker_only=true"
+        # percpu alone is O(cores x containers) series for no dashboard value.
+        "--disable_metrics=percpu,hugetlb,referenced_memory,cpu_topology,resctrl,udp,advtcp"
+        "--store_container_labels=false"
+        # Event storage is unused — nothing scrapes /api/v1.3/events.
+        "--event_storage_age_limit=default=0"
+        "--event_storage_event_limit=default=0"
+      ];
+    };
+
+    # cAdvisor with no Docker daemon reports only the root cgroup — an
+    # exporter that scrapes green while producing nothing useful.
+    assertions = [
+      {
+        assertion = cfg.cadvisor.enable -> config.docker.enable;
+        message = "prometheus-exporters.cadvisor.enable requires docker.enable.";
+      }
+    ];
 
     # World-readable drop dir for the textfile collector. Other units write
     # <name>.prom here; node_exporter (DynamicUser) only needs to read it.
