@@ -26,7 +26,6 @@
     ./opencode
     ./OrcaSlicer
     ./sddm
-    ./sillytavern
     ./ssh
     ./starship
     ./steam

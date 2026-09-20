@@ -66,7 +66,7 @@ in {
       default = 1234;
       description = ''
         Port sd-server listens on. 1234 is both sd-server's own default and
-        the one SillyTavern's stable-diffusion.cpp source expects, so leaving
+        the one SillyBunny's stable-diffusion.cpp source expects, so leaving
         it alone means neither side needs configuring.
       '';
     };

@@ -78,7 +78,7 @@ in {
       inherit (cfg) port;
 
       # Router mode: llama-server lists every GGUF under this directory and
-      # loads them on demand, so SillyTavern's model dropdown can switch
+      # loads them on demand, so SillyBunny's model dropdown can switch
       # between them instead of the service being pinned to one file.
       modelsDir = cfg.modelsDir;
 
