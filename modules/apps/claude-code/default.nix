@@ -121,9 +121,9 @@
     tui = "fullscreen";
     showThinkingSummaries = true;
 
-    # Keep completed thinking blocks and command outputs in the transcript
-    # instead of collapsing/clearing them once they finish.
-    verbose = true;
+    # Collapse completed thinking blocks and command outputs once they
+    # finish instead of keeping them expanded in the transcript.
+    verbose = false;
 
     # Never auto-continue an unanswered AskUserQuestion dialog (the design /
     # decision prompts). Default is already "never", but pin it so a stray
