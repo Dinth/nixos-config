@@ -17,9 +17,9 @@ NAS_IP="10.10.1.19"
 NAS_MAC="00:08:9b:da:78:e2"
 # The desktop (10.40.0.0/24) is routed to the NAS via pfSense, so the default
 # 255.255.255.255 limited broadcast never leaves the desktop's subnet. Send a
-# directed broadcast to the servers subnet instead; pfSense must have
+# directed broadcast to the NAS's 10.10.0.0/16 interface instead; pfSense must have
 # net.inet.ip.directed-broadcast=1 and a rule passing UDP/9 to this address.
-NAS_BROADCAST="10.10.1.255"
+NAS_BROADCAST="10.10.255.255"
 VM_DOMAIN="LinuxMint"
 # Backing disk QEMU needs (vdc in linuxmint.xml). This file living on the
 # CIFS share is the real precondition for starting the VM — gate on it, not
