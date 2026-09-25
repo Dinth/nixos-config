@@ -15,6 +15,11 @@ sub_op="$3"
 
 NAS_IP="10.10.1.19"
 NAS_MAC="00:08:9b:da:78:e2"
+# The desktop (10.40.0.0/24) is routed to the NAS via pfSense, so the default
+# 255.255.255.255 limited broadcast never leaves the desktop's subnet. Send a
+# directed broadcast to the servers subnet instead; pfSense must have
+# net.inet.ip.directed-broadcast=1 and a rule passing UDP/9 to this address.
+NAS_BROADCAST="10.10.1.255"
 VM_DOMAIN="LinuxMint"
 # Backing disk QEMU needs (vdc in linuxmint.xml). This file living on the
 # CIFS share is the real precondition for starting the VM — gate on it, not
@@ -49,14 +54,24 @@ nas_reachable() {
     $ping -c 1 -W 2 "$NAS_IP" &>/dev/null
 }
 
+send_wol() {
+    $wakeonlan -q -i "$NAS_BROADCAST" "$NAS_MAC"
+}
+
 wake_nas() {
-    log "Sending WoL to $NAS_MAC"
-    $wakeonlan "$NAS_MAC"
+    log "Sending WoL to $NAS_MAC via $NAS_BROADCAST"
+    send_wol
     local deadline=$(( $($date +%s) + 180 ))
+    local next_resend=$(( $($date +%s) + 30 ))
     while (( $($date +%s) < deadline )); do
         if nas_reachable; then
             log "NAS responds to ping"
             return 0
+        fi
+        # UDP is fire-and-forget; resend periodically in case one was dropped.
+        if (( $($date +%s) >= next_resend )); then
+            send_wol
+            next_resend=$(( $($date +%s) + 30 ))
         fi
         $sleep 5
     done
