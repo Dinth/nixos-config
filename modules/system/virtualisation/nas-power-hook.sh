@@ -16,10 +16,13 @@ sub_op="$3"
 NAS_IP="10.10.1.19"
 NAS_MAC="00:08:9b:da:78:e2"
 # The desktop (10.40.0.0/24) is routed to the NAS via pfSense, so the default
-# 255.255.255.255 limited broadcast never leaves the desktop's subnet. Send a
-# directed broadcast to the NAS's 10.10.0.0/16 interface instead; pfSense must have
-# net.inet.ip.directed-broadcast=1 and a rule passing UDP/9 to this address.
-NAS_BROADCAST="10.10.255.255"
+# 255.255.255.255 limited broadcast never leaves the desktop's subnet, and
+# pfSense 2.9 (FreeBSD 16) cannot forward directed broadcasts at all. Send the
+# magic packet as unicast to the NAS IP instead: pfSense holds a static ARP
+# entry for it (DHCP static mapping), so it can route to the NAS while it is
+# powered off, and the switch floods the frame to the sleeping NIC. Needs a
+# pfSense rule passing UDP/9 from the desktop to this address.
+NAS_WOL_TARGET="$NAS_IP"
 VM_DOMAIN="LinuxMint"
 # Backing disk QEMU needs (vdc in linuxmint.xml). This file living on the
 # CIFS share is the real precondition for starting the VM — gate on it, not
@@ -55,11 +58,11 @@ nas_reachable() {
 }
 
 send_wol() {
-    $wakeonlan -q -i "$NAS_BROADCAST" "$NAS_MAC"
+    $wakeonlan -q -i "$NAS_WOL_TARGET" "$NAS_MAC"
 }
 
 wake_nas() {
-    log "Sending WoL to $NAS_MAC via $NAS_BROADCAST"
+    log "Sending WoL to $NAS_MAC via $NAS_WOL_TARGET"
     send_wol
     local deadline=$(( $($date +%s) + 180 ))
     local next_resend=$(( $($date +%s) + 30 ))
