@@ -6,8 +6,11 @@ set -euo pipefail
 # on every rebuild and login.
 #
 # Usage: vcmi-config <presets.json>
-#   presets.json maps a VCMI mod preset name to the mod ids it should enable:
-#   {"default": ["hota", ...], "tears-of-ashan": [...]}
+#   presets.json maps a VCMI mod preset name to the mod ids it should enable
+#   and, optionally, submods to switch on or off (lower-case ids, as VCMI
+#   stores them):
+#   {"default": {"mods": ["hota", ...]},
+#    "other": {"mods": [...], "submods": {"hota": {"mainmenu": false}}}}
 
 PRESETS_FILE="$1"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/vcmi"
@@ -51,35 +54,54 @@ patch_json "$CONFIG_DIR/settings.json" --tab '
   | .launcher.setupCompleted = true
 '
 
-# Which of the wanted mods to switch on now, per preset: installed ones that
-# this script has not enabled before. What it enabled is remembered in
-# STATE_FILE, so a mod the user later switches off in the launcher stays off.
+# What to apply now, per preset: wanted mods that are installed and that
+# this script has not enabled before, and wanted submod switches (of
+# installed mods) it has not set before. What it applied is remembered in
+# STATE_FILE, so anything the user later changes in the launcher sticks.
 # (VCMI's own modSettings cannot tell us that: it records settings for every
 # installed mod, enabled or not.)
 if [ ! -s "$STATE_FILE" ]; then
   mkdir -p "$(dirname "$STATE_FILE")"
   echo '{}' >"$STATE_FILE"
 fi
-# shellcheck disable=SC2016 # $installed/$done/... below are jq variables, not shell
-to_enable="$(jq --argjson installed "$(installed_mods)" --slurpfile done "$STATE_FILE" '
+# shellcheck disable=SC2016 # $installed/$applied/... below are jq variables, not shell
+todo="$(jq --argjson installed "$(installed_mods)" --slurpfile applied "$STATE_FILE" '
   with_entries(.key as $preset
-    | .value |= map(select(. as $m
-        | ($installed | index($m)) != null
-          and (($done[0][$preset] // []) | index($m)) == null)))
+    | ($applied[0][$preset] // {}) as $was
+    | .value |= {
+        mods: [
+          (.mods // [])[] as $m
+          | select(($installed | index($m)) != null
+              and (($was.mods // []) | index($m)) == null)
+          | $m
+        ],
+        submods: [
+          ((.submods // {}) | to_entries[]) as $mod
+          | select(($installed | index($mod.key)) != null)
+          | ($mod.value | to_entries[]) as $sub
+          | "\($mod.key)/\($sub.key)" as $id
+          | select((($was.submods // []) | index($id)) == null)
+          | {id: $id, mod: $mod.key, sub: $sub.key, on: $sub.value}
+        ]
+      })
 ' "$PRESETS_FILE")"
 
-# Create each preset if missing and append the mods chosen above.
+# Create each preset if missing, append its mods and set its submod switches.
 # shellcheck disable=SC2016
-patch_json "$CONFIG_DIR/modSettings.json" --tab --argjson enable "$to_enable" '
+patch_json "$CONFIG_DIR/modSettings.json" --tab --argjson todo "$todo" '
   .activePreset //= "default"
-  | reduce ($enable | to_entries[]) as $e (.;
+  | reduce ($todo | to_entries[]) as $e (.;
       .presets[$e.key].mods //= ["vcmi"]
       | .presets[$e.key].settings //= {}
-      | .presets[$e.key].mods |= (. + ($e.value - .))
+      | .presets[$e.key].mods |= (. + ($e.value.mods - .))
+      | reduce $e.value.submods[] as $s (.;
+          .presets[$e.key].settings[$s.mod][$s.sub] = $s.on)
     )
 '
 
 # shellcheck disable=SC2016
-patch_json "$STATE_FILE" --argjson enable "$to_enable" '
-  reduce ($enable | to_entries[]) as $e (.; .[$e.key] = ((.[$e.key] // []) + $e.value))
+patch_json "$STATE_FILE" --argjson todo "$todo" '
+  reduce ($todo | to_entries[]) as $e (.;
+    .[$e.key].mods = ((.[$e.key].mods // []) + $e.value.mods)
+    | .[$e.key].submods = ((.[$e.key].submods // []) + [$e.value.submods[].id]))
 '

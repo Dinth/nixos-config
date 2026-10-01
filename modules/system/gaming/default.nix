@@ -50,8 +50,17 @@
   #    hd-edition (the mod gog-game-data builds from the Steam HD Edition).
   # A mod listed here but not installed is skipped by vcmi-config.
   vcmiPresets = pkgs.writeText "vcmi-presets.json" (builtins.toJSON {
-    default = ["vcmi-extras" "hota" "wake-of-gods" "tides-of-war" "new-pavilion" "hd-edition"];
-    tears-of-ashan = ["vcmi-extras" "hota" "market-of-time" "new-old-spells-plus" "tears-of-ashan" "new-pavilion"];
+    default.mods = ["vcmi-extras" "hota" "wake-of-gods" "tides-of-war" "new-pavilion" "hd-edition"];
+    tears-of-ashan = {
+      mods = ["vcmi-extras" "hota" "market-of-time" "new-old-spells-plus" "tears-of-ashan" "new-pavilion"];
+      # tears-of-ashan hard-depends on hota, so hota stays on; but its menu
+      # theme conflicts with hota's, and VCMI resolves that in hota's favour,
+      # leaving the preset looking like plain HotA. Swap the menus.
+      submods = {
+        hota.mainmenu = false;
+        tears-of-ashan.toa-ashan-menu = true;
+      };
+    };
   });
 
   # Patches VCMI's own (mutable) settings files: updates off, presets set up.
