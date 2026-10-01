@@ -10,10 +10,11 @@
   primaryUsername = config.primaryUser.name;
 
   # Unpacks Diablo/Hellfire and Heroes 3 data from the GOG installers on the
-  # NAS into the per-user data dirs DevilutionX and VCMI read.
+  # NAS into the per-user data dirs DevilutionX and VCMI read, and turns a
+  # Steam install of Heroes 3 HD Edition into VCMI's "hd-edition" mod.
   gogGameData = pkgs.writeShellApplication {
     name = "gog-game-data";
-    runtimeInputs = with pkgs; [coreutils findutils innoextract];
+    runtimeInputs = with pkgs; [coreutils findutils innoextract jq];
     text =
       builtins.replaceStrings
       ["@gogLibrary@" "@heroes3Language@"]
@@ -35,9 +36,25 @@
     hota = vcmiMod "horn-of-the-abyss" "947f620cde9f583357d4255e23da43d8564e2920" "sha256-oYx27NJcEg1P7tCZOuVeJTxN7zhsSsrJiz7yMcZjAaE=";
     wake-of-gods = vcmiMod "wake-of-gods" "e6b930f78ea05dc609ac3727fd927327a19658d6" "sha256-r+JrP363m+ycYMZVDH+HgsMUbuGy/PzPOT5mvqXpPm0=";
     tides-of-war = vcmiMod "tides-of-war" "de3df04dcb4c8e110a1d292525dcfe852fe5af89" "sha256-mMFzmZv07QXvfdQZqpcuKGuhdAZ7r+AH1h4F/QxwB4w=";
+    new-pavilion = vcmiMod "new-pavilion" "71f759f4553c750809ea3cead419c10cb19d220d" "sha256-E8A9VnkV2j1A4egOWH8B8RLy0aVpa/PXgyRuY+8HJvI=";
+    tears-of-ashan = vcmiMod "tears-of-ashan" "902f50803f5c5c5b8c93b98f1ebf5ebf1a60f158" "sha256-ZQ06t3whQJX3eehNjPXs6e2RR4nASwW9Om72+TVNe18=";
+    # Required by tears-of-ashan.
+    market-of-time = vcmiMod "market-of-time" "f344ddb77f0c506a58ad51f11d057868b60ef95e" "sha256-b+dIoXTPaVB4gfFVt//vr1SbPLO7E6JplPuDrkGRk/A=";
+    new-old-spells-plus = vcmiMod "new-old-spells-plus" "ceb0e12e480250fcf3e98af39c5717b44220b5ee" "sha256-4NmSM6J7wUA+nSSWvMCt81csgXjX7gzERJMpuOFv8I0=";
   };
 
-  # Patches VCMI's own (mutable) settings files: updates off, mods enabled.
+  # VCMI mod presets (switchable in the launcher) and the mods each enables.
+  # Two presets because the mods do not all combine:
+  #  - tears-of-ashan conflicts with wake-of-gods and tides-of-war;
+  #  - tears-of-ashan needs hota.heroes3datapatch, which conflicts with
+  #    hd-edition (the mod gog-game-data builds from the Steam HD Edition).
+  # A mod listed here but not installed is skipped by vcmi-config.
+  vcmiPresets = pkgs.writeText "vcmi-presets.json" (builtins.toJSON {
+    default = ["vcmi-extras" "hota" "wake-of-gods" "tides-of-war" "new-pavilion" "hd-edition"];
+    tears-of-ashan = ["vcmi-extras" "hota" "market-of-time" "new-old-spells-plus" "tears-of-ashan" "new-pavilion"];
+  });
+
+  # Patches VCMI's own (mutable) settings files: updates off, presets set up.
   vcmiConfig = pkgs.writeShellApplication {
     name = "vcmi-config";
     runtimeInputs = with pkgs; [coreutils jq];
@@ -149,10 +166,12 @@ in {
     # gog-game-data` re-runs it after dropping a new installer on the NAS.
     home-manager.users.${primaryUsername} = {
       systemd.user.services.gog-game-data = {
-        Unit.Description = "Import GOG game data for DevilutionX and VCMI";
+        Unit.Description = "Import GOG/Steam game data for DevilutionX and VCMI";
         Service = {
           Type = "oneshot";
           ExecStart = lib.getExe gogGameData;
+          # Enable a freshly imported hd-edition mod without waiting for a rebuild.
+          ExecStartPost = "${lib.getExe vcmiConfig} ${vcmiPresets}";
           TimeoutStartSec = "30min";
         };
         Install.WantedBy = ["default.target"];
@@ -165,8 +184,10 @@ in {
 
       # settings.json and modSettings.json are rewritten by VCMI, so they are
       # patched in place instead of being replaced with store symlinks.
-      home.activation.vcmiConfig = home-manager.lib.hm.dag.entryAfter ["writeBoundary"] ''
-        run ${lib.getExe vcmiConfig} ${lib.escapeShellArgs (lib.attrNames vcmiMods)}
+      # After linkGeneration so the Mods/ links above already exist: only
+      # installed mods get enabled.
+      home.activation.vcmiConfig = home-manager.lib.hm.dag.entryAfter ["linkGeneration"] ''
+        run ${lib.getExe vcmiConfig} ${vcmiPresets}
       '';
     };
   };

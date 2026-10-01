@@ -1,7 +1,8 @@
 set -euo pipefail
 
 # Import game data for the native engines (DevilutionX, VCMI) from the GOG
-# offline installers on the NAS. Idempotent: a game whose data is already in
+# offline installers on the NAS, plus the Heroes 3 HD Edition graphics from a
+# local Steam install. Idempotent: a game whose data is already in
 # place is skipped, so this is safe to run on every login.
 #
 # GOG_DIR is substituted by the Nix wrapper; override it in the environment
@@ -9,6 +10,7 @@ set -euo pipefail
 
 GOG_DIR="${GOG_DIR:-@gogLibrary@}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+STEAM_HD_DIR="${STEAM_HD_DIR:-$DATA_HOME/Steam/steamapps/common/Heroes of Might & Magic III - HD Edition}"
 tmp=""
 
 # Remove the extraction scratch directory on any exit.
@@ -90,6 +92,77 @@ import_heroes3() {
   cleanup
   echo "heroes3: installed to $dest"
 }
+
+# Write a VCMI mod.json to $1. $2 = name, $3 = description, $4 = modType,
+# $5 = optional language (Translation submods only).
+write_mod_json() {
+  jq -n --arg name "$2" --arg description "$3" --arg modType "$4" --arg language "${5:-}" '
+    {modType: $modType, name: $name, description: $description,
+     author: "Ubisoft", version: "1.0", contact: "vcmi.eu"}
+    + (if $language != "" then {language: $language} else {} end)
+  ' >"$1"
+}
+
+# Heroes 3 HD Edition (Steam) -> VCMI "hd-edition" mod. Reproduces the
+# launcher's HD import (launcher/modManager/hdextractor.cpp in VCMI 1.7):
+# the x2/x3 texture archives become submods, the localised ones a
+# translation submod per scale. Copied rather than linked so the Steam
+# install can be removed afterwards.
+import_hd_edition() {
+  local dest="$DATA_HOME/vcmi/Mods/hd-edition"
+  if [ -e "$dest/mod.json" ]; then
+    echo "hd-edition: mod already present, skipping"
+    return 0
+  fi
+  if [ ! -e "$STEAM_HD_DIR/HOMM3 2.0.exe" ]; then
+    echo "hd-edition: no Steam install at $STEAM_HD_DIR, skipping"
+    return 0
+  fi
+  echo "hd-edition: importing from $STEAM_HD_DIR"
+
+  # The localisation directory present in this install (EN, PL, ...) and
+  # the language name VCMI uses for it.
+  local -A languages=([CH]=chinese [CZ]=czech [DE]=german [EN]=english
+    [ES]=spanish [FR]=french [IT]=italian [PL]=polish [RU]=russian)
+  local code="" candidate
+  for candidate in "${!languages[@]}"; do
+    if [ -d "$STEAM_HD_DIR/data/LOC/$candidate" ]; then code="$candidate"; fi
+  done
+
+  mkdir -p "$DATA_HOME"
+  tmp="$(mktemp -d "$DATA_HOME/.gog-import.XXXXXX")"
+  local mod="$tmp/hd-edition"
+  mkdir -p "$mod/content/data/flags"
+  write_mod_json "$mod/mod.json" "Heroes III HD Edition" \
+    "Extracted resources from official Heroes HD to make it usable on VCMI" Graphical
+  cp "$STEAM_HD_DIR/data/spriteFlagsInfo.txt" "$mod/content/data/"
+  cp "$STEAM_HD_DIR"/data/flags/* "$mod/content/data/flags/"
+
+  local scale sub
+  for scale in 2 3; do
+    sub="$mod/mods/x$scale"
+    mkdir -p "$sub/content/data"
+    write_mod_json "$sub/mod.json" "HD (x$scale)" "Resources (x$scale)" Graphical
+    cp "$STEAM_HD_DIR/data/bitmap_DXT_com_x$scale.pak" \
+      "$STEAM_HD_DIR/data/sprite_DXT_com_x$scale.pak" "$sub/content/data/"
+
+    if [ -n "$code" ]; then
+      sub="$mod/mods/x${scale}_loc_$code"
+      mkdir -p "$sub/content/data"
+      write_mod_json "$sub/mod.json" "HD Localisation (${languages[$code]}) (x$scale)" \
+        "Translated Resources (x$scale)" Translation "${languages[$code]}"
+      cp "$STEAM_HD_DIR/data/LOC/$code/bitmap_DXT_loc_x$scale.pak" \
+        "$STEAM_HD_DIR/data/LOC/$code/sprite_DXT_loc_x$scale.pak" "$sub/content/data/"
+    fi
+  done
+
+  mkdir -p "$DATA_HOME/vcmi/Mods"
+  mv "$mod" "$dest"
+  cleanup
+  echo "hd-edition: installed to $dest"
+}
+
+import_hd_edition
 
 if [ ! -d "$GOG_DIR" ]; then
   echo "GOG library $GOG_DIR not reachable; will retry on next start"
