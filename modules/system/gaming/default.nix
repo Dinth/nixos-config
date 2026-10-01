@@ -6,6 +6,19 @@
 }: let
   inherit (lib) mkIf mkOption;
   cfg = config.gaming;
+  primaryUsername = config.primaryUser.name;
+
+  # Unpacks Diablo/Hellfire and Heroes 3 data from the GOG installers on the
+  # NAS into the per-user data dirs DevilutionX and VCMI read.
+  gogGameData = pkgs.writeShellApplication {
+    name = "gog-game-data";
+    runtimeInputs = with pkgs; [coreutils findutils innoextract];
+    text =
+      builtins.replaceStrings
+      ["@gogLibrary@" "@heroes3Language@"]
+      [cfg.gogLibrary cfg.heroes3Language]
+      (builtins.readFile ./gog-game-data.sh);
+  };
 in {
   options = {
     gaming = {
@@ -13,6 +26,16 @@ in {
         type = lib.types.bool;
         default = false;
         description = "Enable gaming features.";
+      };
+      gogLibrary = mkOption {
+        type = lib.types.str;
+        default = "/mnt/omv/Data/Games/GOG";
+        description = "Directory of GOG offline installers (one folder per game) to import engine data from.";
+      };
+      heroes3Language = mkOption {
+        type = lib.types.enum ["en" "pl"];
+        default = "en";
+        description = "Which Heroes 3 Complete installer to feed VCMI.";
       };
     };
   };
@@ -89,10 +112,25 @@ in {
       wineWow64Packages.staging
       openttd-jgrpp # nixpkgs bundles OpenGFX/OpenSFX/OpenMSX base sets
       # Open-source engines; game data comes from the GOG installers.
-      vcmi # Heroes 3 — launcher imports GOG installer (RoE+AB+SoD)
-      devilutionx # Diablo + Hellfire — needs DIABDAT.MPQ / hellfire*.mpq
+      vcmi # Heroes 3 (RoE+AB+SoD data imported by gog-game-data below)
+      devilutionx # Diablo + Hellfire (data imported by gog-game-data below)
       innoextract # unpack GOG setup_*.exe for the above
+      gogGameData # manual re-run: gog-game-data
       (callPackage ./opentyrian2000-engaged.nix {})
     ];
+
+    # Import the GOG data once per user. The script skips games already
+    # imported and exits cleanly when the NAS is unreachable, so it just
+    # retries on the next login. No RemainAfterExit: `systemctl --user start
+    # gog-game-data` re-runs it after dropping a new installer on the NAS.
+    home-manager.users.${primaryUsername}.systemd.user.services.gog-game-data = {
+      Unit.Description = "Import GOG game data for DevilutionX and VCMI";
+      Service = {
+        Type = "oneshot";
+        ExecStart = lib.getExe gogGameData;
+        TimeoutStartSec = "30min";
+      };
+      Install.WantedBy = ["default.target"];
+    };
   };
 }
