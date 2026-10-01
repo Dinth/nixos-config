@@ -92,6 +92,7 @@ in {
       vcmi # Heroes 3 — launcher imports GOG installer (RoE+AB+SoD)
       devilutionx # Diablo + Hellfire — needs DIABDAT.MPQ / hellfire*.mpq
       innoextract # unpack GOG setup_*.exe for the above
+      (callPackage ./opentyrian2000-engaged.nix {})
     ];
   };
 }

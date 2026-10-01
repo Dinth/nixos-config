@@ -8,7 +8,7 @@
     ./darwin.nix
     ./dictionaries.nix
     ./docker.nix
-    ./gaming.nix
+    ./gaming
     ./graphical.nix
     ./input-method.nix
     ./locale.nix
