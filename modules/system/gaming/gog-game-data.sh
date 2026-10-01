@@ -58,6 +58,13 @@ import_diablo() {
   mkdir -p "$dest"
   mv -f "$tmp/DIABDAT.MPQ" "$tmp"/hellfire/*.mpq "$dest/"
   cleanup
+  # Hellfire's hidden Bard and Barbarian classes: DevilutionX only lists them
+  # when hfbard.mpq/hfbarb.mpq (an unofficial fan pack) exist or these
+  # settings are on. Seed the settings on a fresh install only; the game owns
+  # diablo.ini afterwards.
+  if [ ! -e "$dest/diablo.ini" ]; then
+    printf '[Game]\nTest Bard=1\nTest Barbarian=1\n' >"$dest/diablo.ini"
+  fi
   echo "diablo: installed to $dest"
 }
 
