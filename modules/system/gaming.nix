@@ -87,7 +87,11 @@ in {
       winetricks
       umu-launcher
       wineWow64Packages.staging
-      openttd-jgrpp
+      openttd-jgrpp # nixpkgs bundles OpenGFX/OpenSFX/OpenMSX base sets
+      # Open-source engines; game data comes from the GOG installers.
+      vcmi # Heroes 3 — launcher imports GOG installer (RoE+AB+SoD)
+      devilutionx # Diablo + Hellfire — needs DIABDAT.MPQ / hellfire*.mpq
+      innoextract # unpack GOG setup_*.exe for the above
     ];
   };
 }
