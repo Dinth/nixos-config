@@ -56,11 +56,17 @@ in {
       environment.etc."chromium/native-messaging-hosts/com.1password.1password.json".text = nmhManifest;
 
       home-manager.users.${primaryUsername} = {
+        # Exec by name, not ${pkgs._1password-gui}: programs._1password-gui
+        # installs `package.override { polkitPolicyOwners = ...; }`, a
+        # different store path, and that override isn't exposed as an option.
+        # The interpolated plain package was what autostarted -- a second
+        # 512 MiB 1Password in the closure that wasn't the installed one.
+        # PATH resolves to the system-path copy the module installed.
         home.file.".config/autostart/1password.desktop".text = ''
           [Desktop Entry]
           Type=Application
           Name=1Password
-          Exec=${pkgs._1password-gui}/bin/1password --silent
+          Exec=1password --silent
           Icon=1password
           Terminal=false
           StartupNotify=false
