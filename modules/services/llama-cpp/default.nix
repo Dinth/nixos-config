@@ -42,8 +42,8 @@ in {
         Per-model settings, as an INI whose section names match the model ids
         the router reports. Deliberately a runtime file next to the weights
         rather than generated from Nix: model choices are not configuration
-        this repo should carry. Created empty by tmpfiles if absent, so the
-        flag is always valid.
+        this repo should carry. Seeded by tmpfiles with a `[*]` defaults
+        section if absent, so the flag is always valid.
       '';
     };
 
@@ -51,11 +51,17 @@ in {
       type = lib.types.ints.unsigned;
       default = 32768;
       description = ''
-        Default context window, in tokens, for models loaded without a preset.
-        0 means "whatever the model was trained for", which on a modern model
-        can be 128k and will not fit alongside the weights -- hence a cap.
+        Default context window, in tokens, written into the `[*]` section of
+        a freshly created preset file. 0 means "whatever the model was
+        trained for", which on a modern model can be 128k (or millions, on
+        some merges) and will not fit alongside the weights -- hence a cap.
         The KV cache is the cost: quantised to q8_0 below, it is roughly half
         what it would otherwise be.
+
+        Deliberately not passed as -c: command-line flags beat the preset
+        file, so a service-wide -c silently overrode every per-model
+        ctx-size (Gemmasutra, trained on 8k, ran at 32k). Only seeds the file
+        when absent; after that, edit `[*]` in the preset file.
       '';
     };
   };
@@ -85,8 +91,8 @@ in {
       extraFlags = [
         "-ngl"
         "999" # offload every layer that fits; llama.cpp clamps to the model
-        "-c"
-        (toString cfg.contextSize)
+        # No -c here: context is per model, from the preset file (see
+        # contextSize), and a CLI flag would override it.
         "--jinja" # honour the model's own chat template
         # Flash attention is a prerequisite for quantising the KV cache, and
         # q8_0 K/V roughly halves it -- the difference between 8k and 32k of
@@ -151,11 +157,14 @@ in {
       };
       # `f` creates the preset file only when absent, leaving hand-written
       # entries alone; without it --models-preset points at nothing on a fresh
-      # install and llama-server refuses to start.
+      # install and llama-server refuses to start. The seeded [*] section is
+      # the only place the default context is set, so a fresh file must carry
+      # it. Nix "\n" is a real newline; the NixOS module escapes it for tmpfiles.
       "${toString cfg.presetFile}".f = {
         mode = "0644";
         user = primaryUsername;
         group = primaryGroup;
+        argument = "[*]\nctx-size = ${toString cfg.contextSize}\nparallel = 1\n";
       };
     };
   };

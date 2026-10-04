@@ -113,6 +113,28 @@ in {
         ProtectKernelTunables = true;
         ProtectProc = "invisible";
         ProtectSystem = "strict";
+
+        # Beyond the nixpkgs set. The extension manager clones and runs
+        # third-party code under this user, so the sandbox is worth having.
+        # Network stays open (outbound API calls, git clones); AF_NETLINK is
+        # kept because Node enumerates interfaces through it.
+        # MemoryDenyWriteExecute is the one notable omission: V8's JIT needs
+        # W+X mappings.
+        RestrictAddressFamilies = ["AF_UNIX" "AF_INET" "AF_INET6" "AF_NETLINK"];
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        RemoveIPC = true;
+        ProcSubset = "pid";
+        DevicePolicy = "closed";
+        SystemCallArchitectures = "native";
+        SystemCallFilter = ["@system-service" "~@privileged"];
+        # Node probes at least one @privileged call during startup; the
+        # default SIGSYS kills it outright, EPERM lets it fall back. The call
+        # is still denied either way.
+        SystemCallErrorNumber = "EPERM";
+        # Chats and characters are private; nothing else reads them.
+        UMask = "0077";
       };
     };
 
