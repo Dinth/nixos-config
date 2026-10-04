@@ -201,6 +201,19 @@ in {
                   }
                 ])
                 cmds);
+            # askBashPatterns are complete patterns: used as-is, no "*" added.
+            bashPatterns = decision: patterns:
+              lib.listToAttrs (lib.concatMap (pattern: [
+                  {
+                    name = pattern;
+                    value = decision;
+                  }
+                  {
+                    name = "rtk ${pattern}";
+                    value = decision;
+                  }
+                ])
+                patterns);
             # Auto-allow the full read-only Home Assistant MCP set. opencode
             # names MCP tools `<server>_<tool>` and (unlike the comment in
             # libs/agent-permissions.nix once claimed) supports per-tool
@@ -237,9 +250,18 @@ in {
                 config.agentPermissions.denyReadGlobs);
           in
             {
+              # "*" = "ask" is the catch-all. opencode *allows* any bash command
+              # that matches no rule, so without it everything outside these
+              # lists (sed -i, dd, python3 -c, bash -c ...) ran unprompted --
+              # the inverse of Claude Code, which asks. Sorted keys emit "*"
+              # first and the last matching rule wins, so every rule below
+              # still overrides it; askBashPatterns sort after the allows they
+              # narrow (enforced in libs/agent-permissions.nix).
               bash =
-                bashFromList "ask" config.agentPermissions.askBash
-                // bashFromList "allow" config.agentPermissions.readOnlyBash;
+                {"*" = "ask";}
+                // bashFromList "ask" config.agentPermissions.askBash
+                // bashFromList "allow" config.agentPermissions.readOnlyBash
+                // bashPatterns "ask" config.agentPermissions.askBashPatterns;
               edit = "ask";
               read = denyRead;
               context_info = "allow";

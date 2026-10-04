@@ -231,7 +231,15 @@
           "Bash(${cmd}:*)"
           "Bash(rtk ${cmd}:*)"
         ])
-        config.agentPermissions.askBash;
+        config.agentPermissions.askBash
+        # Write/exec forms of read-only commands (find -delete, git branch -D,
+        # ...), used verbatim. Ask is evaluated before allow regardless of
+        # order, so these win over the prefix allows above.
+        ++ lib.concatMap (pattern: [
+          "Bash(${pattern})"
+          "Bash(rtk ${pattern})"
+        ])
+        config.agentPermissions.askBashPatterns;
 
       # Secret-file globs come from libs/agent-permissions.nix so
       # claude-code and opencode deny the same paths. Project-relative

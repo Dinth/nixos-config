@@ -1,5 +1,10 @@
-{lib, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
   inherit (lib) mkOption types;
+  cfg = config.agentPermissions;
 in {
   # Shared permission lists for AI coding agents. Both modules/apps/
   # claude-code and modules/apps/opencode read from here so they stay
@@ -140,7 +145,7 @@ in {
         "pw-top"
         "lpstat"
         "lpinfo"
-        "qdbus"
+        # qdbus moved to askBash: it calls any D-Bus method, not only reads.
         # Media inspection (read-only metadata extraction)
         "ffprobe"
         # Docker read-only
@@ -155,8 +160,9 @@ in {
         "docker network inspect"
         "docker volume ls"
         "docker volume inspect"
-        # Compose schema validation (read-only — prints the resolved config)
-        "docker compose config"
+        # `docker compose config` moved to askBash: "read-only", but it prints
+        # the config with every ${VAR} resolved, secrets included, into the
+        # transcript.
         # GitHub read-only
         "gh pr list"
         "gh pr view"
@@ -170,7 +176,62 @@ in {
         "gh workflow view"
         "gh release list"
         "gh release view"
-        "gh api"
+        # `gh api` moved to askBash: -X/--method, -f/-F (implies POST) and
+        # --input make it a write client for anything the token can reach.
+      ];
+    };
+
+    askBashPatterns = mkOption {
+      type = types.listOf types.str;
+      readOnly = true;
+      description = ''
+        Full Bash patterns (`*` matches any text, spaces included) that must
+        prompt even though their command's prefix is in readOnlyBash — the
+        write/exec forms of otherwise read-only tools. Used verbatim, plus an
+        `rtk ` mirror:
+          - claude-code: `Bash(<pattern>)` in `ask`; ask beats allow
+            regardless of order, so these always win.
+          - opencode: `"<pattern>" = "ask"`. opencode applies the *last*
+            matching rule and the keys are emitted sorted, so each pattern is
+            written `<readOnlyBash entry>*<rest>`: that sorts after the
+            `<entry>*` allow key it narrows. An assertion enforces the shape.
+        Substring matching over-asks occasionally (e.g. `git branch --format`
+        hits `-f`); a prompt is the safe failure.
+      '';
+      default = [
+        # find: run, delete, or write files. (Claude Code already refuses to
+        # auto-approve -exec/-delete; opencode has no such analysis.)
+        "find*-delete*"
+        "find*-exec*" # also -execdir
+        "find*-ok*" # also -okdir
+        "find*-fprint*" # -fprint, -fprint0, -fprintf
+        "find*-fls*"
+        # git branch: delete, rename, force, re-point upstream.
+        "git branch*-d*" # also --delete
+        "git branch*-D*"
+        "git branch*-m*" # also --move
+        "git branch*-M*"
+        "git branch*-f*" # also --force
+        "git branch*-u*" # also --set-upstream-to, --unset-upstream
+        # git remote: anything that changes remotes (or fetches).
+        "git remote*add*"
+        "git remote*remove*"
+        "git remote*rm*"
+        "git remote*rename*"
+        "git remote*set-*" # set-url, set-head, set-branches
+        "git remote*prune*"
+        "git remote*update*"
+        # Read-only commands with a write-to-file flag.
+        "git log*--output*"
+        "git show*--output*"
+        "git diff*--output*"
+        "nix eval*--write-to*"
+        "sort*-o*" # also --output
+        "tree*-o*"
+        "xxd*-r*"
+        "yq*-i*" # also --inplace
+        "journalctl*--vacuum*"
+        "journalctl*--rotate*"
       ];
     };
 
@@ -241,6 +302,10 @@ in {
         "mount"
         # See description above.
         "env"
+        # Moved out of readOnlyBash (see the notes there).
+        "qdbus"
+        "docker compose config"
+        "gh api"
       ];
     };
 
@@ -348,4 +413,14 @@ in {
       ];
     };
   };
+
+  # Every askBashPatterns entry must narrow a readOnlyBash entry as
+  # `<entry>*<rest>`, or opencode (last match wins, sorted keys) could evaluate
+  # the broader allow after it and run the command unprompted.
+  config.assertions =
+    map (pattern: {
+      assertion = lib.any (cmd: lib.hasPrefix "${cmd}*" pattern) cfg.readOnlyBash;
+      message = "agentPermissions.askBashPatterns: '${pattern}' must start with '<readOnlyBash entry>*' so its opencode rule sorts after the allow rule it narrows.";
+    })
+    cfg.askBashPatterns;
 }
