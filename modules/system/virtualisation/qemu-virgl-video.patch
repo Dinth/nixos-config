@@ -1,0 +1,58 @@
+--- a/hw/display/virtio-gpu-virgl.c
++++ b/hw/display/virtio-gpu-virgl.c
+@@ -21,6 +21,7 @@
+ #include "hw/virtio/virtio-gpu-pixman.h"
+ 
+ #include "ui/egl-helpers.h"
++#include "qemu/drm.h"
+ 
+ #include <virglrenderer.h>
+ 
+@@ -50,6 +51,23 @@
+ }
+ #endif
+ 
++/*
++ * Hand virglrenderer a render-node fd so it can bring up its VA-API video
++ * backend. virglrenderer takes ownership of the returned fd, so give it a
++ * dup of the display's render node (or open a fresh one) rather than the
++ * shared qemu_egl_rn_fd itself.
++ */
++static int
++virgl_get_drm_fd(G_GNUC_UNUSED void *cookie)
++{
++#ifdef CONFIG_GBM
++    if (qemu_egl_rn_fd >= 0) {
++        return dup(qemu_egl_rn_fd);
++    }
++#endif
++    return qemu_drm_rendernode_open(NULL);
++}
++
+ #if VIRGL_VERSION_MAJOR >= 1
+ struct virtio_gpu_virgl_hostmem_region {
+     Object parent_obj;
+@@ -1105,6 +1123,7 @@
+     .create_gl_context   = virgl_create_context,
+     .destroy_gl_context  = virgl_destroy_context,
+     .make_current        = virgl_make_context_current,
++    .get_drm_fd          = virgl_get_drm_fd,
+ #if VIRGL_VERSION_MAJOR >= 1
+     .write_context_fence = virgl_write_context_fence,
+ #endif
+@@ -1185,6 +1204,15 @@
+         flags |= VIRGL_RENDERER_VENUS | VIRGL_RENDERER_RENDER_SERVER;
+     }
+ #endif
++    /*
++     * Enable virglrenderer's VA-API video decode/encode path. The flag lives
++     * behind VIRGL_RENDERER_UNSTABLE_APIS in virglrenderer.h, so define it
++     * locally if the header didn't.
++     */
++#ifndef VIRGL_RENDERER_USE_VIDEO
++#define VIRGL_RENDERER_USE_VIDEO (1 << 11)
++#endif
++    flags |= VIRGL_RENDERER_USE_VIDEO;
+ 
+     ret = virgl_renderer_init(g, flags, &virtio_gpu_3d_cbs);
+     if (ret != 0) {

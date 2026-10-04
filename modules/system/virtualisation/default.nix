@@ -48,6 +48,16 @@ in {
             enable = true;
             qemu = {
               swtpm.enable = true;
+              # Upstream QEMU never passes VIRGL_RENDERER_USE_VIDEO nor a
+              # get_drm_fd callback, so virglrenderer's VA-API path (built
+              # with -Dvideo=true in nixpkgs) stays off and guests on
+              # virtio-gpu + accel3d get no hardware video decode/encode.
+              # The patch enables both; guests then use Mesa's
+              # virtio_gpu_drv_video.so (mesa-va-drivers on Debian/Ubuntu).
+              # Scoped to libvirt so nothing else rebuilds QEMU.
+              package = pkgs.qemu.overrideAttrs (old: {
+                patches = (old.patches or []) ++ [./qemu-virgl-video.patch];
+              });
             };
             hooks.qemu."qemu-hook-pf" = ./qemu-hook-pf.sh;
             # writeShellScript guarantees a 0555 store path. Referencing the
