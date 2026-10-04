@@ -5,7 +5,8 @@
 # `sillytavern` derivation it replaces: a global npm install under
 # $out/lib/node_modules, no build step, runtime state entirely outside the store.
 #
-# Bumping: change `version` to the new upstream tag, set both hashes to
+# Bumping: change `version` to the new upstream tag minus its `v` prefix (tags
+# are `v1.8.1` from 1.8.0 on; 1.7.0 and earlier had none), set both hashes to
 # lib.fakeHash, build twice and paste the hashes nix prints:
 #   nix build --impure --expr 'let f = builtins.getFlake (toString ./.); in
 #     f.inputs.nixpkgs.legacyPackages.x86_64-linux.callPackage
@@ -18,12 +19,12 @@
 }:
 buildNpmPackage (finalAttrs: {
   pname = "sillybunny";
-  version = "1.7.0";
+  version = "1.8.1";
 
   src = fetchFromGitHub {
     owner = "SillyBunnyTeam";
     repo = "SillyBunny";
-    tag = finalAttrs.version;
+    tag = "v${finalAttrs.version}";
     # Upstream commits ~400 MB of past release zips, a 23 MB dependency-graph
     # dump and the screenshot set into the repo. None of it is used at runtime,
     # and keeping it would put all of it in the store on every version bump, so
@@ -32,9 +33,9 @@ buildNpmPackage (finalAttrs: {
     postFetch = ''
       rm -rf "$out"/releases "$out"/graphify-out "$out"/screenshots "$out"/output "$out"/tests
     '';
-    hash = "sha256-yEtADg3XhuNGlM0R5mIyLIGyH+x57GrEh4rltg0RYjw=";
+    hash = "sha256-v1tiSKMRDf84Ho8Zm04hIxb9wl6YfKv0YYxPT8RNn8c=";
   };
-  npmDepsHash = "sha256-3DU7NLllSDQpvu4qrGaVW6KKLNNK6FwGwD/MBxNnoVk=";
+  npmDepsHash = "sha256-dRY/VC7Xl3hRD/xpbKAcS1fcZPDMLh7fh3CdtHf+45M=";
 
   # There is no build script: the only bundling step is webpack over
   # public/lib.js, which the server runs itself on first start and caches in
