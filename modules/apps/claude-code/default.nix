@@ -130,6 +130,12 @@
     # `/config` change or a future default flip can't reintroduce timeouts.
     askUserQuestionTimeout = "never";
 
+    # Start the Remote Control bridge in every new session so it can be picked
+    # up from claude.ai / the mobile app without running /remote-control. Same
+    # key the `/config` "Enable Remote Control for all sessions" toggle writes;
+    # a project/local `false` still opts a single repo out.
+    remoteControlAtStartup = true;
+
     # Pinned channel — the binary is Nix-managed anyway, so the latest channel
     # buys nothing but extra regressions.
     autoUpdatesChannel = "stable";
