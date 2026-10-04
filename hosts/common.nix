@@ -62,6 +62,13 @@ in {
     enable = machineType != "server";
     configPath = "desktop";
   };
+  # One userspace OOM killer per host. systemd-oomd is on by default and Plasma
+  # opts every app scope into it (ManagedOOMMemoryPressure), so with nohang
+  # also running, two daemons acted on the same memory pressure with different
+  # policies — oomd killing whole app scopes on PSI, nohang picking processes
+  # by its badness heuristic — and could both fire on one event. Where nohang
+  # runs it is the chosen policy; the server, without nohang, keeps oomd.
+  systemd.oomd.enable = mkDefault (!config.services.nohang.enable);
 
   # Base home-manager config for root (required when modules apply HM config to root)
   home-manager.users.root.home = {
