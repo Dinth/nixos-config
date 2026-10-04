@@ -92,8 +92,12 @@ in {
           uris = ["qemu:///system"];
         };
       };
+      # libguestfs dropped: unused (no guestfish/guestmount/virt-* in shell
+      # history), and it pulled a second, unpatched ~1 GiB QEMU into the
+      # closure next to the virgl-patched one libvirt runs. If it comes back,
+      # build it against that one:
+      #   libguestfs.override { qemu = config.virtualisation.libvirtd.qemu.package; }
       environment.systemPackages = with pkgs; [
-        libguestfs
         wakeonlan
       ];
 
