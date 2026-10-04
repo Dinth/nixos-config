@@ -14,7 +14,13 @@
   themeFlavor = config.theme.flavor;
 in {
   config = mkIf cfg.enable {
-    programs.zsh.enable = true;
+    programs.zsh = {
+      enable = true;
+      # /etc/zshrc would otherwise run its own uncached compinit before
+      # ~/.zshrc gets a say; the Home Manager completionInit below owns it.
+      # enableCompletion stays on, so completion functions are still linked.
+      enableGlobalCompInit = false;
+    };
 
     home-manager.users.${primaryUsername} = {config, ...}: {
       home.sessionVariables.LS_COLORS = lib.removeSuffix "\n" (builtins.readFile (
@@ -44,9 +50,14 @@ in {
         # (environment.shellAliases), so they apply to every interactive
         # shell, not just zsh.
 
-        initContent = ''
-          setopt EXTENDED_HISTORY HIST_SAVE_NO_DUPS INC_APPEND_HISTORY CORRECT HIST_REDUCE_BLANKS HIST_VERIFY INTERACTIVE_COMMENTS
-
+        # The one compinit per shell. It used to live in initContent, but HM's
+        # default completionInit (a bare `compinit`) and NixOS's /etc/zshrc
+        # each ran an uncached pass first, so this cached one ran third and
+        # saved nothing: ~0.5 s per uncached pass against ~10 ms with -C.
+        # Replacing completionInit rather than blanking it keeps compinit in
+        # HM's early slot, before the zoxide/fzf/direnv integrations, which
+        # only register their completions (compdef) once compinit has run.
+        completionInit = ''
           # Enable completion caching
           zstyle ':completion:*' use-cache on
           zstyle ':completion:*' cache-path "${config.xdg.cacheHome}/zsh/completions"
@@ -73,43 +84,26 @@ in {
 
           autoload -Uz compinit
 
-          local zcompdump="${config.xdg.cacheHome}/zsh/completions/.zcompdump"
-          local zcompdump_zwc="$zcompdump.zwc"
-
-          # Portable timestamp check - works on Linux and macOS
-          if [[ ! -f "$zcompdump" ]]; then
-            # Cache doesn't exist, rebuild
-            compinit -d "$zcompdump"
+          _zcompdump="${config.xdg.cacheHome}/zsh/completions/.zcompdump"
+          [[ -d ''${_zcompdump:h} ]] || mkdir -p ''${_zcompdump:h}
+          # Full, audited compinit when the dump is missing or older than a day;
+          # otherwise trust it (-C skips compaudit and the fpath rescan). The
+          # mh+24 glob qualifier does the age test in-shell, on Linux and macOS
+          # alike, without forking stat/date on every new shell.
+          _zcompdump_stale=( $_zcompdump(N.mh+24) )
+          if [[ ! -f $_zcompdump ]] || (( $#_zcompdump_stale )); then
+            compinit -d "$_zcompdump"
           else
-            # Cache exists - check if older than 24 hours using portable method
-            local cache_mtime
-            if command -v stat &>/dev/null; then
-              # Try Linux stat first (more common in NixOS)
-              cache_mtime=$(stat -c %Y "$zcompdump" 2>/dev/null) || \
-              # Fall back to macOS stat
-              cache_mtime=$(stat -f %m "$zcompdump" 2>/dev/null) || \
-              # If stat fails entirely, assume cache is stale
-              cache_mtime=0
-            else
-              cache_mtime=0
-            fi
-
-            local current_time=$(date +%s)
-            local age=$((current_time - cache_mtime))
-
-            if [[ $age -gt 86400 ]]; then
-              # Older than 24 hours, rebuild
-              compinit -d "$zcompdump"
-            else
-              # Fresh cache, use it
-              compinit -C -d "$zcompdump"
-            fi
+            compinit -C -d "$_zcompdump"
           fi
-
-          # Only compile if .zcompdump is newer than .zcompdump.zwc
-          if [[ "$zcompdump" -nt "$zcompdump_zwc" ]] 2>/dev/null; then
-            zcompile "$zcompdump" 2>/dev/null
+          if [[ $_zcompdump -nt $_zcompdump.zwc ]]; then
+            zcompile "$_zcompdump" 2>/dev/null
           fi
+          unset _zcompdump _zcompdump_stale
+        '';
+
+        initContent = ''
+          setopt EXTENDED_HISTORY HIST_SAVE_NO_DUPS INC_APPEND_HISTORY CORRECT HIST_REDUCE_BLANKS HIST_VERIFY INTERACTIVE_COMMENTS
 
           autoload -Uz add-zsh-hook
 
