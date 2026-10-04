@@ -14,24 +14,61 @@
   # Block 1: things no application ever has a legitimate reason to read.
   # Credentials, ragenix secrets, NAS/HAOS mounts, /etc/shadow, the
   # NixOS source tree (contains SSH pubkeys, hostnames, MQTT URLs).
-  apparmorDenySecrets = ''
-    deny @{HOME}/.ssh/** rwx,
-    deny @{HOME}/.ssh/ rwx,
-    deny @{HOME}/.gnupg/** rwx,
-    deny @{HOME}/.gnupg/ rwx,
-    deny @{HOME}/.config/git/** rwx,
-    deny @{HOME}/.gitconfig rwx,
-    deny @{HOME}/.config/1Password/** rwx,
-    deny @{HOME}/.local/share/1Password/** rwx,
-    deny @{HOME}/.local/share/kwalletd/** rwx,
-    deny @{HOME}/.local/share/keyrings/** rwx,
-    deny @{HOME}/Documents/nixos-config/secrets/** rwx,
-    deny /run/agenix/** rwx,
-    deny /run/agenix.d/** rwx,
-    deny /mnt/** rwx,
-    deny /etc/shadow rwx,
-    deny /etc/nixos/** rwx,
-  '';
+  #
+  # A `deny` can't be carved back open by a later allow, so the few exceptions
+  # an app genuinely needs are taken out of the block itself:
+  #   - readableSecrets: ragenix secret names the app reads by design (Chrome's
+  #     cloud-management enrolment token is a symlink into /run/agenix).
+  #   - allow1Password: the browser bridge 1Password-BrowserSupport is exec'd
+  #     by the browser and inherits its profile (`ix`), so denying 1Password's
+  #     data dirs there would deny them to the bridge as well.
+  apparmorDenySecrets = {
+    readableSecrets ? [],
+    allow1Password ? false,
+  }: let
+    # agenix decrypts each secret to <secretsMountPoint>/<generation>/<name>
+    # and points /run/agenix/<name> at it with a symlink. AppArmor mediates
+    # the resolved path, so a per-secret exception has to name the real
+    # location; listing every other secret keeps the deny exhaustive.
+    deniedSecrets = lib.filter (name: !(lib.elem name readableSecrets)) (lib.attrNames config.age.secrets);
+    secretRules =
+      if readableSecrets == []
+      then ''
+        deny /run/agenix/** rwx,
+        deny ${config.age.secretsMountPoint}/** rwx,
+      ''
+      else
+        ''
+          deny ${config.age.secretsMountPoint}/*/ r,
+        ''
+        + lib.concatMapStrings (name: ''
+          deny "${config.age.secretsMountPoint}/*/${name}" rwx,
+        '')
+        deniedSecrets;
+  in
+    ''
+      deny @{HOME}/.ssh/** rwx,
+      deny @{HOME}/.ssh/ rwx,
+      deny @{HOME}/.gnupg/** rwx,
+      deny @{HOME}/.gnupg/ rwx,
+      deny @{HOME}/.config/git/** rwx,
+      deny @{HOME}/.gitconfig rwx,
+    ''
+    + lib.optionalString (!allow1Password) ''
+      deny @{HOME}/.config/1Password/** rwx,
+      deny @{HOME}/.local/share/1Password/** rwx,
+    ''
+    + ''
+      deny @{HOME}/.local/share/kwalletd/** rwx,
+      deny @{HOME}/.local/share/keyrings/** rwx,
+      deny @{HOME}/Documents/nixos-config/secrets/** rwx,
+    ''
+    + secretRules
+    + ''
+      deny /mnt/** rwx,
+      deny /etc/shadow rwx,
+      deny /etc/nixos/** rwx,
+    '';
 
   # Block 2: other browsers' profile dirs. Skipped in google-chrome's
   # own profile (it obviously needs to read its own data).
@@ -312,14 +349,25 @@ in {
         # the rule has to be present to permit the syscall.
 
         # Google Chrome — keep access to its own ~/.config/google-chrome
-        "google-chrome" = {
+        #
+        # Attached by store glob, like the electron/discord profiles, not by
+        # ${pkgs.google-chrome}: the installed Chrome is an override
+        # (commandLineArgs, modules/apps/google-chrome), i.e. a different store
+        # path, so the interpolated one was never executed and Chrome ran
+        # unconfined. Interpolating it also pulled that unused 1.5 GiB Chrome
+        # closure into every host, headless r230 included. Matches the ELF the
+        # wrapper scripts exec; its children inherit via `ix`.
+        "google-chrome" = lib.mkIf config.graphical.enable {
           state = "enforce";
           profile = ''
             abi <abi/4.0>,
             include <tunables/global>
-            ${lib.getBin pkgs.google-chrome}/share/google/chrome/google-chrome flags=(enforce) {
+            /nix/store/*-google-chrome-*/share/google/chrome/chrome flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {
+              readableSecrets = ["chrome-enrolment"];
+              allow1Password = true;
+            }}
               ${apparmorDenyOtherBrowsers}
             }
           '';
@@ -334,7 +382,7 @@ in {
             include <tunables/global>
             /nix/store/*-electron-unwrapped-*/libexec/electron/electron flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
@@ -349,7 +397,7 @@ in {
             include <tunables/global>
             /nix/store/*-discord-*/opt/Discord/.Discord-wrapped flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
@@ -374,49 +422,49 @@ in {
 
             profile games-steam /nix/store/*-steam-*/bin/steam flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
             profile games-lutris /nix/store/*-lutris-*/bin/lutris flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
             profile games-wine /nix/store/*-wine-*/bin/wine flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
             profile games-wine64 /nix/store/*-wine-*/bin/wine64 flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
             profile games-wineserver /nix/store/*-wine-*/bin/wineserver flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
             profile games-gamescope /nix/store/*-gamescope-*/bin/gamescope flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
             profile games-heroic /nix/store/*-heroic-unwrapped-*/bin/heroic flags=(enforce) {
               ${apparmorPermissiveBase}
-              ${apparmorDenySecrets}
+              ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
