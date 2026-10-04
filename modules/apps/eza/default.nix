@@ -20,17 +20,15 @@ in {
         enable = true;
         accent = "mauve";
       };
+      # Shell integration off: it defines ls/ll/la/lla/lt (and an `eza` alias
+      # carrying icons/extraOptions) in ~/.zshrc, which runs after /etc/zshrc
+      # and so overrode the aliases in modules/system/cli.nix — `ls` was plain
+      # `eza`, never the intended long listing. The whole alias set, those
+      # flags included, now lives in cli.nix; this module only installs eza
+      # and its catppuccin theme.
       programs.eza = {
         enable = true;
-        enableZshIntegration = true;
-        icons = "auto";
-        extraOptions = [
-          "--classify"
-          "--group-directories-first"
-          "--header"
-          "--mounts"
-          "--smart-group"
-        ];
+        enableZshIntegration = false;
       };
     };
   };

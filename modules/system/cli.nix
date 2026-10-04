@@ -19,6 +19,8 @@
     if config.amd_gpu.enable
     then pkgs.btop-rocm
     else pkgs.btop;
+  ezaBase = "${getExe pkgs.eza} --icons=auto --classify --group-directories-first";
+  ezaLong = "${ezaBase} -l --header --mounts --smart-group";
 in {
   options = {
     cli = {
@@ -88,8 +90,19 @@ in {
     # Single source of truth — zsh.nix used to redeclare cat/ls/tree with
     # different flags, so the effective alias depended on which file was
     # evaluated last. Consolidated here.
+    #
+    # The eza family lives here too. Home Manager's eza zsh integration used
+    # to define ls/ll/la/lla/lt in ~/.zshrc, which is sourced after
+    # /etc/zshrc, so its plain `ls=eza` silently replaced the long listing
+    # below (modules/apps/eza turns that integration off). Its extraOptions
+    # only ever reached the shell through those aliases, so they are folded
+    # in: --classify on every listing, header/mounts/smart-group on long ones.
     environment.shellAliases = {
-      ls = "${getExe pkgs.eza} -l --icons --git --group-directories-first"; # Use icons and group dirs
+      ls = "${ezaLong} --git"; # Long listing with git status, dirs first
+      ll = "${ezaLong} --git";
+      la = "${ezaBase} -a";
+      lla = "${ezaLong} --git -a";
+      lt = "${ezaBase} --tree";
       tree = "${getExe pkgs.eza} --tree --all"; # Tree view using eza, include hidden
       cat = "${getExe pkgs.bat}"; # Use bat for reading files
       top = "${getExe btopPackage}"; # Use btop for top (GPU-aware on AMD hosts)
