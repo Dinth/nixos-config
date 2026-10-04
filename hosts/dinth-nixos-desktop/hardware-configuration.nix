@@ -228,72 +228,20 @@
         support32Bit = true;
       };
       pulse.enable = true;
-      # Configure sample rates to match your DAC's capabilities
-      extraConfig.pipewire."92-low-latency" = {
-        context.properties = {
-          default.clock = {
-            allowed-rates = [
-              44100
-              48000
-              88200
-              96000
-              176400
-              192000
-            ];
-            rate = 48000;
-            quantum = 256; # Lower from 1024 for less delay
-            min-quantum = 32;
-            max-quantum = 2048;
-          };
-          # Prevent device suspension
-          node.pause-on-idle = false;
-          session.suspend-timeout-seconds = 0;
-        };
-        context.modules = [
-          {
-            name = "libpipewire-module-rt";
-            args = {
-              nice.level = -11;
-              rt = {
-                prio = 88;
-                time = {
-                  soft = 2000000;
-                  hard = 2000000;
-                };
-              };
-            };
-            flags = [
-              "ifexists"
-              "nofail"
-            ];
-          }
-          {
-            name = "libpipewire-module-protocol-pulse";
-            args = {
-              server.address = ["unix:native"];
-            };
-          }
-        ];
-      };
-      # Set highest quality resampling when needed
-      extraConfig.pipewire-pulse."92-low-latency" = {
-        pulse.properties = {
-          pulse = {
-            min = {
-              req = "256/48000";
-              quantum = "64/48000";
-            };
-            default.req = "64/48000";
-            max = {
-              req = "128/48000";
-              quantum = "128/48000";
-            };
-          };
-        };
-        stream.properties = {
-          resample.quality = 5;
-        };
-      };
+      # No pipewire / pipewire-pulse extraConfig: the "92-low-latency" fragments
+      # that lived here never applied. They were written as nested attrsets
+      # (context.properties = { default.clock = ...; }), which render as
+      # {"context":{"properties":...}}, while PipeWire only reads literal dotted
+      # keys ("context.properties": {"default.clock.rate": ...}) and ignores the
+      # rest. pw-metadata showed stock quantum 1024 / allowed-rates [48000]. They
+      # also could not have been switched on as-is: pulse.min.req exceeded
+      # pulse.max.req, and module-protocol-pulse was loaded into the main daemon,
+      # where it would contend with pipewire-pulse for the native socket. Audio
+      # has run on the defaults all along. To get rate switching for the DAC,
+      # write flat keys, e.g.
+      #   extraConfig.pipewire."92-clock"."context.properties"
+      #     ."default.clock.allowed-rates" = [44100 48000 88200 96000];
+      #
       # Enhanced WirePlumber configuration to prevent audio suspension
       # This fixes: 1) Delay when starting playback, 2) White noise on device wake
       wireplumber.extraConfig = {
