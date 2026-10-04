@@ -76,6 +76,13 @@ in {
       };
     };
     orcaslicer.enable = mkDefault true;
+    # speech-dispatcher (the TTS daemon Plasma enables for Orca / read-aloud)
+    # is unused here, and its service build drags in espeak-ng plus 645 MiB of
+    # mbrola voices. Apps that link libspeechd keep the voiceless library
+    # build, so this only drops the daemon and the voice stack. Orca, the
+    # screen reader Plasma turns on, hard-enables speechd, so it goes too.
+    services.orca.enable = false;
+    services.speechd.enable = false;
     security.rtkit.enable = mkDefault true;
     services.colord.enable = mkDefault true;
     security.polkit.enable = mkDefault true;
