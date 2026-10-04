@@ -271,7 +271,9 @@
       };
     };
 
-    # `nix fmt` — formats every .nix file in the tree with alejandra.
+    # `nix fmt -- .` formats every .nix file in the tree with alejandra -- the
+    # same pinned build checks.format uses. The path is required: bare
+    # `nix fmt` passes alejandra no arguments, so it reads stdin instead.
     formatter.${system} = pkgs.alejandra;
 
     # `nix flake check` — host evals + repo-wide lints.
