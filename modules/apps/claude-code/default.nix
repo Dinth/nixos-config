@@ -166,9 +166,13 @@
       # `rtk gain` / `rtk cc-economics` can show what was saved. Local
       # audit data only, no telemetry.
       RTK_HOOK_AUDIT = "1";
-      # Disable TUI mouse capture so Konsole's right-click context menu
-      # (and native selection) keeps working. Keyboard scroll still works.
-      CLAUDE_CODE_DISABLE_MOUSE = "1";
+      # Mouse capture stays on (the default "full" mode): with tui=fullscreen
+      # the transcript lives in the alt screen, so without capture the wheel
+      # can't scroll it and Konsole turns wheel ticks into Up/Down (prompt
+      # history). CLAUDE_CODE_DISABLE_MOUSE_CLICKS ("scroll" mode) is no
+      # help either — it still enables ?1000 tracking, so Konsole hands the
+      # right-click to the app anyway. Use Shift+right-click for Konsole's
+      # context menu and Shift+drag for native selection.
     };
 
     hooks = {
