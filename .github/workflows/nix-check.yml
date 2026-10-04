@@ -3,9 +3,15 @@ on:
   push:
     paths:
       - '**/*.nix'
+      - 'flake.lock'
+      - 'statix.toml'
+      - '.github/workflows/nix-check.yml'
   pull_request:
     paths:
       - '**/*.nix'
+      - 'flake.lock'
+      - 'statix.toml'
+      - '.github/workflows/nix-check.yml'
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -14,13 +20,19 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
-      - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
-      - name: Check Formatting (Alejandra)
-        run: nix run nixpkgs#alejandra -- --check .
-      - name: Linting (Statix)
-        run: nix run nixpkgs#statix -- check .
-      - name: Check for dead code (Deadnix)
-        run: nix run nixpkgs#deadnix -- --fail .
-      - name: Flake Check
-        run: nix flake check
+      # The flake's own checks, so CI and `nix flake check` can't drift apart
+      # again (CI used to run deadnix without --no-lambda-pattern-names and
+      # failed on every unused module argument). Pinned to the locked nixpkgs,
+      # not whatever `nixpkgs#` resolves to on the runner.
+      - name: Lint (alejandra, deadnix, statix)
+        run: >-
+          nix build -L --no-link
+          .#checks.x86_64-linux.format
+          .#checks.x86_64-linux.deadnix
+          .#checks.x86_64-linux.statix
+      # Evaluates every host's toplevel (and every check) without building
+      # them. A full build would pull or compile the desktop's whole gaming /
+      # KDE closure on a hosted runner; evaluation is what catches the
+      # mistakes that matter here (bad options, type errors, assertions).
+      - name: Evaluate all hosts
+        run: nix flake check --no-build
