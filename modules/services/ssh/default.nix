@@ -65,12 +65,13 @@ in {
       # never the other way, so servers/network gear aren't whitelisted. The
       # old blanket 10.10.0.0/16 also covered IoT (10.10.25.0/24) and CCTV
       # (10.10.30.0/24), i.e. the devices most likely to be compromised and
-      # used to brute-force SSH.
-      ignoreIP = [
-        "127.0.0.0/8"
-        "10.10.10.0/24" # workstations / DHCP pool
-        "100.64.0.0/10" # tailnet
-      ];
+      # used to brute-force SSH. Workstation subnets come from the shared
+      # list: this one used to hard-code 10.10.10.0/24 only, so the desktop's
+      # move to 10.40.0.0/24 left it bannable by its own key retries.
+      ignoreIP =
+        ["127.0.0.0/8"]
+        ++ config.homeNetwork.workstationSubnets
+        ++ ["100.64.0.0/10"]; # tailnet
     };
   };
 }

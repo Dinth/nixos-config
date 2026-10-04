@@ -108,9 +108,12 @@ in {
 
     allowFrom = mkOption {
       type = lib.types.listOf lib.types.str;
-      default = ["10.10.0.0/16"];
+      # Not 10.10.0.0/16: that includes the IoT and CCTV subnets, which have
+      # no business reaching a live-session RDP server.
+      default = config.homeNetwork.workstationSubnets;
+      defaultText = lib.literalExpression "config.homeNetwork.workstationSubnets";
       example = ["10.10.10.0/24"];
-      description = "Source CIDRs/IPs allowed to reach the KRDP port. Defaults to the LAN.";
+      description = "Source CIDRs/IPs allowed to reach the KRDP port. Defaults to the workstation subnets.";
     };
 
     username = mkOption {
