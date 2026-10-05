@@ -277,8 +277,12 @@
     fi
 
     TMP="$(${lib.getExe' pkgs.coreutils "mktemp"} "$CLAUDE_JSON.XXXXXX")"
+    # copyOnSelect is a global-config key (read from ~/.claude.json, not
+    # settings.json). Off: a mouse selection no longer clobbers the
+    # clipboard; copy it explicitly with Ctrl+C / Ctrl+Shift+C instead.
     ${lib.getExe pkgs.jq} --argjson mcp "$MCP_JSON" --argjson trusted "$TRUSTED_JSON" '
       .mcpServers = ((.mcpServers // {}) + $mcp)
+      | .copyOnSelect = false
       | reduce $trusted[] as $p (.;
           .projects[$p] = ((.projects[$p] // {})
             + {hasTrustDialogAccepted: true, hasCompletedProjectOnboarding: true}))
