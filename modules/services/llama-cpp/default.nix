@@ -64,21 +64,66 @@ in {
         when absent; after that, edit `[*]` in the preset file.
       '';
     };
+
+    cpuFeatures = mkOption {
+      type = lib.types.listOf (lib.types.enum [
+        "SSE42"
+        "AVX"
+        "AVX_VNNI"
+        "AVX2"
+        "BMI2"
+        "FMA"
+        "F16C"
+        "AVX512"
+        "AVX512_VBMI"
+        "AVX512_VNNI"
+        "AVX512_BF16"
+        "AMX_TILE"
+        "AMX_INT8"
+        "AMX_BF16"
+      ]);
+      default = [];
+      example = ["SSE42" "AVX" "AVX2" "BMI2" "FMA" "F16C"];
+      description = ''
+        x86 instruction sets compiled into ggml's CPU backend, which runs
+        everything not on the GPU -- notably MoE experts kept in RAM with
+        n-cpu-moe. Each entry becomes -DGGML_<name>=ON.
+
+        Needed because the nixpkgs build has none: Nix sets SOURCE_DATE_EPOCH,
+        ggml then defaults GGML_NATIVE off, and with native off it defaults
+        every instruction-set option off too (INS_ENB), so the CPU backend is
+        baseline SSE2 -- no AVX/FMA anywhere in libggml-cpu.so.
+
+        Host-specific: listing anything the CPU lacks makes llama-server die
+        with SIGILL, so set it per host from /proc/cpuinfo. Empty keeps the
+        stock package (which comes from the binary cache); non-empty is a
+        local build on every llama.cpp bump.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
     services.llama-cpp = {
       enable = true;
-      # Vulkan, not ROCm: this box is a Navi 22 (RX 6700 XT) = gfx1031, which
+      # Vulkan, not ROCm: this box is a Navi 22 (RX 6750 XT) = gfx1031, which
       # ROCm has never shipped official kernels for -- a ROCm build only works
       # by faking HSA_OVERRIDE_GFX_VERSION=10.3.0 and drags a multi-GB closure
       # along. The Vulkan backend rides the RADV driver amd_gpu.nix already
       # installs and performs comparably on RDNA2.
       #
-      # The Vulkan variant does come off cache.nixos.org (verified on build
-      # 9190), but it is a non-default override, so any bump Hydra has not
-      # built yet falls back to a local shaderc + C++ compile.
-      package = pkgs.llama-cpp.override {vulkanSupport = true;};
+      # The plain Vulkan variant comes off cache.nixos.org (verified on build
+      # 9190); with cpuFeatures set it is always a local shaderc + C++ build.
+      package = let
+        vulkan = pkgs.llama-cpp.override {vulkanSupport = true;};
+      in
+        if cfg.cpuFeatures == []
+        then vulkan
+        else
+          vulkan.overrideAttrs (old: {
+            cmakeFlags =
+              old.cmakeFlags
+              ++ map (feature: lib.cmakeBool "GGML_${feature}" true) cfg.cpuFeatures;
+          });
 
       host = "127.0.0.1";
       inherit (cfg) port;

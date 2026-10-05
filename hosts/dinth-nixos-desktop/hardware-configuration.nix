@@ -348,6 +348,10 @@
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  # Ryzen 7 5800X (Zen 3), per /proc/cpuinfo: everything up to AVX2/FMA/F16C,
+  # no AVX-512, AVX-VNNI or AMX. Compiled into llama.cpp's CPU backend, which
+  # nixpkgs otherwise builds as plain SSE2 (see modules/services/llama-cpp).
+  llamaCpp.cpuFeatures = ["SSE42" "AVX" "AVX2" "BMI2" "FMA" "F16C"];
   amd_gpu.enable = true;
   eizo = {
     enable = true;
