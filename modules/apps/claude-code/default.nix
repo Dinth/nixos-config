@@ -72,7 +72,7 @@
     # both via SSH, not UniFi. See the Network equipment section in CLAUDE.md.
     unifi = {
       type = "http";
-      url = "http://10.10.1.13:5134/mcp";
+      url = "http://10.10.1.12:5134/mcp";
     };
     # Self-hosted Nextcloud MCP (nc.wickhay.uk, proxied to 10.10.1.13:5136).
     # Basic-auth credential (base64 of user:app-password) comes from the

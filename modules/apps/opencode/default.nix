@@ -390,7 +390,7 @@ in {
             # (10.10.0.20) — both via SSH, not UniFi. See knowledge/hosts.md.
             unifi = {
               type = "remote";
-              url = "http://10.10.1.13:5134/sse";
+              url = "http://10.10.1.12:5134/mcp";
               enabled = true;
               timeout = 20000;
               #               retryAttempts = 3;

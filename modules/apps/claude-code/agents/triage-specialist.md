@@ -31,7 +31,8 @@ The grafana MCP is at `http://10.10.1.13:5133/mcp`. You don't authenticate — i
 
 # Topology recap
 
-- `10.10.1.13` (`omv` / `r230-nixos`) — Debian/OMV, all Docker stacks, NAS, Prometheus, Loki, Grafana, Traefik, Komodo
+- `10.10.1.13` (`omv` / `r720-omv`) — Debian/OMV, most Docker stacks, NAS, Prometheus, Loki, Grafana, Traefik, Komodo
+- `10.10.1.12` (`r230-nixos`) — NixOS, a separate host that also runs Docker stacks
 - `10.10.1.11` (`homeassistant`) — HAOS native, not Docker
 - `dinth-nixos-desktop`, `michal-surface-go` — NixOS workstations, send node_exporter to Prometheus
 

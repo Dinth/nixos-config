@@ -28,7 +28,7 @@ You are a NixOS specialist working in `/home/michal/Documents/nixos-config`.
 
 - `dinth-nixos-desktop` — primary KDE Plasma 6 workstation
 - `michal-surface-go` — Surface Go 3 tablet (KDE with touch optimisations)
-- `r230-nixos` — Dell PowerEdge R230 server, no GUI, Docker-only, IP `10.10.1.13`
+- `r230-nixos` — Dell PowerEdge R230 server, no GUI, Docker-only, IP `10.10.1.12`
 
 Host configs branch on `machineType` via `config.specialArgs.machineType`. Per-host configuration is at `hosts/<hostname>/configuration.nix`.
 
