@@ -194,10 +194,18 @@
     # fine) — only a full re-enumeration, like detaching the cover, revives it.
     # Toggling `authorized` on the whole 1-7 device does that in software.
     # The || true handles the case where the Type Cover is detached.
+    # The Realtek microSD reader (rtsx_pci_sdmmc) raises a spurious card-detect
+    # as it powers down; the mmc core turns that into a wakeup event on its own
+    # "mmc0" wakeup source (independent of the device's power/wakeup, which is
+    # already disabled), and s2idle aborts with -EBUSY ("Some devices failed to
+    # suspend, or early wake event detected"). suspend_stats showed fail=3 with
+    # mmc0 wakeup_count=3. Detach the reader across sleep; the slot still works.
     powerDownCommands = ''
       echo 1-7:1.3 > /sys/bus/usb/drivers/usbhid/unbind || true
+      echo rtsx_pci_sdmmc.0 > /sys/bus/platform/drivers/rtsx_pci_sdmmc/unbind || true
     '';
     resumeCommands = ''
+      echo rtsx_pci_sdmmc.0 > /sys/bus/platform/drivers/rtsx_pci_sdmmc/bind || true
       if [ -e /sys/bus/usb/devices/1-7/authorized ]; then
         echo 0 > /sys/bus/usb/devices/1-7/authorized || true
         sleep 1
