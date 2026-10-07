@@ -203,6 +203,10 @@
     powerDownCommands = ''
       echo 1-7:1.3 > /sys/bus/usb/drivers/usbhid/unbind || true
       echo rtsx_pci_sdmmc.0 > /sys/bus/platform/drivers/rtsx_pci_sdmmc/unbind || true
+      # Removing the mmc host fires one last card-change wakeup event; if it
+      # lands after systemd-sleep starts, s2idle aborts during the fs sync
+      # with -EBUSY (seen right after the unbind was added). Let it settle.
+      sleep 2
     '';
     resumeCommands = ''
       echo rtsx_pci_sdmmc.0 > /sys/bus/platform/drivers/rtsx_pci_sdmmc/bind || true
