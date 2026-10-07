@@ -178,16 +178,31 @@
     powertop.enable = true;
     # powertop --auto-tune sets all USB devices to autosuspend, which causes
     # the Type Cover (touchpad) to disconnect with hid-multitouch ENODEV (-19).
-    # Pin the Surface Type Cover to always-on to override powertop's setting.
+    # The udev rule above pins it to always-on, but powertop.service runs
+    # after udev and flips it back to "auto", so re-pin it once auto-tune is done.
+    powertop.postStart = ''
+      for d in /sys/bus/usb/devices/*; do
+        if [ "$(cat "$d/idVendor" 2>/dev/null)" = 045e ] && [ "$(cat "$d/idProduct" 2>/dev/null)" = 09b5 ]; then
+          echo on > "$d/power/control"
+        fi
+      done
+    '';
     # The hid-multitouch driver for the Type Cover touchpad (USB interface 1-7:1.3)
     # submits a control URB during system suspend, which fails with -EPERM and aborts
-    # the entire suspend. Unbind the interface before sleep and rebind on resume.
+    # the entire suspend. Unbind the interface before sleep.
+    # On resume, re-binding just that interface left the touchpad dead (keyboard
+    # fine) — only a full re-enumeration, like detaching the cover, revives it.
+    # Toggling `authorized` on the whole 1-7 device does that in software.
     # The || true handles the case where the Type Cover is detached.
     powerDownCommands = ''
       echo 1-7:1.3 > /sys/bus/usb/drivers/usbhid/unbind || true
     '';
     resumeCommands = ''
-      echo 1-7:1.3 > /sys/bus/usb/drivers/usbhid/bind || true
+      if [ -e /sys/bus/usb/devices/1-7/authorized ]; then
+        echo 0 > /sys/bus/usb/devices/1-7/authorized || true
+        sleep 1
+        echo 1 > /sys/bus/usb/devices/1-7/authorized || true
+      fi
     '';
   };
 
