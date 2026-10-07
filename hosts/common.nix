@@ -13,6 +13,11 @@ in {
       users = [config.primaryUser.name];
       noPass = true;
       keepEnv = true;
+      # keepEnv also kept HOME (and XDG_*_HOME), so `doas nix …` /
+      # `doas nixos-rebuild` ran as root but wrote root-owned files into
+      # ~/.cache/nix, breaking the user's own nix with "attempt to write a
+      # readonly database". Give root its own home and cache dirs.
+      setEnv = ["HOME=/root" "-XDG_CACHE_HOME" "-XDG_CONFIG_HOME" "-XDG_DATA_HOME" "-XDG_STATE_HOME"];
     }
   ]);
   # nix.settings.trusted-users is set globally in modules/system/nix.nix to
