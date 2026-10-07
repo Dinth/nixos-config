@@ -49,7 +49,11 @@
     fsType = "ext4";
     # noatime: skip access-time writes — matches the desktop and reduces
     # flash wear on the Surface's eMMC/SSD.
-    options = ["noatime"];
+    # x-systemd.device-timeout=infinity (as on the desktop): / only appears once the LUKS passphrase is
+    # typed. systemd-cryptsetup's prompt never times out on its own, but the
+    # initrd's root device job does (90s default), dropping an unattended
+    # boot into emergency mode. Wait for the passphrase indefinitely instead.
+    options = ["noatime" "x-systemd.device-timeout=infinity"];
   };
 
   fileSystems."/boot" = {
