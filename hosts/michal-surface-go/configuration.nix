@@ -86,6 +86,9 @@
   # scanning, which otherwise holds the ~1.2 GB signature DB resident and
   # scans every file open — too heavy for this RAM budget.
   clamav.accessScanning.enable = false;
+  # No resident clamd (~1 GB of this tablet's 7.6 GB): a nightly clamscan
+  # wakes the tablet, scans, and re-suspends it if the lid is still closed.
+  clamav.resident.enable = false;
   # Wazuh agent → manager at edr.wickhay.uk.
   wazuh.enable = true;
   primaryUser = {

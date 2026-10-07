@@ -27,6 +27,36 @@ in {
         default = true;
         description = "Enable ClamAV antivirus services";
       };
+      resident.enable = mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Keep clamd running with the signature DB resident (~1 GB RAM). Required
+          for on-access scanning. When false, a scheduled standalone clamscan
+          (scheduledScan) runs instead and the memory is only used while it scans.
+        '';
+      };
+      scheduledScan = {
+        enable = mkOption {
+          type = lib.types.bool;
+          default = !cfg.resident.enable;
+          defaultText = lib.literalExpression "!config.clamav.resident.enable";
+          description = "Run a periodic standalone clamscan (no clamd needed).";
+        };
+        onCalendar = mkOption {
+          type = lib.types.str;
+          default = "*-*-* 03:00:00";
+          description = "When to run the scheduled scan (systemd.time(7)).";
+        };
+        wakeSystem = mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            Wake the machine from suspend for the scan, and suspend it again
+            afterwards if the lid is still closed.
+          '';
+        };
+      };
       accessScanning = {
         enable = mkOption {
           type = lib.types.bool;
@@ -67,7 +97,7 @@ in {
         {
           services.clamav = {
             daemon = {
-              enable = true;
+              enable = cfg.resident.enable;
               settings = {
                 LogFile = "/var/log/clamav/clamav.log";
                 DatabaseDirectory = "/var/lib/clamav";
@@ -143,6 +173,12 @@ in {
         # when accessScanning.enable is set. This is the heavy path — it
         # holds the signature DB resident and scans on every open.
         (mkIf cfg.accessScanning.enable {
+          assertions = [
+            {
+              assertion = cfg.resident.enable;
+              message = "clamav.accessScanning needs clamav.resident.enable (clamonacc talks to clamd).";
+            }
+          ];
           clamav.accessScanning.directories = allACScanHomeDirs;
           services.clamav.daemon.settings = {
             OnAccessIncludePath = cfg.accessScanning.directories;
@@ -193,6 +229,63 @@ in {
           systemd.tmpfiles.rules = [
             "d /var/lib/quarantine 0755 root root - -"
           ];
+        })
+
+        # ── Scheduled standalone scan ────────────────────────────────
+        # For hosts without a resident clamd (the tablet): clamscan loads the
+        # signature DB itself, so the ~1 GB is only held while scanning. The
+        # timer can wake the machine from suspend; an inhibitor keeps the
+        # closed lid from re-suspending it mid-scan, and if the lid is still
+        # closed afterwards the machine goes back to sleep.
+        (mkIf cfg.scheduledScan.enable {
+          systemd.services.clamscan = {
+            description = "Scheduled ClamAV scan (standalone clamscan)";
+            documentation = ["man:clamscan(1)"];
+            # Refresh signatures first; a failed update (no network yet)
+            # must not block the scan, hence wants rather than requires.
+            wants = ["network-online.target" "clamav-freshclam.service"];
+            after = ["network-online.target" "clamav-freshclam.service"];
+            serviceConfig = {
+              Type = "oneshot";
+              Nice = 19;
+              IOSchedulingClass = "idle";
+              # Exit 1 = infection found: leave the unit failed so it shows up.
+              ExecStart = lib.concatStringsSep " " ([
+                  (lib.getExe' pkgs.systemd "systemd-inhibit")
+                  "--what=sleep:idle:handle-lid-switch"
+                  "--who=clamscan"
+                  "--why=Scheduled_virus_scan"
+                  "--mode=block"
+                  (lib.getExe' pkgs.clamav "clamscan")
+                  "--database=/var/lib/clamav"
+                  "--recursive"
+                  "--infected"
+                  "--allmatch"
+                  "--cross-fs=no"
+                  "--max-filesize=250M"
+                  "--max-scansize=4000M"
+                  "--max-recursion=3"
+                  "--max-files=5000"
+                ]
+                ++ config.services.clamav.scanner.scanDirectories);
+              ExecStopPost = lib.mkIf cfg.scheduledScan.wakeSystem (pkgs.writeShellScript "clamscan-resleep" ''
+                set -euo pipefail
+                # Back to sleep only if we were woken with the lid closed.
+                if grep -qs closed /proc/acpi/button/lid/*/state; then
+                  ${lib.getExe' pkgs.systemd "systemctl"} --no-block suspend-then-hibernate
+                fi
+              '');
+            };
+          };
+          systemd.timers.clamscan = {
+            description = "Timer for the scheduled ClamAV scan";
+            wantedBy = ["timers.target"];
+            timerConfig = {
+              OnCalendar = cfg.scheduledScan.onCalendar;
+              Persistent = true;
+              WakeSystem = cfg.scheduledScan.wakeSystem;
+            };
+          };
         })
       ]
   );
