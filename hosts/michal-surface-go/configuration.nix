@@ -13,6 +13,17 @@
   ];
 
   networking.hostName = "michal-surface-go"; # Define your hostname.
+
+  # The linux-surface kernel is never in a binary cache, so every bump is
+  # compiled locally. With Nix's defaults (max-jobs=auto, cores=all) that
+  # build plus parallel derivations can exhaust RAM+zram on this 2-core
+  # tablet; the suspected cause of "Program .../bin/zsh crashed" mid-rebuild
+  # (zsh aborts when malloc fails, taking nixos-rebuild down with it). One job on the 2 cores keeps the
+  # compile slow but survivable; building on the desktop is still preferred.
+  nix.settings = {
+    max-jobs = 1;
+    cores = 2;
+  };
   networking.networkmanager.enable = true; # Enable networking via NM
   networking.modemmanager.enable = true; # Enable modemmanager
   networking.networkmanager.ensureProfiles = {
