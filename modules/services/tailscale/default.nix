@@ -36,6 +36,10 @@ in {
       # node still has to *advertise* itself as an exit node via `up`, or it
       # never appears as an exit option in the tailnet.
       extraUpFlags = lib.optionals cfg.exitNode ["--advertise-exit-node"];
+      # Let the primary user run `tailscale up/down/logout/set` without
+      # root. doas wants a password on a TTY, so re-authenticating a
+      # logged-out node over SSH was otherwise impossible.
+      extraSetFlags = ["--operator=${config.primaryUser.name}"];
     };
 
     # Ensure the autoconnect service waits for an active network connection.
