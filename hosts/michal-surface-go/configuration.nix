@@ -70,6 +70,9 @@
   kde.enable = true;
   _1password.enable = true;
   gaming.enable = false;
+  # Open-source engines only (OpenTTD, VCMI, DevilutionX) — touch-friendly,
+  # no Wine/Lutris/scx/gamemode on this tablet.
+  gaming.engines.enable = true;
   virtualisation.enable = false;
   logitech.enable = true;
   printers.enable = true;

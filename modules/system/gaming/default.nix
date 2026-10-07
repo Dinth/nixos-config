@@ -5,7 +5,7 @@
   home-manager,
   ...
 }: let
-  inherit (lib) mkIf mkOption;
+  inherit (lib) mkIf mkMerge mkOption;
   cfg = config.gaming;
   primaryUsername = config.primaryUser.name;
 
@@ -77,6 +77,16 @@ in {
         default = false;
         description = "Enable gaming features.";
       };
+      engines.enable = mkOption {
+        type = lib.types.bool;
+        default = cfg.enable;
+        defaultText = lib.literalExpression "config.gaming.enable";
+        description = ''
+          Open-source game engines (OpenTTD, VCMI, DevilutionX, OpenTyrian) and
+          the GOG data import that feeds them. Separate from `enable` so light
+          hosts (the tablet) get these without Wine/Lutris/scx/gamemode.
+        '';
+      };
       gogLibrary = mkOption {
         type = lib.types.str;
         default = "/mnt/omv/Data/Games/GOG";
@@ -89,115 +99,121 @@ in {
       };
     };
   };
-  config = mkIf cfg.enable {
-    boot.kernelModules = ["ntsync"];
+  config = mkMerge [
+    (mkIf cfg.enable {
+      boot.kernelModules = ["ntsync"];
 
-    # sched-ext userspace scheduler tuned for interactive/gaming latency:
-    # LAVD (Latency-criticality Aware Virtual Deadline) prioritises the
-    # wake-up chains games sit on over batch work. Needs CONFIG_SCHED_CLASS_EXT
-    # (kernel ≥ 6.12 — gaming hosts run linuxPackages_latest). Reversible at
-    # runtime with `systemctl stop scx` (falls back to EEVDF).
-    services.scx = {
-      enable = true;
-      scheduler = "scx_lavd";
-    };
-
-    programs.gamemode = {
-      enable = true;
-      settings = {
-        general.renice = 10;
-        gpu = {
-          apply_gpu_optimisations = "accept-responsibility";
-          gpu_device = 0;
-          amd_performance_level = "high";
-        };
-      };
-    };
-
-    programs.gamescope = {
-      enable = true;
-      capSysNice = true;
-    };
-
-    # Allow processes in the gamemode group to renice down to -10 (matches
-    # general.renice above). Without this, gamemoded logs:
-    #   "RLIMIT_NICE is <= 20, unable to use setpriority safely"
-    security.pam.loginLimits = [
-      {
-        domain = "@gamemode";
-        item = "nice";
-        type = "-";
-        value = "-10";
-      }
-    ];
-
-    environment.systemPackages = with pkgs; [
-      (lutris.override {
-        extraPkgs = pkgs:
-          with pkgs; [
-            wineWow64Packages.staging
-            winetricks
-            dxvk
-            vkd3d
-            vkd3d-proton
-            gamescope
-            gamemode
-            mangohud
-            umu-launcher
-            cabextract
-            p7zip
-            samba
-            gst_all_1.gstreamer
-            gst_all_1.gst-plugins-base
-            gst_all_1.gst-plugins-good
-            gst_all_1.gst-plugins-bad
-            gst_all_1.gst-libav
-          ];
-      })
-      heroic
-      protontricks
-      protonplus
-      winetricks
-      umu-launcher
-      wineWow64Packages.staging
-      openttd-jgrpp # nixpkgs bundles OpenGFX/OpenSFX/OpenMSX base sets
-      # Open-source engines; game data comes from the GOG installers.
-      vcmi # Heroes 3 (RoE+AB+SoD data imported by gog-game-data below)
-      devilutionx # Diablo + Hellfire (data imported by gog-game-data below)
-      innoextract # unpack GOG setup_*.exe for the above
-      gogGameData # manual re-run: gog-game-data
-      (callPackage ./opentyrian2000-engaged.nix {})
-    ];
-
-    # Import the GOG data once per user. The script skips games already
-    # imported and exits cleanly when the NAS is unreachable, so it just
-    # retries on the next login. No RemainAfterExit: `systemctl --user start
-    # gog-game-data` re-runs it after dropping a new installer on the NAS.
-    home-manager.users.${primaryUsername} = {
-      systemd.user.services.gog-game-data = {
-        Unit.Description = "Import GOG/Steam game data for DevilutionX and VCMI";
-        Service = {
-          Type = "oneshot";
-          ExecStart = lib.getExe gogGameData;
-          # Enable a freshly imported hd-edition mod without waiting for a rebuild.
-          ExecStartPost = "${lib.getExe vcmiConfig} ${vcmiPresets}";
-          TimeoutStartSec = "30min";
-        };
-        Install.WantedBy = ["default.target"];
+      # sched-ext userspace scheduler tuned for interactive/gaming latency:
+      # LAVD (Latency-criticality Aware Virtual Deadline) prioritises the
+      # wake-up chains games sit on over batch work. Needs CONFIG_SCHED_CLASS_EXT
+      # (kernel ≥ 6.12 — gaming hosts run linuxPackages_latest). Reversible at
+      # runtime with `systemctl stop scx` (falls back to EEVDF).
+      services.scx = {
+        enable = true;
+        scheduler = "scx_lavd";
       };
 
-      # ~/.local/share/vcmi/Mods/<id> -> store.
-      xdg.dataFile =
-        lib.mapAttrs' (id: src: lib.nameValuePair "vcmi/Mods/${id}" {source = src;})
-        vcmiMods;
+      programs.gamemode = {
+        enable = true;
+        settings = {
+          general.renice = 10;
+          gpu = {
+            apply_gpu_optimisations = "accept-responsibility";
+            gpu_device = 0;
+            amd_performance_level = "high";
+          };
+        };
+      };
 
-      # settings.json and modSettings.json are rewritten by VCMI, so they are
-      # patched in place instead of being replaced with store symlinks.
-      # After linkGeneration so the Mods/ links above already exist: only
-      # installed mods get enabled.
-      home.activation.vcmiConfig = home-manager.lib.hm.dag.entryAfter ["linkGeneration"] ''
-        run ${lib.getExe vcmiConfig} ${vcmiPresets}
-      '';
-    };
-  };
+      programs.gamescope = {
+        enable = true;
+        capSysNice = true;
+      };
+
+      # Allow processes in the gamemode group to renice down to -10 (matches
+      # general.renice above). Without this, gamemoded logs:
+      #   "RLIMIT_NICE is <= 20, unable to use setpriority safely"
+      security.pam.loginLimits = [
+        {
+          domain = "@gamemode";
+          item = "nice";
+          type = "-";
+          value = "-10";
+        }
+      ];
+
+      environment.systemPackages = with pkgs; [
+        (lutris.override {
+          extraPkgs = pkgs:
+            with pkgs; [
+              wineWow64Packages.staging
+              winetricks
+              dxvk
+              vkd3d
+              vkd3d-proton
+              gamescope
+              gamemode
+              mangohud
+              umu-launcher
+              cabextract
+              p7zip
+              samba
+              gst_all_1.gstreamer
+              gst_all_1.gst-plugins-base
+              gst_all_1.gst-plugins-good
+              gst_all_1.gst-plugins-bad
+              gst_all_1.gst-libav
+            ];
+        })
+        heroic
+        protontricks
+        protonplus
+        winetricks
+        umu-launcher
+        wineWow64Packages.staging
+      ];
+    })
+    (mkIf cfg.engines.enable {
+      environment.systemPackages = with pkgs; [
+        openttd-jgrpp # nixpkgs bundles OpenGFX/OpenSFX/OpenMSX base sets
+        # Open-source engines; game data comes from the GOG installers.
+        vcmi # Heroes 3 (RoE+AB+SoD data imported by gog-game-data below)
+        devilutionx # Diablo + Hellfire (data imported by gog-game-data below)
+        innoextract # unpack GOG setup_*.exe for the above
+        gogGameData # manual re-run: gog-game-data
+        (callPackage ./opentyrian2000-engaged.nix {})
+      ];
+
+      # Import the GOG data once per user. The script skips games already
+      # imported and exits cleanly when the NAS is unreachable, so it just
+      # retries on the next login. No RemainAfterExit: `systemctl --user start
+      # gog-game-data` re-runs it after dropping a new installer on the NAS.
+      home-manager.users.${primaryUsername} = {
+        systemd.user.services.gog-game-data = {
+          Unit.Description = "Import GOG/Steam game data for DevilutionX and VCMI";
+          Service = {
+            Type = "oneshot";
+            ExecStart = lib.getExe gogGameData;
+            # Enable a freshly imported hd-edition mod without waiting for a rebuild.
+            ExecStartPost = "${lib.getExe vcmiConfig} ${vcmiPresets}";
+            TimeoutStartSec = "30min";
+          };
+          Install.WantedBy = ["default.target"];
+        };
+
+        # ~/.local/share/vcmi/Mods/<id> -> store.
+        xdg.dataFile =
+          lib.mapAttrs' (id: src: lib.nameValuePair "vcmi/Mods/${id}" {source = src;})
+          vcmiMods;
+
+        # settings.json and modSettings.json are rewritten by VCMI, so they are
+        # patched in place instead of being replaced with store symlinks.
+        # After linkGeneration so the Mods/ links above already exist: only
+        # installed mods get enabled.
+        home.activation.vcmiConfig = home-manager.lib.hm.dag.entryAfter ["linkGeneration"] ''
+          run ${lib.getExe vcmiConfig} ${vcmiPresets}
+        '';
+      };
+    })
+  ];
 }
