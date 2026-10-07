@@ -194,22 +194,18 @@
     # fine) — only a full re-enumeration, like detaching the cover, revives it.
     # Toggling `authorized` on the whole 1-7 device does that in software.
     # The || true handles the case where the Type Cover is detached.
-    # The Realtek microSD reader (rtsx_pci_sdmmc) raises a spurious card-detect
-    # as it powers down; the mmc core turns that into a wakeup event on its own
-    # "mmc0" wakeup source (independent of the device's power/wakeup, which is
-    # already disabled), and s2idle aborts with -EBUSY ("Some devices failed to
-    # suspend, or early wake event detected"). suspend_stats showed fail=3 with
-    # mmc0 wakeup_count=3. Detach the reader across sleep; the slot still works.
+    # The Realtek card reader (rtsx_pci, PCI 0000:02:00.0) aborts every
+    # s2idle attempt with -EBUSY. Unbinding only its SD child (rtsx_pci_sdmmc)
+    # did not help — the abort just moved earlier, to the fs sync. Detaching
+    # the whole PCI function was confirmed to let suspend-to-idle complete
+    # (suspend_stats success 1 -> 2, fail unchanged). Rebind on resume so the
+    # microSD slot keeps working while awake.
     powerDownCommands = ''
       echo 1-7:1.3 > /sys/bus/usb/drivers/usbhid/unbind || true
-      echo rtsx_pci_sdmmc.0 > /sys/bus/platform/drivers/rtsx_pci_sdmmc/unbind || true
-      # Removing the mmc host fires one last card-change wakeup event; if it
-      # lands after systemd-sleep starts, s2idle aborts during the fs sync
-      # with -EBUSY (seen right after the unbind was added). Let it settle.
-      sleep 2
+      echo 0000:02:00.0 > /sys/bus/pci/drivers/rtsx_pci/unbind || true
     '';
     resumeCommands = ''
-      echo rtsx_pci_sdmmc.0 > /sys/bus/platform/drivers/rtsx_pci_sdmmc/bind || true
+      echo 0000:02:00.0 > /sys/bus/pci/drivers/rtsx_pci/bind || true
       if [ -e /sys/bus/usb/devices/1-7/authorized ]; then
         echo 0 > /sys/bus/usb/devices/1-7/authorized || true
         sleep 1
