@@ -99,6 +99,19 @@
       url = "http://10.10.1.13:5137/";
       headers.Authorization = "Bearer \${FIREFLY_MCP_TOKEN:-}";
     };
+    # HealthLog MCP (health.wickhay.uk, Traefik-only — no published port).
+    # No static token: the endpoint advertises OAuth discovery
+    # (/.well-known/oauth-protected-resource), so Claude Code walks the
+    # PKCE flow once via `/mcp` → healthlog → Authenticate and refreshes the
+    # short-lived health:read token itself — nothing to rotate in ragenix
+    # (manual hlk_ tokens expire after 90 days). Answers 404 until the `mcp`
+    # module is enabled in HealthLog Settings → MCP for the account. Tools
+    # are left out of agentPermissions.mcpReadOnly on purpose: health data
+    # reads prompt, same as firefly.
+    healthlog = {
+      type = "http";
+      url = "https://health.wickhay.uk/mcp";
+    };
   };
 
   # Settings attrset — serialised to JSON and installed as a real mutable
