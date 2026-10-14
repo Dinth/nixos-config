@@ -437,6 +437,18 @@ in {
                 Authorization = "Bearer {env:FIREFLY_MCP_TOKEN}";
               };
             };
+            # HealthLog MCP (health.wickhay.uk) — same server Claude Code uses.
+            # No static token: the endpoint advertises OAuth discovery, so
+            # opencode walks the PKCE flow once via `opencode mcp auth
+            # healthlog` and refreshes the short-lived health:read token
+            # itself. 404s until the `mcp` module is enabled in HealthLog
+            # Settings → MCP.
+            healthlog = {
+              type = "remote";
+              url = "https://health.wickhay.uk/mcp";
+              enabled = true;
+              timeout = 20000;
+            };
           };
         };
       };
