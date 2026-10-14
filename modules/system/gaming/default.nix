@@ -22,6 +22,17 @@
       (builtins.readFile ./gog-game-data.sh);
   };
 
+  # Vanilla OpenTTD and JGRPP both ship bin/openttd and openttd.desktop, so
+  # expose JGRPP as `openttd-jgrpp` with its own launcher. Its data dir is
+  # compiled in as an absolute store path, so a renamed symlink is enough.
+  openttdJgrpp = pkgs.runCommand "openttd-jgrpp-renamed" {} ''
+    mkdir -p $out/bin $out/share/applications
+    ln -s ${lib.getExe' pkgs.openttd-jgrpp "openttd"} $out/bin/openttd-jgrpp
+    sed 's/^Exec=openttd$/Exec=openttd-jgrpp/' \
+      ${pkgs.openttd-jgrpp}/share/applications/openttd.desktop \
+      > $out/share/applications/openttd-jgrpp.desktop
+  '';
+
   # VCMI mods, pinned to a commit of each repo's vcmi-1.7 branch (the branch
   # the launcher's mod repository tracks for VCMI 1.7.x). Keyed by VCMI mod
   # id, which is also the directory name under Mods/. Linked read-only from
@@ -175,7 +186,9 @@ in {
     })
     (mkIf cfg.engines.enable {
       environment.systemPackages = with pkgs; [
-        openttd-jgrpp # nixpkgs bundles OpenGFX/OpenSFX/OpenMSX base sets
+        # nixpkgs bundles OpenGFX/OpenSFX/OpenMSX base sets with both
+        openttd
+        openttdJgrpp
         # Open-source engines; game data comes from the GOG installers.
         vcmi # Heroes 3 (RoE+AB+SoD data imported by gog-game-data below)
         devilutionx # Diablo + Hellfire (data imported by gog-game-data below)
