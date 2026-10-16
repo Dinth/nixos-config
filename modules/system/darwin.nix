@@ -43,6 +43,13 @@ in {
       NSAutomaticQuoteSubstitutionEnabled = false;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticSpellingCorrectionEnabled = false;
+      # Matches the Catppuccin Mocha theme used everywhere else.
+      AppleInterfaceStyle = "Dark";
+      # Open Save and Print dialogs fully expanded.
+      NSNavPanelExpandedStateForSaveMode = true;
+      NSNavPanelExpandedStateForSaveMode2 = true;
+      PMPrintingExpandedStateForPrint = true;
+      PMPrintingExpandedStateForPrint2 = true;
     };
     finder = {
       AppleShowAllExtensions = true;
@@ -52,7 +59,15 @@ in {
       FXEnableExtensionChangeWarning = false;
       _FXSortFoldersFirst = true;
       FXDefaultSearchScope = "SCcf"; # search the current folder
+      AppleShowAllFiles = true; # dotfiles visible, like Dolphin here
+      _FXShowPosixPathInTitle = true;
     };
+    loginwindow.GuestEnabled = false;
+    menuExtraClock = {
+      Show24Hour = true;
+      ShowDate = 1; # always
+    };
+    controlcenter.BatteryShowPercentage = true;
     trackpad.Clicking = true; # tap to click
     dock = {
       autohide = true;
@@ -73,6 +88,18 @@ in {
       # TextEdit opens new documents as plain text.
       "com.apple.TextEdit".RichText = false;
     };
+  };
+
+  # The desktop runs a firewall; the Mac's was off (per Mosyle). Apple-signed
+  # services (sshd, AirDrop...) and properly signed apps may still accept
+  # connections; stealth mode ignores pings and probes to closed ports. The
+  # Nix-built tailscaled is only ad-hoc signed, so modules/services/tailscale
+  # allow-lists it explicitly.
+  networking.applicationFirewall = {
+    enable = true;
+    enableStealthMode = true;
+    allowSigned = true;
+    allowSignedApp = true;
   };
 
   # macOS counterpart of the desktop's YubiKey touch for doas: Touch ID for

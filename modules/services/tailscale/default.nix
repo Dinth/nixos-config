@@ -114,6 +114,19 @@ in {
       # `sudo tailscale up`; the switch below never logs in by itself.
       services.tailscale.enable = true;
 
+      # The application firewall only waves through Apple-signed or
+      # Developer-ID-signed binaries; Nix's tailscaled is ad-hoc signed, so
+      # without this its WireGuard socket can't take incoming packets and
+      # peers fall back to DERP relays. The path is the exact store path the
+      # launchd daemon runs, re-added on every switch.
+      system.activationScripts.postActivation.text = mkIf config.networking.applicationFirewall.enable (lib.mkAfter ''
+        echo "allowing tailscaled through the application firewall..." >&2
+        # A firewall hiccup shouldn't fail the whole switch; warn instead.
+        /usr/libexec/ApplicationFirewall/socketfilterfw --add ${lib.getExe' config.services.tailscale.package "tailscaled"} >/dev/null \
+          && /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp ${lib.getExe' config.services.tailscale.package "tailscaled"} >/dev/null \
+          || echo "warning: could not allow tailscaled through the application firewall" >&2
+      '');
+
       launchd.daemons.tailscale-home-switch = mkIf (cfg.homeSsid != null) {
         serviceConfig = {
           ProgramArguments = [(lib.getExe homeSwitch)];

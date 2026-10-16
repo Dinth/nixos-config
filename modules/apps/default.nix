@@ -14,6 +14,7 @@
       ./direnv
       ./eza
       ./fzf
+      ./ghostty
       ./git
       ./htop
       ./mc

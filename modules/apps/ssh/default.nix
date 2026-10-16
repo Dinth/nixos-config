@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf;
@@ -40,35 +41,44 @@ in {
           Ciphers = "+aes128-cbc,3des-cbc";
           MACs = "+hmac-sha1";
         };
-        "*" = {
-          IdentityFile = [
-            config.age.secrets."id-ed25519".path
-            config.age.secrets."id-ed25519-sk-rk-2".path
-            config.age.secrets."id-ed25519-sk-rk-1".path
-            config.age.secrets."id-ed25519-sk-rk-3".path
-          ];
-          IdentitiesOnly = true;
+        "*" =
+          {
+            IdentityFile = [
+              config.age.secrets."id-ed25519".path
+              config.age.secrets."id-ed25519-sk-rk-2".path
+              config.age.secrets."id-ed25519-sk-rk-1".path
+              config.age.secrets."id-ed25519-sk-rk-3".path
+            ];
+            IdentitiesOnly = true;
 
-          # Connection multiplexing: the first connection to a host opens a
-          # master socket; subsequent ssh/scp/rsync/git-over-ssh to the same
-          # host reuse it — near-instant, and a hardware key (sk-rk-*) is
-          # touched once per host instead of once per connection. %C is the
-          # hashed conn tuple, keeping the socket path short (Unix sockets cap
-          # at ~108 chars, which long user@host:port paths can overflow).
-          ControlMaster = "auto";
-          ControlPath = "~/.ssh/master-%C";
-          ControlPersist = "5m";
+            # Connection multiplexing: the first connection to a host opens a
+            # master socket; subsequent ssh/scp/rsync/git-over-ssh to the same
+            # host reuse it — near-instant, and a hardware key (sk-rk-*) is
+            # touched once per host instead of once per connection. %C is the
+            # hashed conn tuple, keeping the socket path short (Unix sockets cap
+            # at ~108 chars, which long user@host:port paths can overflow).
+            ControlMaster = "auto";
+            ControlPath = "~/.ssh/master-%C";
+            ControlPersist = "5m";
 
-          # Drop dead sessions cleanly on a network blip and keep NAT/firewall
-          # state warm so idle tabs don't freeze.
-          ServerAliveInterval = 60;
-          ServerAliveCountMax = 3;
+            # Drop dead sessions cleanly on a network blip and keep NAT/firewall
+            # state warm so idle tabs don't freeze.
+            ServerAliveInterval = 60;
+            ServerAliveCountMax = 3;
 
-          # Add keys to the agent on first use (no repeat passphrase prompts)
-          # and hash host names/IPs in known_hosts.
-          AddKeysToAgent = "yes";
-          HashKnownHosts = "yes";
-        };
+            # Add keys to the agent on first use (no repeat passphrase prompts)
+            # and hash host names/IPs in known_hosts.
+            AddKeysToAgent = "yes";
+            HashKnownHosts = "yes";
+          }
+          # macOS: remember key passphrases in the login Keychain, so the
+          # passphrase-protected id-ed25519 is asked for once, not per agent
+          # restart. UseKeychain is Apple's patch to ssh; IgnoreUnknown keeps a
+          # Nix-built ssh on the Mac from rejecting the file.
+          // lib.optionalAttrs isDarwin {
+            IgnoreUnknown = "UseKeychain";
+            UseKeychain = "yes";
+          };
       };
     };
   };
