@@ -306,13 +306,20 @@
       # discarded so the check never tries to realise Darwin derivations.
       michal-macbook-pro-eval = let
         inherit (self.darwinConfigurations.michal-macbook-pro) config;
+        # Assertions normally only fire when toplevel is built, which can't
+        # happen here, so surface the system and Home Manager ones directly.
+        failed = map (a: a.message) (
+          builtins.filter (a: !a.assertion)
+          (config.assertions ++ config.home-manager.users.${config.primaryUser.name}.assertions)
+        );
       in
-        pkgs.writeText "michal-macbook-pro-eval" (builtins.unsafeDiscardStringContext (builtins.toJSON {
-          inherit (config.system) stateVersion;
-          systemPackages = map (p: p.drvPath) config.environment.systemPackages;
-          etc = builtins.attrNames config.environment.etc;
-          nixCustomConf = config.environment.etc."nix/nix.custom.conf".text;
-        }));
+        assert nixpkgs.lib.assertMsg (failed == []) "michal-macbook-pro assertions failed:\n${nixpkgs.lib.concatStringsSep "\n" failed}";
+          pkgs.writeText "michal-macbook-pro-eval" (builtins.unsafeDiscardStringContext (builtins.toJSON {
+            inherit (config.system) stateVersion;
+            systemPackages = map (p: p.drvPath) config.environment.systemPackages;
+            etc = builtins.attrNames config.environment.etc;
+            nixCustomConf = config.environment.etc."nix/nix.custom.conf".text;
+          }));
 
       # Format check — fails if any .nix file would be reformatted.
       format = pkgs.runCommand "check-alejandra" {nativeBuildInputs = [pkgs.alejandra];} ''

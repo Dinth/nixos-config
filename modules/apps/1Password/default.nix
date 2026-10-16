@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf mkOption mkMerge;
@@ -46,7 +47,11 @@ in {
     (mkIf cfg.enable {
       programs._1password.enable = true;
     })
-    (mkIf (cfg.enable && config.graphical.enable) {
+    # The GUI on macOS is the normal 1Password.app (installed outside Nix,
+    # since it must live in /Applications and self-updates); its browser
+    # bridge and autostart are handled by the app itself. The setgid wrapper,
+    # polkit owners, /etc manifests and XDG autostart below are NixOS-only.
+    (lib.optionalAttrs (!isDarwin) (mkIf (cfg.enable && config.graphical.enable) {
       programs._1password-gui.enable = true;
       programs._1password-gui.polkitPolicyOwners = [primaryUsername];
 
@@ -72,6 +77,6 @@ in {
           StartupNotify=false
         '';
       };
-    })
+    }))
   ];
 }

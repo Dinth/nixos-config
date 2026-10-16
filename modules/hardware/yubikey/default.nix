@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf mkOption mkMerge;
@@ -18,14 +19,18 @@ in {
   };
   config = mkMerge [
     (mkIf cfg.enable {
-      services.pcscd.enable = true;
-      # udev rules for the OTP/FIDO HID interface so ykman/fido2 tools work
-      # without root. pcscd already covers the CCID/PIV/OATH-over-CCID side.
-      services.udev.packages = [pkgs.yubikey-personalization];
       environment.systemPackages = with pkgs; [
         libfido2 # FIDO2 library (for Yubikeys)
         yubikey-manager # Yubikey manager
       ];
+    })
+    # macOS ships its own CryptoTokenKit/HID stack, so nothing to enable
+    # there; the Touch ID sudo equivalent lives in modules/system/darwin.nix.
+    (lib.optionalAttrs (!isDarwin) (mkIf cfg.enable {
+      services.pcscd.enable = true;
+      # udev rules for the OTP/FIDO HID interface so ykman/fido2 tools work
+      # without root. pcscd already covers the CCID/PIV/OATH-over-CCID side.
+      services.udev.packages = [pkgs.yubikey-personalization];
 
       # Touch-to-sudo via U2F. control = "sufficient" means a successful key
       # touch authenticates, but a missing/unenrolled key falls through to the
@@ -57,8 +62,9 @@ in {
         enable = true;
         control = "sufficient";
       };
-    })
-    (mkIf (cfg.enable && config.graphical.enable) {
+    }))
+    # Yubico Authenticator on the Macs comes from Mosyle (Apps and Books).
+    (mkIf (cfg.enable && config.graphical.enable && !isDarwin) {
       environment.systemPackages = with pkgs; [
         yubioath-flutter
       ];

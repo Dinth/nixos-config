@@ -12,12 +12,25 @@
     name = "michal";
     fullName = "Michal Gawronski-Kot";
     email = "michal@gawronskikot.com";
+    publicKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINnJL7HYauYQWLSdKDZwGJBj/OWu+rBZEcaxS/Dn/Wtq"
+      "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHw58iDAXminEmYKnzUjRzMhpR7rvULZZUZ0izMdiuhSAAAABHNzaDo="
+      "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIK+KGs2KSEQaHkzK+awc4QXMKu6kMn10F7cZ4raPcQJKAAAABHNzaDo="
+      "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIMOPDiAQbAD53X2neUh/vbIv7pRx2+qkZ7Ti9PH+CJ1yAAAABHNzaDo="
+    ];
   };
 
   networking.hostName = "michal-macbook-pro";
 
   cli.enable = true;
+  # Fonts, mpv, GUI-aware bits of mc (macOS clipboard). The Linux desktop
+  # stack in graphical.nix is skipped on Darwin.
+  graphical.enable = true;
   agenticAi.enable = true;
+  _1password.enable = true; # CLI; 1Password.app itself is installed normally
+  yubikey.enable = true;
+  weechat.enable = true;
+  # ssh.enable defaults to true: Remote Login with the same hardening as Linux.
 
   home-manager.users.${config.primaryUser.name} = {
     imports = [catppuccin.homeModules.catppuccin];

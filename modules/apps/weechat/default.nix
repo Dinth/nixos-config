@@ -2,11 +2,13 @@
   config,
   pkgs,
   lib,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf mkOption optionals;
   cfg = config.weechat;
-  inherit (config) graphical;
+  # notify-send (libnotify) and the KDE autostart entry need a Linux desktop.
+  linuxDesktop = config.graphical.enable && !isDarwin;
   primaryUsername = config.primaryUser.name;
   weechatCustom = pkgs.weechat.override {
     configure = {availablePlugins, ...}: {
@@ -24,7 +26,7 @@
           weechat-go
           url_hint
         ]
-        ++ optionals graphical.enable [
+        ++ optionals linuxDesktop [
           weechat-notify-send
         ];
       init = ''
@@ -76,7 +78,7 @@
         /key bindctxt cursor @chat(python.*):R hsignal:slack_cursor_reply
         /key bindctxt cursor @chat(python.*):T hsignal:slack_cursor_thread
 
-        ${lib.optionalString graphical.enable ''
+        ${lib.optionalString linuxDesktop ''
           /set plugins.var.python.notify_send.notify_on_highlights on
           /set plugins.var.python.notify_send.notify_on_privmsgs on
         ''}
@@ -116,7 +118,7 @@ in {
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = lib.optionals graphical.enable [
+    environment.systemPackages = lib.optionals linuxDesktop [
       pkgs.libnotify
     ];
     home-manager.users.${primaryUsername} = {
@@ -125,20 +127,22 @@ in {
         aspellDicts
       ];
 
-      xdg.configFile."autostart/weechat.desktop".text = ''
-        [Desktop Entry]
-        Type=Application
-        Version=1.0
-        Name=WeeChat
-        GenericName=IRC Client
-        Comment=Fast, light and extensible chat client
-        Exec=${pkgs.kdePackages.konsole}/bin/konsole -e ${weechatWithDicts}/bin/weechat
-        Terminal=false
-        Categories=Network;IRCClient;
-        Icon=weechat
-        StartupNotify=false
-        X-KDE-autostart-phase=1
-      '';
+      xdg.configFile."autostart/weechat.desktop" = mkIf linuxDesktop {
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Version=1.0
+          Name=WeeChat
+          GenericName=IRC Client
+          Comment=Fast, light and extensible chat client
+          Exec=${pkgs.kdePackages.konsole}/bin/konsole -e ${weechatWithDicts}/bin/weechat
+          Terminal=false
+          Categories=Network;IRCClient;
+          Icon=weechat
+          StartupNotify=false
+          X-KDE-autostart-phase=1
+        '';
+      };
 
       # Pinned to the last commit that touched weemoji.json — fetching from
       # `master` with a fixed hash breaks every fresh build the moment

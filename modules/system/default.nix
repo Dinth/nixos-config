@@ -6,6 +6,8 @@
   imports =
     [
       ./cli.nix
+      ./graphical.nix
+      ./locale.nix
       ./nix.nix
       ./theme.nix
     ]
@@ -16,9 +18,7 @@
       ./dictionaries.nix
       ./docker.nix
       ./gaming
-      ./graphical.nix
       ./input-method.nix
-      ./locale.nix
       ./kde.nix
       ./networking.nix
       ./security.nix

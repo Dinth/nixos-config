@@ -404,11 +404,15 @@
           # enca autodetection on and feeds it this string as the language.
           autodetect_codeset = "off";
           clipboard_store =
-            if config.graphical.enable or false
+            if isDarwin
+            then "/usr/bin/pbcopy"
+            else if config.graphical.enable or false
             then "${pkgs.wl-clipboard}/bin/wl-copy"
             else null;
           clipboard_paste =
-            if config.graphical.enable or false
+            if isDarwin
+            then "/usr/bin/pbpaste"
+            else if config.graphical.enable or false
             then "${pkgs.wl-clipboard}/bin/wl-paste"
             else null;
         };
@@ -471,7 +475,7 @@ in {
         zip
         mediainfo
       ]
-      ++ lib.optionals (config.graphical.enable or false) [
+      ++ lib.optionals ((config.graphical.enable or false) && !isDarwin) [
         wl-clipboard
       ];
     home-manager.users =

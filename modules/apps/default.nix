@@ -7,6 +7,7 @@
   # which nix-darwin also has). Imported on NixOS and macOS alike.
   imports =
     [
+      ./1Password
       ./bat
       ./btop
       ./claude-code
@@ -27,7 +28,6 @@
     # Linux-only: KDE apps, systemd units, udev/security wrappers, or apps
     # that on the Mac are better left to Mosyle/Homebrew.
     ++ lib.optionals (!isDarwin) [
-      ./1Password
       ./anki
       ./clamav
       ./google-chrome

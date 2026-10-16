@@ -1,19 +1,23 @@
 {
-  config,
-  pkgs,
+  lib,
+  isDarwin,
   ...
 }: {
-  imports = [
-    ./alloy
-    ./komodo-periphery
-    ./krdp
-    ./llama-cpp
-    ./network-mounts
-    ./prometheus-exporters
-    ./sillybunny
-    ./ssh
-    ./stable-diffusion
-    ./tailscale
-    ./wazuh-agent
-  ];
+  imports =
+    [
+      ./ssh
+    ]
+    # Linux-only: systemd units, journald, NixOS-only service modules.
+    ++ lib.optionals (!isDarwin) [
+      ./alloy
+      ./komodo-periphery
+      ./krdp
+      ./llama-cpp
+      ./network-mounts
+      ./prometheus-exporters
+      ./sillybunny
+      ./stable-diffusion
+      ./tailscale
+      ./wazuh-agent
+    ];
 }
