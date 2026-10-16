@@ -16,6 +16,16 @@ in {
     };
   };
   config = mkIf cfg.enable {
+    # solaar 1.1.19's desktop-notification tests spawn a D-Bus session, which
+    # needs /etc/machine-id — absent in the build sandbox.
+    nixpkgs.overlays = [
+      (_: prev: {
+        solaar = prev.solaar.overridePythonAttrs (old: {
+          disabledTests = (old.disabledTests or []) ++ ["test_show"];
+        });
+      })
+    ];
+
     hardware.logitech = {
       wireless.enable = true;
       wireless.enableGraphical = true;
