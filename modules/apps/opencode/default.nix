@@ -59,6 +59,19 @@ in {
         ];
       };
     })
+    # Mosyle MDM snapshot (no API/MCP exists, so agents read this instead).
+    # Encrypted because it holds tokens, serials and family members' names
+    # and this repo is public; ragenix decrypts it straight into the
+    # knowledge dir beside the plain-text topics below. Guarded on the .age
+    # existing so hosts evaluate before it's been created/rekeyed.
+    (mkIf (builtins.pathExists ../../../secrets/mosyle-knowledge.age) {
+      age.secrets.mosyle-knowledge = {
+        file = ../../../secrets/mosyle-knowledge.age;
+        owner = primaryUsername;
+        mode = "0400";
+        path = "${config.users.users.${primaryUsername}.home}/.config/opencode/knowledge/mosyle.md";
+      };
+    })
     {
       home-manager.users.${primaryUsername} = {
         home.packages = with pkgs; [
