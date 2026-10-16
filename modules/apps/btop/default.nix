@@ -23,7 +23,7 @@ in {
         # the btop-rocm in environment.systemPackages on $PATH — so GPU stats
         # never appeared on the desktop.
         package =
-          if config.amd_gpu.enable
+          if config.amd_gpu.enable or false
           then pkgs.btop-rocm
           else pkgs.btop;
         settings = {

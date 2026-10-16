@@ -24,19 +24,6 @@ in {
   # ["root" "@wheel"]; the primary user is in wheel on every host, so a
   # server-specific override here would be redundant (lists merge anyway).
 
-  nixpkgs = {
-    config = {
-      allowUnfree = true;
-      # heroic and signal-desktop pin pnpm 10.29.2 to match their lockfiles and
-      # use it only as a build-time tool to fetch node deps (sandboxed, never
-      # shipped at runtime). A recent nixpkgs bump flagged that pnpm version as
-      # insecure, which blocks evaluation; permitting it is the upstream-advised
-      # fix. Revisit when those packages bump their pinned pnpm.
-      permittedInsecurePackages = [
-        "pnpm-10.29.2"
-      ];
-    };
-  };
   # Cap systemd-boot generations on the ESP. The rolling-latest workflow
   # (`nh os switch -u` every rebuild) drops a fresh kernel+initrd into the
   # small vfat /boot each time, and GC only prunes generations after 30d — a

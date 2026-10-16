@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  pkgs,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf mkOption types;
@@ -18,14 +18,17 @@ in {
     };
   };
 
-  config = {
-    # System-level catppuccin (plymouth, etc.)
-    catppuccin.plymouth = mkIf config.graphical.enable {
-      enable = true;
-      inherit (cfg) flavor;
-    };
-
+  config = lib.mkMerge [
     # Home Manager catppuccin
-    home-manager.users.${primaryUsername}.catppuccin.flavor = cfg.flavor;
-  };
+    {home-manager.users.${primaryUsername}.catppuccin.flavor = cfg.flavor;}
+
+    # System-level catppuccin (plymouth, etc.) — the catppuccin NixOS module
+    # has no nix-darwin counterpart.
+    (lib.optionalAttrs (!isDarwin) {
+      catppuccin.plymouth = mkIf config.graphical.enable {
+        enable = true;
+        inherit (cfg) flavor;
+      };
+    })
+  ];
 }

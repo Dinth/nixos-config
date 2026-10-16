@@ -18,6 +18,7 @@ nix-instantiate --show-trace /path/to/file.nix
 sudo nixos-rebuild switch --flake .#<hostname>
 
 # Hostnames (live nixosConfigurations): dinth-nixos-desktop, michal-surface-go, r230-nixos
+# macOS (on the Mac): sudo darwin-rebuild switch --flake .#michal-macbook-pro
 ```
 
 ## Architecture
@@ -34,11 +35,15 @@ sudo nixos-rebuild switch --flake .#<hostname>
 | `dinth-nixos-desktop` | desktop | Primary workstation (KDE Plasma 6, gaming, graphical tools) |
 | `michal-surface-go` | tablet | Mobile Surface Go 3 (KDE with tablet optimizations) |
 | `r230-nixos` | server | Dell PowerEdge R230 (Docker only, no GUI) |
-| `michal-macbook-pro` | laptop | **WIP / not wired** — scaffolding for an aarch64-darwin (nix-darwin) host. The `nix-darwin` input and `darwinConfigurations` block in `flake.nix` are commented out ("Doesnt work"), so this host does **not** build yet. See `modules/system/darwin.nix`. |
+| `michal-macbook-pro` | laptop | aarch64-darwin (nix-darwin) on a Mosyle-managed Mac, running **Determinate Nix** — `darwinConfigurations.michal-macbook-pro`. Not yet deployed; evaluated from Linux by `checks.*.michal-macbook-pro-eval`. |
 
 Host configs branch on `machineType` via `config.specialArgs.machineType`.
 
-**Darwin support is aspirational, not functional.** `modules/system/darwin.nix` is an empty stub gated on `pkgs.stdenv.isDarwin`, and `hosts/michal-macbook-pro/` exists but is unreachable until the commented-out `nix-darwin` input and `darwinConfigurations` output in `flake.nix` are restored. Do not assume darwin builds work; only the three NixOS hosts above are live.
+**Darwin (nix-darwin + Determinate Nix).** Every module gets an `isDarwin` specialArg. nix-darwin doesn't declare NixOS-only options (`systemd`, `boot`, `services.udev`, ...) and `mkIf false` does **not** hide a definition of an undeclared option, so:
+- Linux-only modules are excluded via the import lists (`modules/default.nix`, `modules/apps/default.nix`, `modules/system/default.nix`); `hardware/` and `services/` are never imported on macOS.
+- Shared modules branch with `lib.optionalAttrs isDarwin` / `(!isDarwin)` (never `mkIf pkgs.stdenv.isDarwin`: `pkgs` in that position recurses), and read toggles from Linux-only modules as `config.<mod>.enable or false`.
+- Determinate owns the Nix daemon on macOS (`nix.enable = false`); Nix settings go to `determinateNix.customSettings`, not `nix.settings` — see `modules/system/nix.nix`.
+- `system.build.toplevel` can't be fully evaluated on Linux (catppuccin palette and zsh's vivid LS_COLORS are import-from-derivation), so the eval check forces everything except those.
 
 ### Module Layout
 

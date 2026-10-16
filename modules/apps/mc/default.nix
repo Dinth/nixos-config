@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf;
@@ -123,7 +124,7 @@
   #
   # A headless host has nothing to hand off to, so there the desktop actions
   # are left empty and everything stays in mc.
-  guiHandoff = config.graphical.enable;
+  guiHandoff = config.graphical.enable or false;
 
   defaultExtGroup.Default = {
     Open =
@@ -403,11 +404,11 @@
           # enca autodetection on and feeds it this string as the language.
           autodetect_codeset = "off";
           clipboard_store =
-            if config.graphical.enable
+            if config.graphical.enable or false
             then "${pkgs.wl-clipboard}/bin/wl-copy"
             else null;
           clipboard_paste =
-            if config.graphical.enable
+            if config.graphical.enable or false
             then "${pkgs.wl-clipboard}/bin/wl-paste"
             else null;
         };
@@ -470,15 +471,19 @@ in {
         zip
         mediainfo
       ]
-      ++ lib.optionals config.graphical.enable [
+      ++ lib.optionals (config.graphical.enable or false) [
         wl-clipboard
       ];
-    home-manager.users.${primaryUsername} = lib.mkMerge [
-      mcHomeConfig
-      {programs.zsh.initContent = mcCdOnExit;}
-    ];
-    # root has no home-manager zsh here, so it gets the files but not the
-    # shell function.
-    home-manager.users.root = mcHomeConfig;
+    home-manager.users =
+      {
+        ${primaryUsername} = lib.mkMerge [
+          mcHomeConfig
+          {programs.zsh.initContent = mcCdOnExit;}
+        ];
+      }
+      # root has no home-manager zsh here, so it gets the files but not the
+      # shell function. Skipped on macOS, where root has no HM profile at all
+      # (hosts/common.nix, which sets one up, is NixOS-only).
+      // lib.optionalAttrs (!isDarwin) {root = mcHomeConfig;};
   };
 }

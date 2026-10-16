@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  isDarwin,
   ...
 }: {
   options.primaryUser = lib.mkOption {
@@ -36,7 +37,9 @@
     description = "Configuration for the main user of this system.";
   };
 
-  config = {
+  # On macOS the account (UID 501+) is created by the MDM; nix-darwin must not
+  # be told a UID for a user it doesn't manage.
+  config = lib.optionalAttrs (!isDarwin) {
     users.users.${config.primaryUser.name}.uid = lib.mkDefault config.primaryUser.uid;
   };
 }

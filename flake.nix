@@ -67,10 +67,20 @@
       inputs.nixpkgs.follows = "wazuh-nixpkgs";
     };
 
-    #     nix-darwin = {
-    #       url = "github:nix-darwin/nix-darwin/master";
-    #       inputs.nixpkgs.follows = "nixpkgs";
-    #     };
+    # macOS hosts. nixpkgs-*-darwin is the same release as nixpkgs above but
+    # gated on Darwin Hydra jobs, so the binary cache actually covers it.
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
+    };
+    # Determinate Nix on macOS. The installer (.pkg, MDM-deployable) owns the
+    # Nix daemon and /etc/nix/nix.conf; this flake only contributes the
+    # nix-darwin module, which sets `nix.enable = false` and exposes
+    # `determinateNix.customSettings` (rendered to /etc/nix/nix.custom.conf).
+    # Its own nixpkgs is deliberately not followed: Determinate only tests
+    # determinate-nixd against its own lock.
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
   };
 
   outputs = {
@@ -86,6 +96,8 @@
     nix-index-database,
     lnxlink,
     wazuh-agent,
+    nix-darwin,
+    determinate,
     ...
   }: let
     system = "x86_64-linux";
@@ -181,8 +193,8 @@
     # (mkPackageOption). Supply the fork's own prebuilt output — evaluated
     # against the fork's locked nixpkgs, not ours — so nixpkgs bumps never
     # rebuild or break it (see the wazuh-agent input comment).
-    wazuhOverlay = _: _: {
-      wazuh-agent = wazuh-agent.packages.${system}.wazuh-agent;
+    wazuhOverlay = final: _: {
+      wazuh-agent = wazuh-agent.packages.${final.stdenv.hostPlatform.system}.wazuh-agent;
     };
   in {
     nixosConfigurations = {
@@ -190,6 +202,7 @@
         inherit system;
         specialArgs = {
           machineType = "desktop";
+          isDarwin = false;
           inherit catppuccin home-manager;
         };
         modules = [
@@ -217,6 +230,7 @@
         inherit system;
         specialArgs = {
           machineType = "server";
+          isDarwin = false;
           inherit catppuccin home-manager;
         };
         modules = [
@@ -246,6 +260,7 @@
         inherit system;
         specialArgs = {
           machineType = "tablet";
+          isDarwin = false;
           inherit catppuccin home-manager;
         };
         modules = [
@@ -282,6 +297,22 @@
       dinth-nixos-desktop = self.nixosConfigurations.dinth-nixos-desktop.config.system.build.toplevel;
       michal-surface-go = self.nixosConfigurations.michal-surface-go.config.system.build.toplevel;
       r230-nixos = self.nixosConfigurations.r230-nixos.config.system.build.toplevel;
+      # The Mac can't be built here, and its toplevel can't even be fully
+      # evaluated: catppuccin's palette and zsh's vivid LS_COLORS are
+      # import-from-derivation, so they need an aarch64-darwin builder.
+      # Evaluating the rest still runs the module system's option checks, so a
+      # NixOS-only option leaking into a shared module (or a package broken
+      # on Darwin) fails here before anyone runs darwin-rebuild. Context is
+      # discarded so the check never tries to realise Darwin derivations.
+      michal-macbook-pro-eval = let
+        inherit (self.darwinConfigurations.michal-macbook-pro) config;
+      in
+        pkgs.writeText "michal-macbook-pro-eval" (builtins.unsafeDiscardStringContext (builtins.toJSON {
+          inherit (config.system) stateVersion;
+          systemPackages = map (p: p.drvPath) config.environment.systemPackages;
+          etc = builtins.attrNames config.environment.etc;
+          nixCustomConf = config.environment.etc."nix/nix.custom.conf".text;
+        }));
 
       # Format check — fails if any .nix file would be reformatted.
       format = pkgs.runCommand "check-alejandra" {nativeBuildInputs = [pkgs.alejandra];} ''
@@ -308,30 +339,32 @@
       '';
     };
 
-    # Doesnt work
-    #       darwinConfigurations = {
-    #         michal-macbook-pro = nix-darwin.lib.darwinSystem {
-    #           system = "aarch64-darwin";
-    #           specialArgs = { machineType = "laptop"; };
-    #           modules = [
-    #             ./libs
-    #             ./modules
-    #             ./hosts/michal-macbook-pro/configuration.nix
-    #             agenix.nixosModules.default
-    # #            catppuccin.nixosModules.catppuccin
-    #             home-manager.darwinModules.home-manager
-    #             {
-    #               home-manager.useGlobalPkgs = true;
-    #               home-manager.useUserPackages = true;
-    #               home-manager.verbose = true;
-    #               home-manager.users.michal = {
-    #                 imports = [
-    #                   catppuccin.homeModules.catppuccin
-    #                 ];
-    #               };
-    #             }
-    #           ];
-    #         };
-    #       };
+    darwinConfigurations = {
+      michal-macbook-pro = nix-darwin.lib.darwinSystem {
+        specialArgs = {
+          machineType = "laptop";
+          isDarwin = true;
+          inherit catppuccin home-manager;
+        };
+        modules = [
+          ./libs
+          ./modules
+          ./hosts/michal-macbook-pro/configuration.nix
+          determinate.darwinModules.default
+          agenix.darwinModules.default
+          nix-index-database.darwinModules.nix-index
+          home-manager.darwinModules.home-manager
+          {
+            nixpkgs.overlays = [llmAgentsOverlay];
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              backupFileExtension = "backup";
+              sharedModules = [agenix.homeManagerModules.default];
+            };
+          }
+        ];
+      };
+    };
   };
 }
