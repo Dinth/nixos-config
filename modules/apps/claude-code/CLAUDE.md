@@ -203,6 +203,23 @@ current deprecation list. Do not re-derive those rules here.
 
 ---
 
+## Mosyle (Apple MDM)
+
+The Macs and iPhones/iPads are managed by **Mosyle Business** (free tier,
+console `https://mybusiness.mosyle.com`). There is **no MCP or API** for it.
+
+- **Read first:** `~/.config/opencode/knowledge/mosyle.md` — a snapshot of
+  every macOS and iOS profile, custom command, device and setting. It's
+  decrypted by ragenix from `secrets/mosyle-knowledge.age`, so it contains
+  real tokens and serials: quote only what the task needs.
+- The snapshot has a date at the top. If it may be stale, or a detail is
+  missing, check the live console through Claude in Chrome (the user is
+  normally signed in) — read-only unless asked to change something.
+- macOS hosts in `nixos-config` (nix-darwin + Determinate Nix) depend on
+  Mosyle profiles (Login/Background Items, PPPC); change both sides together.
+
+---
+
 ## Coding Standards
 
 ### Python
