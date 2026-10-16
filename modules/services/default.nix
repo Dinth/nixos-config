@@ -6,6 +6,7 @@
   imports =
     [
       ./ssh
+      ./tailscale
     ]
     # Linux-only: systemd units, journald, NixOS-only service modules.
     ++ lib.optionals (!isDarwin) [
@@ -17,7 +18,6 @@
       ./prometheus-exporters
       ./sillybunny
       ./stable-diffusion
-      ./tailscale
       ./wazuh-agent
     ];
 }

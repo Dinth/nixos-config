@@ -3,6 +3,7 @@
   lib,
   pkgs,
   home-manager,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf mkMerge mkOption;
@@ -111,7 +112,22 @@ in {
     };
   };
   config = mkMerge [
-    (mkIf cfg.enable {
+    # macOS: nixpkgs builds none of these games/launchers for Darwin, so they
+    # come from Homebrew casks. nix-darwin only acts on homebrew.* once
+    # homebrew.enable is set, so these lie dormant until then. JGRPP has no
+    # cask (vanilla OpenTTD only), and the GOG data import below is NixOS-only
+    # (it reads the NAS mount and writes Linux XDG paths).
+    (lib.optionalAttrs isDarwin (mkMerge [
+      (mkIf cfg.enable {
+        homebrew.casks = ["steam" "heroic"];
+      })
+      (mkIf cfg.engines.enable {
+        homebrew.casks = ["openttd" "vcmi" "devilutionx"];
+        environment.systemPackages = [pkgs.innoextract];
+      })
+    ]))
+
+    (lib.optionalAttrs (!isDarwin) (mkIf cfg.enable {
       boot.kernelModules = ["ntsync"];
 
       # sched-ext userspace scheduler tuned for interactive/gaming latency:
@@ -183,8 +199,8 @@ in {
         umu-launcher
         wineWow64Packages.staging
       ];
-    })
-    (mkIf cfg.engines.enable {
+    }))
+    (lib.optionalAttrs (!isDarwin) (mkIf cfg.engines.enable {
       environment.systemPackages = with pkgs; [
         # nixpkgs bundles OpenGFX/OpenSFX/OpenMSX base sets with both
         openttd
@@ -227,6 +243,6 @@ in {
           run ${lib.getExe vcmiConfig} ${vcmiPresets}
         '';
       };
-    })
+    }))
   ];
 }

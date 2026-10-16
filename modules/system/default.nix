@@ -6,6 +6,7 @@
   imports =
     [
       ./cli.nix
+      ./gaming
       ./graphical.nix
       ./locale.nix
       ./nix.nix
@@ -17,7 +18,6 @@
     ++ lib.optionals (!isDarwin) [
       ./dictionaries.nix
       ./docker.nix
-      ./gaming
       ./input-method.nix
       ./kde.nix
       ./networking.nix

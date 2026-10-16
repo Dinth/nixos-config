@@ -30,6 +30,14 @@
   _1password.enable = true; # CLI; 1Password.app itself is installed normally
   yubikey.enable = true;
   weechat.enable = true;
+  # Games come as Homebrew casks (Steam, Heroic, OpenTTD, VCMI, DevilutionX);
+  # they install once homebrew.enable is turned on.
+  gaming.enable = true;
+  # Tailnet only away from home: down on CracoviaPany, up everywhere else.
+  tailscale = {
+    enable = true;
+    homeSsid = "CracoviaPany";
+  };
   # ssh.enable defaults to true: Remote Login with the same hardening as Linux.
 
   home-manager.users.${config.primaryUser.name} = {
