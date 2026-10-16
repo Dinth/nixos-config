@@ -26,4 +26,5 @@ in {
   "firefly-mcp-token.age".publicKeys = users ++ systems;
   "wazuh-enrolment.age".publicKeys = users ++ systems;
   "krdp-password.age".publicKeys = users ++ systems;
+  "mosyle-knowledge.age".publicKeys = users ++ systems;
 }
