@@ -13,8 +13,11 @@ set -euo pipefail
 #    "other": {"mods": [...], "submods": {"hota": {"mainmenu": false}}}}
 
 PRESETS_FILE="$1"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/vcmi"
-MODS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/vcmi/Mods"
+# VCMI_CONFIG_DIR / VCMI_DATA_DIR override the XDG locations for platforms
+# where VCMI doesn't use them (macOS: ~/Library/Application Support/vcmi,
+# with config in its config/ subdirectory).
+CONFIG_DIR="${VCMI_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/vcmi}"
+MODS_DIR="${VCMI_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/vcmi}/Mods"
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/vcmi-config/enabled.json"
 mkdir -p "$CONFIG_DIR"
 

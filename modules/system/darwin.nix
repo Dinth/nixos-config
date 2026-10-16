@@ -17,6 +17,64 @@ in {
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
 
+  # Nix GUI apps are copied (not symlinked) into ~/Applications/Home Manager
+  # Apps so Spotlight indexes them and the Dock can pin them. This is HM's
+  # default from stateVersion 25.11; spelled out so nobody adds mac-app-util.
+  # nix-darwin does the same for system packages in /Applications/Nix Apps.
+  home-manager.users.${primaryUsername} = {
+    targets.darwin.copyApps.enable = true;
+    # system.defaults.screencapture.location below must exist, or macOS
+    # silently falls back to the Desktop.
+    home.file."Pictures/Screenshots/.keep".text = "";
+  };
+
+  # macOS preferences. These replace six Mosyle "custom profiles" that were
+  # bare .plist files and failed to install (DSDontWriteNetworkStores,
+  # NSAutomaticQuoteSubstitutionEnabled, RichText, Finder, ScrollbackLines,
+  # CBBlueLightReductionCCT); the first four are covered below. Settings
+  # pushed by Mosyle profiles still win over anything written here.
+  system.defaults = {
+    NSGlobalDomain = {
+      AppleShowAllExtensions = true;
+      # Hold a key to repeat it rather than to pick an accented variant.
+      ApplePressAndHoldEnabled = false;
+      KeyRepeat = 2;
+      InitialKeyRepeat = 15;
+      NSAutomaticQuoteSubstitutionEnabled = false;
+      NSAutomaticDashSubstitutionEnabled = false;
+      NSAutomaticSpellingCorrectionEnabled = false;
+    };
+    finder = {
+      AppleShowAllExtensions = true;
+      ShowPathbar = true;
+      ShowStatusBar = true;
+      FXPreferredViewStyle = "Nlsv"; # list view
+      FXEnableExtensionChangeWarning = false;
+      _FXSortFoldersFirst = true;
+      FXDefaultSearchScope = "SCcf"; # search the current folder
+    };
+    trackpad.Clicking = true; # tap to click
+    dock = {
+      autohide = true;
+      show-recents = false;
+      # Keep Spaces in a fixed order instead of by most recent use.
+      mru-spaces = false;
+    };
+    screencapture = {
+      location = "~/Pictures/Screenshots";
+      type = "png";
+    };
+    CustomUserPreferences = {
+      # No .DS_Store litter on SMB/NFS shares (the NAS) or USB drives.
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true;
+        DSDontWriteUSBStores = true;
+      };
+      # TextEdit opens new documents as plain text.
+      "com.apple.TextEdit".RichText = false;
+    };
+  };
+
   # macOS counterpart of the desktop's YubiKey touch for doas: Touch ID for
   # sudo, falling back to the password. Written to
   # /etc/pam.d/sudo_local, which survives macOS updates. reattach lets it work

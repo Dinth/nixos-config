@@ -23,6 +23,27 @@
       (builtins.readFile ./gog-game-data.sh);
   };
 
+  # macOS: same import, but the NAS is read over SSH (no sshfs without a
+  # kernel extension) and both games keep their data in Application Support
+  # (DevilutionX via SDL_GetPrefPath, VCMI hardcodes ~/Library/Application
+  # Support/vcmi with config/ inside it). Same key + passphrase secret as the
+  # desktop's sshfs mount of omv; the passphrase is fed through SSH_ASKPASS.
+  macAppSupport = "$HOME/Library/Application Support";
+  macVcmiEnv = ''VCMI_DATA_DIR="${macAppSupport}/vcmi" VCMI_CONFIG_DIR="${macAppSupport}/vcmi/config"'';
+  gogAskpass = pkgs.writeShellScript "gog-ssh-askpass" ''
+    exec ${pkgs.coreutils}/bin/cat ${config.age.secrets.id-ed25519-passphrase.path}
+  '';
+  gogGameDataMac = pkgs.writeShellScriptBin "gog-game-data" ''
+    export XDG_DATA_HOME="${macAppSupport}"
+    export GOG_REMOTE=${lib.escapeShellArg cfg.gogRemote.host}
+    export GOG_DIR=${lib.escapeShellArg cfg.gogRemote.dir}
+    export SSH_ASKPASS=${gogAskpass} SSH_ASKPASS_REQUIRE=force
+    export GOG_SSH="/usr/bin/ssh -i ${config.age.secrets.id-ed25519.path} -o IdentitiesOnly=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new"
+    ${lib.getExe gogGameData}
+    # Enable a freshly imported mod without waiting for a rebuild.
+    ${macVcmiEnv} ${lib.getExe vcmiConfig} ${vcmiPresets}
+  '';
+
   # Vanilla OpenTTD and JGRPP both ship bin/openttd and openttd.desktop, so
   # expose JGRPP as `openttd-jgrpp` with its own launcher. Its data dir is
   # compiled in as an absolute store path, so a renamed symlink is enough.
@@ -104,6 +125,18 @@ in {
         default = "/mnt/omv/Data/Games/GOG";
         description = "Directory of GOG offline installers (one folder per game) to import engine data from.";
       };
+      gogRemote = {
+        host = mkOption {
+          type = lib.types.str;
+          default = "root@10.10.1.13";
+          description = "macOS only: SSH destination holding the GOG library (read with `gogRemote.dir`).";
+        };
+        dir = mkOption {
+          type = lib.types.str;
+          default = "/Data/Games/GOG";
+          description = "macOS only: path of the GOG library on `gogRemote.host` (the desktop sees it as gogLibrary via sshfs).";
+        };
+      };
       heroes3Language = mkOption {
         type = lib.types.enum ["en" "pl"];
         default = "en";
@@ -123,7 +156,32 @@ in {
       })
       (mkIf cfg.engines.enable {
         homebrew.casks = ["openttd" "vcmi" "devilutionx"];
-        environment.systemPackages = [pkgs.innoextract];
+        environment.systemPackages = [pkgs.innoextract gogGameDataMac];
+
+        home-manager.users.${primaryUsername} = {
+          # Import at login; skips games already imported and exits quietly
+          # when omv isn't reachable (away from home), so it simply retries.
+          # Re-run by hand with `gog-game-data`.
+          launchd.agents.gog-game-data = {
+            enable = true;
+            config = {
+              ProgramArguments = [(lib.getExe gogGameDataMac)];
+              RunAtLoad = true;
+              ProcessType = "Background";
+              LowPriorityIO = true;
+              StandardOutPath = "${config.users.users.${primaryUsername}.home}/Library/Logs/gog-game-data.log";
+              StandardErrorPath = "${config.users.users.${primaryUsername}.home}/Library/Logs/gog-game-data.log";
+            };
+          };
+
+          home.file =
+            lib.mapAttrs' (id: src: lib.nameValuePair "Library/Application Support/vcmi/Mods/${id}" {source = src;})
+            vcmiMods;
+
+          home.activation.vcmiConfig = home-manager.lib.hm.dag.entryAfter ["linkGeneration"] ''
+            run env ${macVcmiEnv} ${lib.getExe vcmiConfig} ${vcmiPresets}
+          '';
+        };
       })
     ]))
 

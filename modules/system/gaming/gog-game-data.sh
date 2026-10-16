@@ -6,9 +6,13 @@ set -euo pipefail
 # place is skipped, so this is safe to run on every login.
 #
 # GOG_DIR is substituted by the Nix wrapper; override it in the environment
-# to import from somewhere else.
+# to import from somewhere else. Set GOG_REMOTE=host to read GOG_DIR on that
+# host over SSH instead of from a local mount (macOS has no sshfs without a
+# kernel extension); GOG_SSH is the ssh command line to use for it.
 
 GOG_DIR="${GOG_DIR:-@gogLibrary@}"
+GOG_REMOTE="${GOG_REMOTE:-}"
+read -ra gog_ssh <<<"${GOG_SSH:-ssh}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 STEAM_HD_DIR="${STEAM_HD_DIR:-$DATA_HOME/Steam/steamapps/common/Heroes of Might & Magic III - HD Edition}"
 tmp=""
@@ -23,7 +27,12 @@ trap cleanup EXIT
 # (nothing if there is none). Globbing keeps this working when GOG bumps the
 # build number in the file name.
 find_installer() {
-  find "$GOG_DIR/$1" -maxdepth 1 -type f -name "$2" 2>/dev/null | sort -V | tail -n1
+  if [ -n "$GOG_REMOTE" ]; then
+    "${gog_ssh[@]}" "$GOG_REMOTE" "find $(printf %q "$GOG_DIR/$1") -maxdepth 1 -type f -name $(printf %q "$2")" 2>/dev/null |
+      sort -V | tail -n1 || true
+  else
+    find "$GOG_DIR/$1" -maxdepth 1 -type f -name "$2" 2>/dev/null | sort -V | tail -n1
+  fi
 }
 
 # Extract only the paths listed after $1 from installer $1 into a fresh
@@ -37,6 +46,17 @@ extract() {
   for path in "$@"; do includes+=(--include "$path"); done
   mkdir -p "$DATA_HOME"
   tmp="$(mktemp -d "$DATA_HOME/.gog-import.XXXXXX")"
+  if [ -n "$GOG_REMOTE" ]; then
+    # Stream the setup .exe plus any setup_*-N.bin parts next to it (larger
+    # GOG installers are split) into the scratch dir, then extract from there.
+    local dir stem
+    dir="$(dirname "$installer")"
+    stem="$(basename "$installer" .exe)"
+    mkdir -p "$tmp/.download"
+    "${gog_ssh[@]}" "$GOG_REMOTE" "cd $(printf %q "$dir") && tar -cf - -- $(printf %q "$stem")*" |
+      tar -xf - -C "$tmp/.download"
+    installer="$tmp/.download/$stem.exe"
+  fi
   innoextract --gog --silent --output-dir "$tmp" "${includes[@]}" "$installer"
 }
 
@@ -164,7 +184,12 @@ import_hd_edition() {
 
 import_hd_edition
 
-if [ ! -d "$GOG_DIR" ]; then
+if [ -n "$GOG_REMOTE" ]; then
+  if ! "${gog_ssh[@]}" "$GOG_REMOTE" "test -d $(printf %q "$GOG_DIR")" 2>/dev/null; then
+    echo "GOG library $GOG_REMOTE:$GOG_DIR not reachable; will retry on next start"
+    exit 0
+  fi
+elif [ ! -d "$GOG_DIR" ]; then
   echo "GOG library $GOG_DIR not reachable; will retry on next start"
   exit 0
 fi
