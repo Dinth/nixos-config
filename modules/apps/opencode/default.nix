@@ -68,6 +68,11 @@ in {
       age.secrets.mosyle-knowledge = {
         file = ../../../secrets/mosyle-knowledge.age;
         owner = primaryUsername;
+        # The user's primary group: "users" on NixOS, "staff" on macOS.
+        group =
+          if isDarwin
+          then "staff"
+          else "users";
         mode = "0400";
         path = "${config.users.users.${primaryUsername}.home}/.config/opencode/knowledge/mosyle.md";
       };

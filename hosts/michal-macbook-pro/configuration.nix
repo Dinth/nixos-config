@@ -6,7 +6,9 @@
 }: {
   imports = [
     ./hardware-configuration.nix
-    ../../secrets/deployment.nix
+    # Not ../../secrets/deployment.nix: that declares every host's secrets,
+    # including Linux-only ones the Mac can't (and shouldn't) decrypt.
+    ./secrets.nix
   ];
   primaryUser = {
     name = "michal";
