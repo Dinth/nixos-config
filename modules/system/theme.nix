@@ -29,6 +29,17 @@ in {
         enable = true;
         inherit (cfg) flavor;
       };
+      # Linux console (TTY) palette.
+      catppuccin.tty = {
+        enable = true;
+        inherit (cfg) flavor;
+      };
+      # Apps only present on the Linux desktops (Anki via kde, fcitx5 via
+      # inputMethod); they follow the global flavor.
+      home-manager.users.${primaryUsername}.catppuccin = {
+        anki.enable = config.kde.enable or false;
+        fcitx5.enable = config.inputMethod.enable or false;
+      };
     })
   ];
 }
