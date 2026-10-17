@@ -39,11 +39,24 @@
     else if machineType == "desktop"
     then builtins.concatStringsSep " " desktopFlags
     else "";
+  # Catppuccin Chrome themes (github.com/catppuccin/chrome), one Web Store
+  # item per flavor; follows theme.flavor. On the Macs Chrome policy comes from
+  # Mosyle/Chrome cloud management instead, not from here.
+  catppuccinChromeTheme =
+    {
+      latte = "jhjnalhegpceacdhbplhnakmkdliaddd";
+      frappe = "olhelnoplefjdmncknfphenjclimckaf";
+      macchiato = "cmpdlhmnmjhihmcfnigoememnffkimlk";
+      mocha = "bkkmolkhemgaeaeggcmfbghljjjoofoh";
+    }.${
+      config.theme.flavor
+    };
   extensionsPolicy = builtins.toJSON {
     PolicyListMultipleSourceMergeList = ["ExtensionInstallForcelist"];
     ExtensionInstallForcelist =
       [
         "lkbebcjgcmobigpeffafkodonchffocl;https://gitlab.com/magnolia1234/bypass-paywalls-chrome-clean/-/raw/master/updates.xml"
+        "${catppuccinChromeTheme};https://clients2.google.com/service/update2/crx"
       ]
       ++ lib.optionals (config.kde.enable or false) [
         "cimiefiiaegbelhefglklhhakcgmhkai;https://clients2.google.com/service/update2/crx"
