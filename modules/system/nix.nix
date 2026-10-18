@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   isDarwin,
@@ -21,6 +22,8 @@
   extraTrustedPublicKeys = [
     "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
   ];
+  # How long old generations are kept by the weekly GC on both platforms.
+  gcOlderThan = "30d";
 in
   lib.mkMerge [
     {
@@ -59,7 +62,7 @@ in
       nix.gc = {
         automatic = true;
         dates = "weekly";
-        options = "--delete-older-than 30d";
+        options = "--delete-older-than ${gcOlderThan}";
       };
       nix.daemonCPUSchedPolicy = "idle";
       nix.daemonIOSchedClass = "idle";
@@ -71,8 +74,7 @@ in
 
     # Determinate Nix owns the daemon on macOS: its nix-darwin module forces
     # `nix.enable = false`, so every nix.* option here would be an error.
-    # Flakes and nix-command are on by default, and determinate-nixd runs its
-    # own automatic GC, so there's no nix.gc/nix.optimise equivalent to set.
+    # Flakes and nix-command are on by default.
     (lib.optionalAttrs isDarwin {
       determinateNix.customSettings =
         sharedSettings
@@ -86,5 +88,51 @@ in
       # No programs.nh module in nix-darwin; `nh darwin switch` just needs
       # the binary (point it at the flake with NH_FLAKE or an argument).
       environment.systemPackages = [pkgs.nh];
+
+      # nix.gc's counterpart. determinate-nixd's own GC only removes paths
+      # nothing refers to, and every old system and Home Manager generation
+      # still refers to its whole closure, so without this they pile up
+      # forever. Runs Determinate's own Nix (no version skew against its
+      # store); launchd catches up on a missed Sunday when the Mac wakes.
+      launchd.daemons.nix-gc = {
+        command = "/nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-older-than ${gcOlderThan}";
+        serviceConfig = {
+          StartCalendarInterval = [
+            {
+              Weekday = 0;
+              Hour = 3;
+              Minute = 15;
+            }
+          ];
+          LowPriorityIO = true;
+          ProcessType = "Background";
+          StandardOutPath = "/var/log/nix-gc.log";
+          StandardErrorPath = "/var/log/nix-gc.log";
+        };
+      };
+
+      # nixpkgs.flake.setFlakeRegistry's counterpart (NixOS sets it by
+      # default; nix-darwin needs nix.enable): pin `nixpkgs` in the system
+      # registry to the nixpkgs this system was built from, so `nix shell
+      # nixpkgs#foo` and `nix run nixpkgs#foo` reuse its store paths instead
+      # of fetching nixpkgs-unstable every time. Written by hand rather than
+      # through determinateNix.registry, which also points flake-registry at
+      # this file and so drops the global registry (nix-darwin/..., etc.).
+      environment.etc."nix/registry.json".text = builtins.toJSON {
+        version = 2;
+        flakes = [
+          {
+            exact = true;
+            from = {
+              type = "indirect";
+              id = "nixpkgs";
+            };
+            to = {
+              type = "path";
+              path = config.nixpkgs.flake.source;
+            };
+          }
+        ];
+      };
     })
   ]

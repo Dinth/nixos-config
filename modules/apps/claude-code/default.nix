@@ -3,6 +3,7 @@
   lib,
   pkgs,
   home-manager,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf;
@@ -11,7 +12,8 @@
   # option named after the other tool.
   cfg = config.agenticAi;
   primaryUsername = config.primaryUser.name;
-  userHome = "/home/${primaryUsername}";
+  # /home/<user> on NixOS, /Users/<user> on macOS (modules/system/darwin.nix).
+  userHome = config.users.users.${primaryUsername}.home;
 
   # Per-project settings overlays — merged into each project's
   # .claude/settings.local.json at activation time, preserving any
@@ -524,11 +526,16 @@
   # Desktop notification when Claude finishes a turn. The hook payload on
   # stdin gives session_id + cwd; we include cwd so notifications across
   # parallel sessions are distinguishable. Failures are swallowed (no DBus
-  # in headless / cron contexts).
+  # in headless / cron contexts). On macOS a notify-send look-alike posts
+  # it to Notification Center instead.
+  notifySend =
+    if isDarwin
+    then lib.getExe (pkgs.callPackage ../../../libs/notify-send-macos.nix {})
+    else lib.getExe' pkgs.libnotify "notify-send";
   stopNotifyScript = pkgs.writeShellScript "claude-stop-notify.sh" ''
     cwd=$(${lib.getExe pkgs.jq} -r '.cwd // empty' 2>/dev/null) || cwd=""
     label=''${cwd##*/}
-    ${lib.getExe' pkgs.libnotify "notify-send"} \
+    ${notifySend} \
       --app-name='Claude Code' \
       --icon=utilities-terminal \
       --urgency=low \

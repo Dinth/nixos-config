@@ -7,9 +7,16 @@
 }: let
   inherit (lib) mkIf mkOption optionals;
   cfg = config.weechat;
-  # notify-send (libnotify) and the KDE autostart entry need a Linux desktop.
+  # libnotify and the KDE autostart entry need a Linux desktop.
   linuxDesktop = config.graphical.enable && !isDarwin;
   primaryUsername = config.primaryUser.name;
+  # Highlight/private-message notifications on every graphical host. On macOS
+  # the same script drives a notify-send look-alike that posts to
+  # Notification Center.
+  notifySendScript =
+    if isDarwin
+    then pkgs.weechatScripts.weechat-notify-send.override {libnotify = pkgs.callPackage ../../../libs/notify-send-macos.nix {};}
+    else pkgs.weechatScripts.weechat-notify-send;
   weechatCustom = pkgs.weechat.override {
     configure = {availablePlugins, ...}: {
       plugins = with availablePlugins; [
@@ -26,8 +33,8 @@
           weechat-go
           url_hint
         ]
-        ++ optionals linuxDesktop [
-          weechat-notify-send
+        ++ optionals config.graphical.enable [
+          notifySendScript
         ];
       init = ''
         /mouse enable
@@ -78,7 +85,7 @@
         /key bindctxt cursor @chat(python.*):R hsignal:slack_cursor_reply
         /key bindctxt cursor @chat(python.*):T hsignal:slack_cursor_thread
 
-        ${lib.optionalString linuxDesktop ''
+        ${lib.optionalString config.graphical.enable ''
           /set plugins.var.python.notify_send.notify_on_highlights on
           /set plugins.var.python.notify_send.notify_on_privmsgs on
         ''}

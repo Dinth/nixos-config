@@ -40,6 +40,10 @@ in {
       ApplePressAndHoldEnabled = false;
       KeyRepeat = 2;
       InitialKeyRepeat = 15;
+      # The top row sends F1–F12 (Fn for brightness/volume), since mc and the
+      # mcedit-style neovim are driven by F2 Save ... F10 Quit. Takes effect
+      # after logging out and back in.
+      "com.apple.keyboard.fnState" = true;
       NSAutomaticQuoteSubstitutionEnabled = false;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticSpellingCorrectionEnabled = false;

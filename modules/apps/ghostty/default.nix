@@ -44,6 +44,16 @@ in {
           # right one still types Polish diacritics (ą, ę, ś...) on the
           # Polish layouts.
           macos-option-as-alt = "left";
+          # Over SSH to hosts that don't know Ghostty's TERM (xterm-ghostty):
+          # OMV, Proxmox, pfSense, the Dell switch. ssh-terminfo installs the
+          # terminfo entry on the remote host; where that fails, ssh-env falls
+          # back to xterm-256color, instead of leaving mc, htop and backspace
+          # broken there. The extra connection reuses the ssh ControlMaster.
+          shell-integration-features = "ssh-env,ssh-terminfo";
+          # Updates come from nixpkgs (ghostty-bin) on rebuild. Ghostty's own
+          # updater would replace the copied app, and the next switch would
+          # put the old one back.
+          auto-update = "off";
         };
       };
     };
