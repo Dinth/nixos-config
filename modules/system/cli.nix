@@ -123,7 +123,7 @@ in {
     (lib.optionalAttrs (!isDarwin) {
       environment.shellAliases.ip = "${lib.getExe' pkgs.iproute2 "ip"} --color=auto"; # Colorize IP output
       programs.usbtop.enable = mkDefault true;
-      # macOS runs its own launchd ssh-agent (with Keychain integration).
+      # macOS gets Home Manager's ssh-agent instead (modules/apps/ssh).
       programs.ssh.startAgent = mkDefault true;
     })
   ]);

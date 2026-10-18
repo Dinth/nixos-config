@@ -17,7 +17,9 @@ in {
       programs.bat = {
         enable = true;
         config = {
-          map-syntax = ".ignore:Git Ignore";
+          # A list, not a string: Home Manager's Ghostty module appends its own
+          # mapping to this option, and a string and a list can't be merged.
+          map-syntax = [".ignore:Git Ignore"];
           style = "numbers,changes";
         };
       };

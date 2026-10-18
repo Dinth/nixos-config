@@ -22,7 +22,12 @@
     ];
   };
 
-  networking.hostName = "michal-macbook-pro";
+  # No networking.hostName: Mosyle owns the Mac's name (it renames devices
+  # every day at 05:00), and two owners would just keep renaming it back and
+  # forth. So darwin-rebuild/nh can't pick this config by hostname; `rebuild`
+  # names it explicitly, from the repo at ~/Documents/nixos-config.
+  environment.variables.NH_DARWIN_FLAKE = "${config.users.users.${config.primaryUser.name}.home}/Documents/nixos-config";
+  environment.shellAliases.rebuild = "nh darwin switch -H michal-macbook-pro";
 
   cli.enable = true;
   # Fonts, mpv, GUI-aware bits of mc (macOS clipboard). The Linux desktop

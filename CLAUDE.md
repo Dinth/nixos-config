@@ -18,7 +18,9 @@ nix-instantiate --show-trace /path/to/file.nix
 sudo nixos-rebuild switch --flake .#<hostname>
 
 # Hostnames (live nixosConfigurations): dinth-nixos-desktop, michal-surface-go, r230-nixos
-# macOS (on the Mac): sudo darwin-rebuild switch --flake .#michal-macbook-pro
+# macOS (on the Mac): rebuild   (alias for nh darwin switch -H michal-macbook-pro)
+# Mosyle owns the Mac's hostname, so always name the config; the first switch is
+# sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake .#michal-macbook-pro
 ```
 
 ## Architecture

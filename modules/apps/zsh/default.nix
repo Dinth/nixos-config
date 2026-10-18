@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  isDarwin,
   ...
 }: let
   inherit (lib) mkIf getExe getExe';
@@ -174,34 +175,39 @@ in {
           htop()     { _modern_hint htop     btop   "modern TUI with GPU + sensors";           command htop     "$@"; }
           unzip()    { _modern_hint unzip    unar   "also handles rar / 7z / tar / etc.";      command unzip    "$@"; }
 
-          # The old lib.hasAttr guards around these branches were tautological
-          # (they test whether the attr exists in nixpkgs, which is always
-          # true, not whether the tool is installed) — selection is a runtime
-          # concern, decided by the checks below. Store-path references keep
-          # all three tools in the closure, same as before.
-          function pbcopy() {
-            local content
-            content="$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
+          ${lib.optionalString (!isDarwin) ''
+            # macOS-style pbcopy for Linux. Not defined on macOS, where it
+            # would shadow the real /usr/bin/pbcopy (and wl-clipboard doesn't
+            # even evaluate there).
+            #
+            # The old lib.hasAttr guards around these branches were tautological
+            # (they test whether the attr exists in nixpkgs, which is always
+            # true, not whether the tool is installed) — selection is a runtime
+            # concern, decided by the checks below. Store-path references keep
+            # all three tools in the closure, same as before.
+            function pbcopy() {
+              local content
+              content="$(${getExe pkgs.bat} --plain "$@" 2>/dev/null || cat "$@")"
 
-            if command -v ${getExe' pkgs.wl-clipboard "wl-copy"} &>/dev/null; then
-              echo -n "$content" | ${getExe' pkgs.wl-clipboard "wl-copy"}
-              return $?
-            fi
+              if command -v ${getExe' pkgs.wl-clipboard "wl-copy"} &>/dev/null; then
+                echo -n "$content" | ${getExe' pkgs.wl-clipboard "wl-copy"}
+                return $?
+              fi
 
-            if ${getExe pkgs.xclip} -version &>/dev/null 2>&1; then
-              echo -n "$content" | ${getExe pkgs.xclip} -selection clipboard
-              return $?
-            fi
+              if ${getExe pkgs.xclip} -version &>/dev/null 2>&1; then
+                echo -n "$content" | ${getExe pkgs.xclip} -selection clipboard
+                return $?
+              fi
 
-            if ${getExe pkgs.xsel} --version &>/dev/null 2>&1; then
-              echo -n "$content" | ${getExe pkgs.xsel} -ib
-              return $?
-            fi
+              if ${getExe pkgs.xsel} --version &>/dev/null 2>&1; then
+                echo -n "$content" | ${getExe pkgs.xsel} -ib
+                return $?
+              fi
 
-            echo "pbcopy: No clipboard utility found (wl-clipboard, xclip, or xsel)" >&2
-            return 1
-          }
-
+              echo "pbcopy: No clipboard utility found (wl-clipboard, xclip, or xsel)" >&2
+              return 1
+            }
+          ''}
         '';
       };
 

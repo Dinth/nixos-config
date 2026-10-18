@@ -305,20 +305,45 @@
       # on Darwin) fails here before anyone runs darwin-rebuild. Context is
       # discarded so the check never tries to realise Darwin derivations.
       michal-macbook-pro-eval = let
+        inherit (nixpkgs) lib;
         inherit (self.darwinConfigurations.michal-macbook-pro) config;
+        user = config.primaryUser.name;
+        hm = config.home-manager.users.${user};
         # Assertions normally only fire when toplevel is built, which can't
         # happen here, so surface the system and Home Manager ones directly.
         failed = map (a: a.message) (
-          builtins.filter (a: !a.assertion)
-          (config.assertions ++ config.home-manager.users.${config.primaryUser.name}.assertions)
+          builtins.filter (a: !a.assertion) (config.assertions ++ hm.assertions)
         );
+        # Everything below is forced except what reaches the IFD above:
+        # hm-session-vars.sh, ~/.zshenv (which sources it) and the fonts
+        # marker carry the palette or LS_COLORS, and these activation steps
+        # and the per-user profile bundle the whole Home Manager generation.
+        ifd = {
+          hmPackages = ["hm-session-vars.sh"];
+          hmFiles = ["./.zshenv" "Library/Fonts/.home-manager-fonts-version"];
+          hmActivation = ["checkFilesChanged" "copyApps" "onFilesChange"];
+          etc = ["profiles/per-user/${user}"];
+        };
+        # Forcing a drvPath evaluates the derivation and all its inputs, which
+        # is where a Linux-only package or an option type clash surfaces.
+        # Home Manager's half used to be left out, so two of those (zsh's
+        # wl-clipboard pbcopy, bat's map-syntax vs Ghostty) went unnoticed.
+        drvPaths = map (p: p.drvPath);
+        sources = files:
+          lib.mapAttrs (_: f: f.source.drvPath or (toString f.source))
+          (lib.filterAttrs (_: f: f.enable) files);
       in
-        assert nixpkgs.lib.assertMsg (failed == []) "michal-macbook-pro assertions failed:\n${nixpkgs.lib.concatStringsSep "\n" failed}";
+        assert lib.assertMsg (failed == []) "michal-macbook-pro assertions failed:\n${lib.concatStringsSep "\n" failed}";
           pkgs.writeText "michal-macbook-pro-eval" (builtins.unsafeDiscardStringContext (builtins.toJSON {
             inherit (config.system) stateVersion;
-            systemPackages = map (p: p.drvPath) config.environment.systemPackages;
-            etc = builtins.attrNames config.environment.etc;
+            systemPackages = drvPaths config.environment.systemPackages;
+            etc = sources (removeAttrs config.environment.etc ifd.etc);
             nixCustomConf = config.environment.etc."nix/nix.custom.conf".text;
+            launchdDaemons = lib.mapAttrs (_: d: d.serviceConfig) config.launchd.daemons;
+            hmPackages = drvPaths (builtins.filter (p: !builtins.elem p.name ifd.hmPackages) hm.home.packages);
+            hmFiles = sources (removeAttrs hm.home.file ifd.hmFiles);
+            hmActivation = lib.mapAttrs (_: a: a.data) (removeAttrs hm.home.activation ifd.hmActivation);
+            hmLaunchdAgents = lib.mapAttrs (_: a: a.config) hm.launchd.agents;
           }));
 
       # Format check — fails if any .nix file would be reformatted.

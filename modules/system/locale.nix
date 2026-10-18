@@ -6,11 +6,13 @@
   ...
 }: {
   config = lib.mkMerge [
-    {time.timeZone = "Europe/London";}
-
     # Locale, console and keyboard layout are NixOS-only options; macOS takes
     # them from System Settings (region/keyboard aren't managed here).
     (lib.optionalAttrs (!isDarwin) {
+      # Not on macOS: nix-darwin would run `systemsetup -settimezone` on every
+      # switch, resetting a travelling laptop to London. macOS sets its time
+      # zone from its location instead.
+      time.timeZone = "Europe/London";
       i18n.defaultLocale = "en_GB.UTF-8";
       i18n.extraLocaleSettings = {
         LC_ADDRESS = "en_GB.UTF-8";
