@@ -35,6 +35,7 @@
       ./kate
       ./konsole
       ./krdc
+      ./languagetool
       ./lnxlink
       ./nextcloud-client
       ./OrcaSlicer

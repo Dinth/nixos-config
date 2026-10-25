@@ -66,9 +66,9 @@
       ];
   };
 
-  # LanguageTool extension pointed at the local failover proxy (omv first,
-  # local server second; see modules/services/languagetool). apiServerUrl is
-  # from the extension's own managed_settings.json schema.
+  # LanguageTool extension pointed at the omv server (modules/apps/languagetool);
+  # Chrome's own spellcheck keeps working when omv is unreachable. apiServerUrl
+  # is from the extension's own managed_settings.json schema.
   languagetool = config.languagetool.enable or false;
   languagetoolExtension = "oldceeleldhonbafppcapldpdifcinji";
   languagetoolPolicy = builtins.toJSON {

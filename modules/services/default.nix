@@ -13,7 +13,6 @@
       ./alloy
       ./komodo-periphery
       ./krdp
-      ./languagetool
       ./llama-cpp
       ./network-mounts
       ./prometheus-exporters

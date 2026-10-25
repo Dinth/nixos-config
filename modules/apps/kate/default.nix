@@ -60,8 +60,8 @@
       highlightingModeRegex = "^PHP$";
     };
   };
-  # Grammar checking for prose, through the local LanguageTool failover proxy
-  # (omv first, local server second; see modules/services/languagetool).
+  # Grammar checking for prose against the omv LanguageTool server
+  # (modules/apps/languagetool).
   ltexLSPServer = lib.optionalAttrs (config.languagetool.enable or false) {
     ltex = {
       command = ["${pkgs.ltex-ls-plus}/bin/ltex-ls-plus"];
