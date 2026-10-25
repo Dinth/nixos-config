@@ -1,28 +1,25 @@
 # OpenTyrian2000 Engaged — fork of KScl/opentyrian2000 (widescreen, Endless
 # mode, online co-op, ship/weapon editors). Not in nixpkgs; based on the
-# opentyrian2000 derivation from nixpkgs PR #567565.
+# opentyrian2000 derivation from nixpkgs PR #567565. Exposed as
+# `pkgs.opentyrian2000-engaged` by gamesOverlay in flake.nix, with `src` set
+# to the non-flake input tracking upstream's `latest` release tag.
 #
 # MIDI (FluidSynth) is Windows-only upstream, so this build uses the default
 # OPL3 synth.
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  src,
   fetchzip,
   SDL2,
   SDL2_net,
   pkg-config,
 }:
-stdenv.mkDerivation (finalAttrs: {
+stdenv.mkDerivation {
   pname = "opentyrian2000-engaged";
-  version = "1.4.2";
-
-  src = fetchFromGitHub {
-    owner = "wlfn1116";
-    repo = "OpenTyrian2000-Engaged";
-    tag = finalAttrs.version;
-    hash = "sha256-ALpOqfh+MBMFp9u4h26ZOK5NrCzHTRhZDHdskqIWqrs=";
-  };
+  # The input only carries the commit, not the release tag name.
+  version = "0-unstable-${lib.substring 0 8 (src.lastModifiedDate or "19700101")}";
+  inherit src;
 
   # Freeware Tyrian 2000 data released by Jason Emery.
   data = fetchzip {
@@ -43,13 +40,8 @@ stdenv.mkDerivation (finalAttrs: {
   makeFlags = [
     "prefix=${placeholder "out"}"
     # The Makefile shells out to git for the version string.
-    "VCS_IDREV=echo ${finalAttrs.version}"
+    "VCS_IDREV=echo ${src.shortRev or "dev"}"
   ];
-
-  # Upstream renamed README to README.md but the install target still wants README.
-  postPatch = ''
-    substituteInPlace Makefile --replace-fail "NEWS README " "NEWS README.md "
-  '';
 
   # Makefile compiles TYRIAN_DIR = $(gamesdir)/opentyrian2000 into the binary.
   postInstall = ''
@@ -67,4 +59,4 @@ stdenv.mkDerivation (finalAttrs: {
     ];
     platforms = lib.platforms.linux;
   };
-})
+}

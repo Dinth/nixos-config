@@ -46,6 +46,48 @@
       url = "github:bkbilly/lnxlink";
       flake = false;
     };
+    # Game sources not in nixpkgs, tracked as source inputs so
+    # `nix flake update` (nh os switch -u) brings new releases; packaged in
+    # modules/system/gaming and exposed via gamesOverlay below.
+    # `latest` is the tag upstream moves to each new release.
+    opentyrian2000-engaged = {
+      url = "github:wlfn1116/OpenTyrian2000-Engaged/latest";
+      flake = false;
+    };
+    # VCMI mods follow each repo's vcmi-1.7 branch (the branch the launcher's
+    # mod repository tracks for VCMI 1.7.x). Input name = vcmi-mod-<mod id>.
+    vcmi-mod-vcmi-extras = {
+      url = "github:vcmi-mods/vcmi-extras/vcmi-1.7";
+      flake = false;
+    };
+    vcmi-mod-hota = {
+      url = "github:vcmi-mods/horn-of-the-abyss/vcmi-1.7";
+      flake = false;
+    };
+    vcmi-mod-wake-of-gods = {
+      url = "github:vcmi-mods/wake-of-gods/vcmi-1.7";
+      flake = false;
+    };
+    vcmi-mod-tides-of-war = {
+      url = "github:vcmi-mods/tides-of-war/vcmi-1.7";
+      flake = false;
+    };
+    vcmi-mod-new-pavilion = {
+      url = "github:vcmi-mods/new-pavilion/vcmi-1.7";
+      flake = false;
+    };
+    vcmi-mod-tears-of-ashan = {
+      url = "github:vcmi-mods/tears-of-ashan/vcmi-1.7";
+      flake = false;
+    };
+    vcmi-mod-market-of-time = {
+      url = "github:vcmi-mods/market-of-time/vcmi-1.7";
+      flake = false;
+    };
+    vcmi-mod-new-old-spells-plus = {
+      url = "github:vcmi-mods/new-old-spells-plus/vcmi-1.7";
+      flake = false;
+    };
     # Wazuh agent (XDR/SIEM endpoint) — not in nixpkgs. Community flake
     # providing a from-source `wazuh-agent` package + a journald-aware NixOS
     # module (`services.wazuh-agent`). Pinned to nealfennimore's fork at
@@ -95,11 +137,12 @@
     llm-agents,
     nix-index-database,
     lnxlink,
+    opentyrian2000-engaged,
     wazuh-agent,
     nix-darwin,
     determinate,
     ...
-  }: let
+  } @ inputs: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
     # lnxlink is a non-flake source input; the packaging lives beside its
@@ -107,6 +150,14 @@
     # and lets the module consume it through a normal `package` option.
     lnxlinkOverlay = final: _: {
       lnxlink = final.callPackage ./modules/apps/lnxlink/package.nix {src = lnxlink;};
+    };
+    # Non-flake game sources (see the inputs). vcmiMods maps VCMI mod id ->
+    # source tree, collected from every vcmi-mod-* input.
+    gamesOverlay = final: _: {
+      opentyrian2000-engaged = final.callPackage ./modules/system/gaming/opentyrian2000-engaged.nix {src = opentyrian2000-engaged;};
+      vcmiMods =
+        nixpkgs.lib.mapAttrs' (name: src: nixpkgs.lib.nameValuePair (nixpkgs.lib.removePrefix "vcmi-mod-" name) src)
+        (nixpkgs.lib.filterAttrs (name: _: nixpkgs.lib.hasPrefix "vcmi-mod-" name) inputs);
     };
     # llm-agents.nix ships plain package.nix files that expect to be called from
     # the flake's own package scope (its flake.nix builds one with lib.makeScope,
@@ -216,7 +267,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay gamesOverlay llmAgentsOverlay wazuhOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -246,7 +297,7 @@
           # hasNixVirt so eval succeeds without it.
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay wazuhOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay gamesOverlay wazuhOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -274,7 +325,7 @@
           wazuh-agent.nixosModules.wazuh-agent
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [lnxlinkOverlay llmAgentsOverlay wazuhOverlay];
+            nixpkgs.overlays = [lnxlinkOverlay gamesOverlay llmAgentsOverlay wazuhOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -387,7 +438,7 @@
           nix-index-database.darwinModules.nix-index
           home-manager.darwinModules.home-manager
           {
-            nixpkgs.overlays = [llmAgentsOverlay];
+            nixpkgs.overlays = [gamesOverlay llmAgentsOverlay];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;

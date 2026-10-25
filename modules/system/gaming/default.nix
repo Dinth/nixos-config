@@ -55,26 +55,10 @@
       > $out/share/applications/openttd-jgrpp.desktop
   '';
 
-  # VCMI mods, pinned to a commit of each repo's vcmi-1.7 branch (the branch
-  # the launcher's mod repository tracks for VCMI 1.7.x). Keyed by VCMI mod
-  # id, which is also the directory name under Mods/. Linked read-only from
-  # the store, so the launcher cannot update them — bump rev + hash here.
-  vcmiMod = repo: rev: hash:
-    pkgs.fetchFromGitHub {
-      owner = "vcmi-mods";
-      inherit repo rev hash;
-    };
-  vcmiMods = {
-    vcmi-extras = vcmiMod "vcmi-extras" "2fa21f9c24f2c14d2b9be87f445e839f76105e31" "sha256-sX7rxqdY+Cb1dQnAfXa7y2iCFjkD8rnOlrn6lTtUdHA=";
-    hota = vcmiMod "horn-of-the-abyss" "947f620cde9f583357d4255e23da43d8564e2920" "sha256-oYx27NJcEg1P7tCZOuVeJTxN7zhsSsrJiz7yMcZjAaE=";
-    wake-of-gods = vcmiMod "wake-of-gods" "e6b930f78ea05dc609ac3727fd927327a19658d6" "sha256-r+JrP363m+ycYMZVDH+HgsMUbuGy/PzPOT5mvqXpPm0=";
-    tides-of-war = vcmiMod "tides-of-war" "de3df04dcb4c8e110a1d292525dcfe852fe5af89" "sha256-mMFzmZv07QXvfdQZqpcuKGuhdAZ7r+AH1h4F/QxwB4w=";
-    new-pavilion = vcmiMod "new-pavilion" "71f759f4553c750809ea3cead419c10cb19d220d" "sha256-E8A9VnkV2j1A4egOWH8B8RLy0aVpa/PXgyRuY+8HJvI=";
-    tears-of-ashan = vcmiMod "tears-of-ashan" "902f50803f5c5c5b8c93b98f1ebf5ebf1a60f158" "sha256-ZQ06t3whQJX3eehNjPXs6e2RR4nASwW9Om72+TVNe18=";
-    # Required by tears-of-ashan.
-    market-of-time = vcmiMod "market-of-time" "f344ddb77f0c506a58ad51f11d057868b60ef95e" "sha256-b+dIoXTPaVB4gfFVt//vr1SbPLO7E6JplPuDrkGRk/A=";
-    new-old-spells-plus = vcmiMod "new-old-spells-plus" "ceb0e12e480250fcf3e98af39c5717b44220b5ee" "sha256-4NmSM6J7wUA+nSSWvMCt81csgXjX7gzERJMpuOFv8I0=";
-  };
+  # VCMI mods (mod id -> source), from the vcmi-mod-* flake inputs via
+  # gamesOverlay. Linked read-only from the store, so the launcher cannot
+  # update them — `nix flake update` does.
+  inherit (pkgs) vcmiMods;
 
   # VCMI mod presets (switchable in the launcher) and the mods each enables.
   # Two presets because the mods do not all combine:
@@ -268,7 +252,7 @@ in {
         devilutionx # Diablo + Hellfire (data imported by gog-game-data below)
         innoextract # unpack GOG setup_*.exe for the above
         gogGameData # manual re-run: gog-game-data
-        (callPackage ./opentyrian2000-engaged.nix {})
+        opentyrian2000-engaged
       ];
 
       # Import the GOG data once per user. The script skips games already
