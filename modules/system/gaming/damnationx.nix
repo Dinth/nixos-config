@@ -106,11 +106,14 @@
   # itself. A store path there would keep launching the old release after a
   # bump (and break once it is GC'd), so the release is bind-mounted at a
   # stable /opt/damnationx, and paths saved by earlier store-path launches are
-  # rewritten to it.
+  # rewritten to it. "Match display" (auto_resolution) is forced on too; the
+  # file only exists after the launcher's first run.
   launch = pkgs.writeShellScript "damnationx-launch" ''
     settings="''${XDG_CONFIG_HOME:-$HOME/.config}/damnationx/launcher/settings.json"
     if [ -f "$settings" ]; then
       sed -i -E 's#/nix/store/[a-z0-9]+-damnationx-unwrapped-[^/]+/share/damnationx#/opt/damnationx#g' "$settings"
+      tmp=$(mktemp "$settings.XXXXXX")
+      ${lib.getExe pkgs.jq} '.auto_resolution = true' "$settings" >"$tmp" && mv "$tmp" "$settings"
     fi
     exec /opt/damnationx/launcher "$@"
   '';
