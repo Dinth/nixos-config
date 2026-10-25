@@ -60,7 +60,22 @@
       ]
       ++ lib.optionals (config.kde.enable or false) [
         "cimiefiiaegbelhefglklhhakcgmhkai;https://clients2.google.com/service/update2/crx"
+      ]
+      ++ lib.optionals languagetool [
+        "${languagetoolExtension};https://clients2.google.com/service/update2/crx"
       ];
+  };
+
+  # LanguageTool extension pointed at the local failover proxy (omv first,
+  # local server second; see modules/services/languagetool). apiServerUrl is
+  # from the extension's own managed_settings.json schema.
+  languagetool = config.languagetool.enable or false;
+  languagetoolExtension = "oldceeleldhonbafppcapldpdifcinji";
+  languagetoolPolicy = builtins.toJSON {
+    "3rdparty".extensions.${languagetoolExtension} = {
+      apiServerUrl = "${config.languagetool.url}/v2";
+      disablePrivacyConfirmation = true;
+    };
   };
 
   # Chrome never touches the system hunspell dictionaries — it ships its own
@@ -89,6 +104,9 @@ in {
         "/opt/chrome/policies/enrollment/CloudManagementEnrollmentOptions".text = "Mandatory";
         "opt/chrome/policies/managed/extensions.json".text = extensionsPolicy;
         "opt/chrome/policies/managed/spellcheck.json".text = spellcheckPolicy;
+      }
+      // lib.optionalAttrs languagetool {
+        "opt/chrome/policies/managed/languagetool.json".text = languagetoolPolicy;
       }
       // lib.optionalAttrs (config.kde.enable or false) {
         "opt/chrome/native-messaging-hosts/org.kde.plasma.browser_integration.json".source = "${pkgs.kdePackages.plasma-browser-integration}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";

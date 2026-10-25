@@ -60,6 +60,19 @@
       highlightingModeRegex = "^PHP$";
     };
   };
+  # Grammar checking for prose, through the local LanguageTool failover proxy
+  # (omv first, local server second; see modules/services/languagetool).
+  ltexLSPServer = lib.optionalAttrs (config.languagetool.enable or false) {
+    ltex = {
+      command = ["${pkgs.ltex-ls-plus}/bin/ltex-ls-plus"];
+      url = "https://github.com/ltex-plus/ltex-ls-plus";
+      highlightingModeRegex = "^(Markdown|LaTeX|reStructuredText)$";
+      settings.ltex = {
+        language = "en-GB";
+        languageToolHttpServerUri = "${config.languagetool.url}/";
+      };
+    };
+  };
 in {
   config = mkIf cfg.enable {
     home-manager.users.${primaryUsername} = {
@@ -100,7 +113,7 @@ in {
           tabWidth = 2;
         };
         lsp = {
-          customServers = customLSPServers;
+          customServers = customLSPServers // ltexLSPServer;
         };
       };
       xdg = {
