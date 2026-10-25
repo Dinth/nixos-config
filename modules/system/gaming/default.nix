@@ -55,6 +55,16 @@
       > $out/share/applications/openttd-jgrpp.desktop
   '';
 
+  # DamnationX does not support Hellfire yet (upstream issue #4; its launcher
+  # always passes --diablo), so DevilutionX stays for Hellfire saves (*.hsv),
+  # exposed only through its own "DevilutionX Hellfire" launcher.
+  devilutionxHellfire = pkgs.runCommand "devilutionx-hellfire" {} ''
+    mkdir -p $out/bin $out/share/applications
+    ln -s ${lib.getExe pkgs.devilutionx} $out/bin/devilutionx
+    ln -s ${pkgs.devilutionx}/share/applications/devilutionx-hellfire.desktop $out/share/applications/
+    ln -s ${pkgs.devilutionx}/share/icons $out/share/icons
+  '';
+
   # VCMI mods (mod id -> source), from the vcmi-mod-* flake inputs via
   # gamesOverlay. Linked read-only from the store, so the launcher cannot
   # update them — `nix flake update` does.
@@ -99,7 +109,7 @@ in {
         default = cfg.enable;
         defaultText = lib.literalExpression "config.gaming.enable";
         description = ''
-          Game engines (OpenTTD, VCMI, DamnationX, OpenTyrian) and
+          Game engines (OpenTTD, VCMI, DamnationX/DevilutionX, OpenTyrian) and
           the GOG data import that feeds them. Separate from `enable` so light
           hosts (the tablet) get these without Wine/Lutris/scx/gamemode.
         '';
@@ -249,9 +259,11 @@ in {
         openttdJgrpp
         # Open-source engines; game data comes from the GOG installers.
         vcmi # Heroes 3 (RoE+AB+SoD data imported by gog-game-data below)
-        # Diablo + Hellfire (data imported by gog-game-data below; DevilutionX
-        # on the Mac, which shares the save/data layout)
+        # Diablo in DamnationX, Hellfire in DevilutionX; both read the data
+        # imported by gog-game-data below and share one save folder (the Mac
+        # uses DevilutionX for both)
         (callPackage ./damnationx.nix {})
+        devilutionxHellfire
         innoextract # unpack GOG setup_*.exe for the above
         gogGameData # manual re-run: gog-game-data
         opentyrian2000-engaged
