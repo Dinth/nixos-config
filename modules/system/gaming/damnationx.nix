@@ -1,7 +1,7 @@
 # DamnationX — DevilutionX fork with HD 2D art, a 3D renderer, an online
 # lobby and Diablo II sound/art imports. Saves, MPQs and diablo.ini live in
 # the same SDL pref dir as DevilutionX (~/.local/share/diasurgical/devilution);
-# launcher state goes under ~/.local/share/damnationx.
+# launcher settings go to ~/.config/damnationx/launcher.
 #
 # The 3D renderer (Toxoid) is closed source and ships only in the prebuilt
 # Ubuntu release, whose licence forbids modifying it. So the binaries are
@@ -102,6 +102,19 @@
     hash = "sha256-n2QR23Bl2RNxRUR+SiA2KmxX0hTBR27cTD6az/dxSiM=";
   };
 
+  # The launcher saves the game and importer paths it discovers next to
+  # itself. A store path there would keep launching the old release after a
+  # bump (and break once it is GC'd), so the release is bind-mounted at a
+  # stable /opt/damnationx, and paths saved by earlier store-path launches are
+  # rewritten to it.
+  launch = pkgs.writeShellScript "damnationx-launch" ''
+    settings="''${XDG_CONFIG_HOME:-$HOME/.config}/damnationx/launcher/settings.json"
+    if [ -f "$settings" ]; then
+      sed -i -E 's#/nix/store/[a-z0-9]+-damnationx-unwrapped-[^/]+/share/damnationx#/opt/damnationx#g' "$settings"
+    fi
+    exec /opt/damnationx/launcher "$@"
+  '';
+
   desktopItem = makeDesktopItem {
     name = "damnationx";
     desktopName = "DamnationX";
@@ -127,7 +140,8 @@ in
         python3
       ]);
 
-    runScript = "${unwrapped}/share/damnationx/launcher";
+    extraBwrapArgs = ["--ro-bind ${unwrapped}/share/damnationx /opt/damnationx"];
+    runScript = launch;
 
     extraInstallCommands = ''
       install -Dm644 ${desktopItem}/share/applications/damnationx.desktop \
