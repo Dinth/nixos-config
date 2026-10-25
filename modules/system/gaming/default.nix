@@ -11,7 +11,7 @@
   primaryUsername = config.primaryUser.name;
 
   # Unpacks Diablo/Hellfire and Heroes 3 data from the GOG installers on the
-  # NAS into the per-user data dirs DevilutionX and VCMI read, and turns a
+  # NAS into the per-user data dirs DamnationX/DevilutionX and VCMI read, and turns a
   # Steam install of Heroes 3 HD Edition into VCMI's "hd-edition" mod.
   gogGameData = pkgs.writeShellApplication {
     name = "gog-game-data";
@@ -99,7 +99,7 @@ in {
         default = cfg.enable;
         defaultText = lib.literalExpression "config.gaming.enable";
         description = ''
-          Open-source game engines (OpenTTD, VCMI, DevilutionX, OpenTyrian) and
+          Game engines (OpenTTD, VCMI, DamnationX, OpenTyrian) and
           the GOG data import that feeds them. Separate from `enable` so light
           hosts (the tablet) get these without Wine/Lutris/scx/gamemode.
         '';
@@ -249,7 +249,9 @@ in {
         openttdJgrpp
         # Open-source engines; game data comes from the GOG installers.
         vcmi # Heroes 3 (RoE+AB+SoD data imported by gog-game-data below)
-        devilutionx # Diablo + Hellfire (data imported by gog-game-data below)
+        # Diablo + Hellfire (data imported by gog-game-data below; DevilutionX
+        # on the Mac, which shares the save/data layout)
+        (callPackage ./damnationx.nix {})
         innoextract # unpack GOG setup_*.exe for the above
         gogGameData # manual re-run: gog-game-data
         opentyrian2000-engaged
@@ -261,7 +263,7 @@ in {
       # gog-game-data` re-runs it after dropping a new installer on the NAS.
       home-manager.users.${primaryUsername} = {
         systemd.user.services.gog-game-data = {
-          Unit.Description = "Import GOG/Steam game data for DevilutionX and VCMI";
+          Unit.Description = "Import GOG/Steam game data for DamnationX and VCMI";
           Service = {
             Type = "oneshot";
             ExecStart = lib.getExe gogGameData;

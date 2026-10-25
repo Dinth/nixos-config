@@ -60,7 +60,7 @@ extract() {
   innoextract --gog --silent --output-dir "$tmp" "${includes[@]}" "$installer"
 }
 
-# Diablo + Hellfire -> DevilutionX. DIABDAT.MPQ is the base game; the four
+# Diablo + Hellfire -> DamnationX (DevilutionX on the Mac; same data dir). DIABDAT.MPQ is the base game; the four
 # hf*.mpq / hellfire.mpq archives enable the Hellfire expansion.
 import_diablo() {
   local dest="$DATA_HOME/diasurgical/devilution"
