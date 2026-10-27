@@ -151,7 +151,9 @@ in {
       "net.ipv4.icmp_echo_ignore_broadcasts" = 1;
       "kernel.unprivileged_bpf_disabled" = 1;
       "net.core.bpf_jit_harden" = 2;
-      "kernel.ftrace_enabled" = 0;
+      # No kernel.ftrace_enabled = 0: on this kernel (7.x, DYNAMIC_FTRACE) the
+      # write returns EOPNOTSUPP, so it never applied and only failed
+      # systemd-sysctl.service, making every switch exit 4.
       # Block kexec — stops loading a replacement kernel at runtime, closing a
       # path that bypasses Secure Boot / signed-kernel guarantees. One-way latch.
       "kernel.kexec_load_disabled" = 1;
