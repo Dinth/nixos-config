@@ -38,6 +38,12 @@
   # session, so finance/health data stays out of unrelated work. Each folder
   # gets an opencode.json (merged over the global config by opencode) plus a
   # shared AGENTS.md that claude-code's CLAUDE.md imports.
+  # Trading 212 MCP wrapper (projects/finance/trading212-mcp.nix). Falls back
+  # to the default agenix path while the secret isn't created yet, so hosts
+  # still evaluate; the wrapper then fails with a clear message.
+  t212Mcp = pkgs.callPackage ./projects/finance/trading212-mcp.nix {
+    envFile = config.age.secrets.t212-mcp-env.path or "/run/agenix/t212-mcp-env";
+  };
   projectMcpServers = {
     finance = {
       # Firefly III MCP (firefly-iii-mcp, 10.10.1.13:5137) — personal
@@ -55,6 +61,15 @@
         headers = {
           Authorization = "Bearer {env:FIREFLY_MCP_TOKEN}";
         };
+      };
+      # Trading 212 Stocks ISA (KyuRish/trading212-mcp-server, stdio). The
+      # wrapper loads the ISA API key from the ragenix `t212-mcp-env` secret
+      # itself. Order/pie tools are denied via agentPermissions.mcpDeny.
+      trading212 = {
+        type = "local";
+        command = [(lib.getExe t212Mcp)];
+        enabled = true;
+        timeout = 20000;
       };
     };
     health = {
@@ -109,6 +124,21 @@ in {
     # and this repo is public; ragenix decrypts it straight into the
     # knowledge dir beside the plain-text topics below. Guarded on the .age
     # existing so hosts evaluate before it's been created/rekeyed.
+    # Trading 212 Stocks ISA API credentials for the finance workspace's
+    # trading212 MCP, as an env file (TRADING212_API_KEY=,
+    # TRADING212_API_SECRET=, ENVIRONMENT=live) sourced by the wrapper only.
+    # Guarded like mosyle-knowledge so hosts evaluate before it exists.
+    (mkIf (builtins.pathExists ../../../secrets/t212-mcp-env.age) {
+      age.secrets.t212-mcp-env = {
+        file = ../../../secrets/t212-mcp-env.age;
+        owner = primaryUsername;
+        group =
+          if isDarwin
+          then "staff"
+          else "users";
+        mode = "0400";
+      };
+    })
     (mkIf (builtins.pathExists ../../../secrets/mosyle-knowledge.age) {
       age.secrets.mosyle-knowledge = {
         file = ../../../secrets/mosyle-knowledge.age;
@@ -304,6 +334,14 @@ in {
                   value = "allow";
                 })
                 (lib.filter (lib.hasPrefix haPrefix) config.agentPermissions.mcpReadOnly));
+              # Shared MCP denies (`mcp__<server>__<tool>` → `<server>_<tool>`).
+              mcpDeny = lib.listToAttrs (map (t: let
+                  parts = lib.splitString "__" (lib.removePrefix "mcp__" t);
+                in {
+                  name = "${lib.head parts}_${lib.concatStringsSep "__" (lib.tail parts)}";
+                  value = "deny";
+                })
+                config.agentPermissions.mcpDeny);
               # Deny reads of secret material, from the shared denyReadGlobs
               # list (same paths as the claude-code `deny` block). `*` = allow
               # is the catch-all; opencode resolves last-matching-rule-wins and
@@ -349,7 +387,8 @@ in {
                 todowrite = "allow";
                 todoread = "allow";
               }
-              // haReadOnly;
+              // haReadOnly
+              // mcpDeny;
             lsp = {
               yaml = {
                 command = [

@@ -37,7 +37,7 @@
     };
     # Finance / health workspaces — see projectMcpServers below.
     "${userHome}/Documents/finance" = {
-      enabledMcpjsonServers = ["firefly"];
+      enabledMcpjsonServers = ["firefly" "trading212"];
     };
     "${userHome}/Documents/health" = {
       enabledMcpjsonServers = ["healthlog"];
@@ -49,6 +49,12 @@
   # write-capable homeassistant MCP at /mnt/haos and /mnt/haos/esphome; the
   # project CLAUDE.md flips Claude into HA mode whenever cwd is under the share.
   haosMcpJson = ./haos/mcp.json;
+
+  # Trading 212 MCP wrapper — packaged beside the finance workspace's shared
+  # AGENTS.md; the secret itself is declared in modules/apps/opencode.
+  t212Mcp = pkgs.callPackage ../opencode/projects/finance/trading212-mcp.nix {
+    envFile = config.age.secrets.t212-mcp-env.path or "/run/agenix/t212-mcp-env";
+  };
   haosClaudeMd = ./haos/CLAUDE.md;
 
   # Project paths seeded as trusted in ~/.claude.json. Claude Code 2.1+
@@ -115,6 +121,15 @@
         type = "http";
         url = "http://10.10.1.13:5137/";
         headers.Authorization = "Bearer \${FIREFLY_MCP_TOKEN:-}";
+      };
+      # Trading 212 Stocks ISA (KyuRish/trading212-mcp-server, stdio). The
+      # wrapper loads the ISA API key from the ragenix `t212-mcp-env` secret
+      # itself, so nothing is exported to the shell. Order/pie tools are in
+      # agentPermissions.mcpDeny; reads prompt, same as firefly.
+      trading212 = {
+        type = "stdio";
+        command = lib.getExe t212Mcp;
+        args = [];
       };
     };
     health = {
@@ -288,7 +303,8 @@
           "Read(./${g})"
           "Read(./**/${g})"
         ])
-        config.agentPermissions.denyReadGlobs;
+        config.agentPermissions.denyReadGlobs
+        ++ config.agentPermissions.mcpDeny;
     };
   };
 

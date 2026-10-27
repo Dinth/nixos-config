@@ -391,6 +391,32 @@ in {
       ];
     };
 
+    mcpDeny = mkOption {
+      type = types.listOf types.str;
+      readOnly = true;
+      description = ''
+        MCP tools an agent must never call, in Claude Code naming
+        (`mcp__<server>__<tool>`). claude-code puts them in `deny`;
+        opencode rewrites each to `<server>_<tool>` = "deny".
+      '';
+      # Trading 212 (finance workspace): every order and pie mutation, plus
+      # the CSV export request. The ISA API key is also issued without the
+      # orders:execute / pies:write scopes, so these would 403 anyway — this
+      # keeps the agent from attempting them at all.
+      default = map (t: "mcp__trading212__${t}") [
+        "place_market_order"
+        "place_limit_order"
+        "place_stop_order"
+        "place_stop_limit_order"
+        "cancel_order"
+        "create_pie"
+        "update_pie"
+        "duplicate_pie"
+        "delete_pie"
+        "request_csv_export"
+      ];
+    };
+
     denyReadGlobs = mkOption {
       type = types.listOf types.str;
       readOnly = true;
