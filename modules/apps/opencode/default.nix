@@ -90,6 +90,9 @@
   projectConfig = mcp:
     builtins.toJSON {
       "$schema" = "https://opencode.ai/config.json";
+      # Encrypted private context (see the *-personal secrets below); opencode
+      # skips it when absent.
+      instructions = ["PERSONAL.md"];
       inherit mcp;
     };
 in {
@@ -139,6 +142,25 @@ in {
         mode = "0400";
       };
     })
+    # Private context for the finance / health workspaces (holdings, amounts,
+    # goals, conditions) — the AGENTS.md beside it is public, this isn't.
+    # Decrypted straight into the workspace as PERSONAL.md, which both agents
+    # load (opencode `instructions`, claude-code `@PERSONAL.md`). Edit with
+    # `ragenix -e <name>-personal.age` in secrets/. Guarded per file so a
+    # workspace without one still evaluates.
+    (lib.mkMerge (map (project:
+      mkIf (builtins.pathExists ../../../secrets/${project}-personal.age) {
+        age.secrets."${project}-personal" = {
+          file = ../../../secrets/${project}-personal.age;
+          owner = primaryUsername;
+          group =
+            if isDarwin
+            then "staff"
+            else "users";
+          mode = "0400";
+          path = "${config.users.users.${primaryUsername}.home}/Documents/${project}/PERSONAL.md";
+        };
+      }) ["finance" "health"]))
     (mkIf (builtins.pathExists ../../../secrets/mosyle-knowledge.age) {
       age.secrets.mosyle-knowledge = {
         file = ../../../secrets/mosyle-knowledge.age;

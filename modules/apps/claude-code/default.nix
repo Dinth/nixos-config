@@ -628,11 +628,12 @@ in {
         source = ./skills;
         recursive = true;
       };
-      # Finance / health workspaces (see projectMcpServers above).
+      # Finance / health workspaces (see projectMcpServers above). PERSONAL.md
+      # is the ragenix-decrypted private context (modules/apps/opencode).
       home.file."Documents/finance/.mcp.json".text = builtins.toJSON {mcpServers = projectMcpServers.finance;};
-      home.file."Documents/finance/CLAUDE.md".text = "@AGENTS.md\n";
+      home.file."Documents/finance/CLAUDE.md".text = "@AGENTS.md\n@PERSONAL.md\n";
       home.file."Documents/health/.mcp.json".text = builtins.toJSON {mcpServers = projectMcpServers.health;};
-      home.file."Documents/health/CLAUDE.md".text = "@AGENTS.md\n";
+      home.file."Documents/health/CLAUDE.md".text = "@AGENTS.md\n@PERSONAL.md\n";
       # Install settings.json as a real mutable file instead of a Nix store
       # symlink. Claude Code does a write-test on settings.json at startup;
       # a read-only symlink causes the entire permission system to fall back

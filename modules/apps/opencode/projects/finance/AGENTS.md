@@ -49,9 +49,11 @@ budgets, bills, categories, tags, net worth and spending insights.
 
 - Show amounts with their currency and the date range they cover.
 - Keep files written here (notes, CSVs, reports) inside this folder.
-- **Privacy:** this file comes from a public repo. Never put personal details
-  (balances, holdings, income, employers, account names) into it, into nixos-config, or into commit messages — keep them
-  in notes inside this folder, which stays local.
+- **Private context** lives in `PERSONAL.md` beside this file (decrypted from
+  ragenix; read it first if present). This file comes from a public repo:
+  never put personal details (balances, holdings, income, employers, account names) into it, into nixos-config or
+  into commit messages. Suggest additions to `PERSONAL.md` instead — it's
+  read-only here; the user edits it with `ragenix -e finance-personal.age`.
 
 > `AGENTS.md`, `CLAUDE.md`, `.mcp.json` and `opencode.json` here are deployed by
 > nixos-config (Home Manager) — change them in `modules/apps/{opencode,claude-code}`,
