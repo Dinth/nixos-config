@@ -35,6 +35,13 @@
     "/mnt/haos/esphome" = {
       enabledMcpjsonServers = ["homeassistant"];
     };
+    # Finance / health workspaces — see projectMcpServers below.
+    "${userHome}/Documents/finance" = {
+      enabledMcpjsonServers = ["firefly"];
+    };
+    "${userHome}/Documents/health" = {
+      enabledMcpjsonServers = ["healthlog"];
+    };
   };
 
   # HAOS marker files written into the CIFS share at activation (the share
@@ -88,33 +95,48 @@
       url = "http://10.10.1.13:5136/mcp";
       headers.Authorization = "Basic \${NEXTCLOUD_MCP_AUTH:-}";
     };
-    # Firefly III MCP (firefly-iii-mcp, 10.10.1.13:5137) — personal finance:
-    # accounts, transactions, budgets, categories, bills. Streamable HTTP on
-    # the root path (no /mcp suffix). Bearer token is a Firefly Passport JWT
-    # (user id 1, expires 2027-08-12) held in the ragenix `firefly-mcp-token`
-    # secret and exported as FIREFLY_MCP_TOKEN at shell startup, same
-    # env-expansion trick as nextcloud above. Write tools (create/update/
-    # delete/bulk) are deliberately absent from agentPermissions.mcpReadOnly,
-    # so every mutation still prompts.
-    firefly = {
-      type = "http";
-      url = "http://10.10.1.13:5137/";
-      headers.Authorization = "Bearer \${FIREFLY_MCP_TOKEN:-}";
+  };
+
+  # Project-scope MCP servers, written as .mcp.json into ~/Documents/<project>
+  # so finance and health data only load inside their own workspace rather
+  # than every session. The project instructions are the AGENTS.md shared with
+  # opencode (modules/apps/opencode/projects), imported by a one-line CLAUDE.md.
+  projectMcpServers = {
+    finance = {
+      # Firefly III MCP (firefly-iii-mcp, 10.10.1.13:5137) — personal finance:
+      # accounts, transactions, budgets, categories, bills. Streamable HTTP on
+      # the root path (no /mcp suffix). Bearer token is a Firefly Passport JWT
+      # (user id 1, expires 2027-08-12) held in the ragenix `firefly-mcp-token`
+      # secret and exported as FIREFLY_MCP_TOKEN at shell startup, same
+      # env-expansion trick as nextcloud above. Write tools (create/update/
+      # delete/bulk) are deliberately absent from agentPermissions.mcpReadOnly,
+      # so every mutation still prompts.
+      firefly = {
+        type = "http";
+        url = "http://10.10.1.13:5137/";
+        headers.Authorization = "Bearer \${FIREFLY_MCP_TOKEN:-}";
+      };
     };
-    # HealthLog MCP (health.wickhay.uk, Traefik-only — no published port).
-    # No static token: the endpoint advertises OAuth discovery
-    # (/.well-known/oauth-protected-resource), so Claude Code walks the
-    # PKCE flow once via `/mcp` → healthlog → Authenticate and refreshes the
-    # short-lived health:read token itself — nothing to rotate in ragenix
-    # (manual hlk_ tokens expire after 90 days). Answers 404 until the `mcp`
-    # module is enabled in HealthLog Settings → MCP for the account. Tools
-    # are left out of agentPermissions.mcpReadOnly on purpose: health data
-    # reads prompt, same as firefly.
-    healthlog = {
-      type = "http";
-      url = "https://health.wickhay.uk/mcp";
+    health = {
+      # HealthLog MCP (health.wickhay.uk, Traefik-only — no published port).
+      # No static token: the endpoint advertises OAuth discovery
+      # (/.well-known/oauth-protected-resource), so Claude Code walks the
+      # PKCE flow once via `/mcp` → healthlog → Authenticate and refreshes the
+      # short-lived health:read token itself — nothing to rotate in ragenix
+      # (manual hlk_ tokens expire after 90 days). Answers 404 until the `mcp`
+      # module is enabled in HealthLog Settings → MCP for the account. Tools
+      # are left out of agentPermissions.mcpReadOnly on purpose: health data
+      # reads prompt, same as firefly.
+      healthlog = {
+        type = "http";
+        url = "https://health.wickhay.uk/mcp";
+      };
     };
   };
+
+  # Previously user-scope; removed from ~/.claude.json on activation because
+  # the merge below is additive and would otherwise keep them global forever.
+  retiredGlobalMcpServers = ["firefly" "healthlog"];
 
   # Settings attrset — serialised to JSON and installed as a real mutable
   # file via home.activation (see below). programs.claude-code.settings
@@ -285,6 +307,7 @@
     CLAUDE_JSON="$HOME/.claude.json"
     MCP_JSON=${lib.escapeShellArg (builtins.toJSON globalMcpServers)}
     TRUSTED_JSON=${lib.escapeShellArg (builtins.toJSON trustedProjects)}
+    RETIRED_JSON=${lib.escapeShellArg (builtins.toJSON retiredGlobalMcpServers)}
 
     if [ ! -s "$CLAUDE_JSON" ]; then
       ${lib.getExe' pkgs.coreutils "install"} -m 600 /dev/null "$CLAUDE_JSON"
@@ -295,8 +318,9 @@
     # copyOnSelect is a global-config key (read from ~/.claude.json, not
     # settings.json). Off: a mouse selection no longer clobbers the
     # clipboard; copy it explicitly with Ctrl+C / Ctrl+Shift+C instead.
-    ${lib.getExe pkgs.jq} --argjson mcp "$MCP_JSON" --argjson trusted "$TRUSTED_JSON" '
-      .mcpServers = ((.mcpServers // {}) + $mcp)
+    ${lib.getExe pkgs.jq} --argjson mcp "$MCP_JSON" --argjson trusted "$TRUSTED_JSON" \
+      --argjson retired "$RETIRED_JSON" '
+      .mcpServers = (((.mcpServers // {}) | delpaths([$retired[] | [.]])) + $mcp)
       | .copyOnSelect = false
       | reduce $trusted[] as $p (.;
           .projects[$p] = ((.projects[$p] // {})
@@ -588,6 +612,11 @@ in {
         source = ./skills;
         recursive = true;
       };
+      # Finance / health workspaces (see projectMcpServers above).
+      home.file."Documents/finance/.mcp.json".text = builtins.toJSON {mcpServers = projectMcpServers.finance;};
+      home.file."Documents/finance/CLAUDE.md".text = "@AGENTS.md\n";
+      home.file."Documents/health/.mcp.json".text = builtins.toJSON {mcpServers = projectMcpServers.health;};
+      home.file."Documents/health/CLAUDE.md".text = "@AGENTS.md\n";
       # Install settings.json as a real mutable file instead of a Nix store
       # symlink. Claude Code does a write-test on settings.json at startup;
       # a read-only symlink causes the entire permission system to fall back
@@ -605,7 +634,7 @@ in {
       # Merge Nix-declared per-project overlays into each project's
       # .claude/settings.local.json. Used for machine-specific paths
       # (e.g. sshfs mounts) that don't belong in committed settings.json.
-      home.activation.claudeCodeProjectSettings = home-manager.lib.hm.dag.entryAfter ["claudeCodeGlobalJson"] ''
+      home.activation.claudeCodeProjectSettings = home-manager.lib.hm.dag.entryAfter ["claudeCodeGlobalJson" "linkGeneration"] ''
         $DRY_RUN_CMD ${mergeProjectSettingsScript}
       '';
       # Drop the HA marker files (.mcp.json + CLAUDE.md) onto the /mnt/haos CIFS

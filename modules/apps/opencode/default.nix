@@ -32,6 +32,51 @@
       fi
     done
   '';
+
+  # Project-scoped MCPs: firefly and healthlog only load inside their own
+  # workspace (~/Documents/finance, ~/Documents/health) instead of every
+  # session, so finance/health data stays out of unrelated work. Each folder
+  # gets an opencode.json (merged over the global config by opencode) plus a
+  # shared AGENTS.md that claude-code's CLAUDE.md imports.
+  projectMcpServers = {
+    finance = {
+      # Firefly III MCP (firefly-iii-mcp, 10.10.1.13:5137) — personal
+      # finance: accounts, transactions, budgets, categories, bills.
+      # Streamable HTTP on the root path (no /mcp suffix). The bearer
+      # token is a Firefly Passport JWT (user id 1, expires 2027-08-12)
+      # from the ragenix `firefly-mcp-token` secret, exported as
+      # $FIREFLY_MCP_TOKEN in zsh below and resolved by opencode's
+      # `{env:...}` at launch, so it never lands in the nix store.
+      firefly = {
+        type = "remote";
+        url = "http://10.10.1.13:5137/";
+        enabled = true;
+        timeout = 20000;
+        headers = {
+          Authorization = "Bearer {env:FIREFLY_MCP_TOKEN}";
+        };
+      };
+    };
+    health = {
+      # HealthLog MCP (health.wickhay.uk) — same server Claude Code uses.
+      # No static token: the endpoint advertises OAuth discovery, so
+      # opencode walks the PKCE flow once via `opencode mcp auth
+      # healthlog` and refreshes the short-lived health:read token
+      # itself. 404s until the `mcp` module is enabled in HealthLog
+      # Settings → MCP.
+      healthlog = {
+        type = "remote";
+        url = "https://health.wickhay.uk/mcp";
+        enabled = true;
+        timeout = 20000;
+      };
+    };
+  };
+  projectConfig = mcp:
+    builtins.toJSON {
+      "$schema" = "https://opencode.ai/config.json";
+      inherit mcp;
+    };
 in {
   options = {
     agenticAi = {
@@ -103,6 +148,11 @@ in {
         home.file.".config/opencode/knowledge/docker.md".source = ./knowledge/docker.md;
         home.file.".config/opencode/knowledge/homeassistant.md".source = ./knowledge/homeassistant.md;
         home.file.".config/opencode/knowledge/nixos.md".source = ./knowledge/nixos.md;
+        # Finance / health workspaces (see projectMcpServers above).
+        home.file."Documents/finance/AGENTS.md".source = ./projects/finance/AGENTS.md;
+        home.file."Documents/finance/opencode.json".text = projectConfig projectMcpServers.finance;
+        home.file."Documents/health/AGENTS.md".source = ./projects/health/AGENTS.md;
+        home.file."Documents/health/opencode.json".text = projectConfig projectMcpServers.health;
         home.file.".config/opencode/skills" = {
           source = ./skills;
           recursive = true;
@@ -442,34 +492,6 @@ in {
               homeassistant = {
                 type = "remote";
                 url = "{env:HOMEASSISTANT_MCP_URL}";
-                enabled = true;
-                timeout = 20000;
-              };
-              # Firefly III MCP (firefly-iii-mcp, 10.10.1.13:5137) — personal
-              # finance: accounts, transactions, budgets, categories, bills.
-              # Streamable HTTP on the root path (no /mcp suffix). The bearer
-              # token is a Firefly Passport JWT (user id 1, expires 2027-08-12)
-              # from the ragenix `firefly-mcp-token` secret, exported as
-              # $FIREFLY_MCP_TOKEN in zsh below and resolved by opencode's
-              # `{env:...}` at launch, so it never lands in the nix store.
-              firefly = {
-                type = "remote";
-                url = "http://10.10.1.13:5137/";
-                enabled = true;
-                timeout = 20000;
-                headers = {
-                  Authorization = "Bearer {env:FIREFLY_MCP_TOKEN}";
-                };
-              };
-              # HealthLog MCP (health.wickhay.uk) — same server Claude Code uses.
-              # No static token: the endpoint advertises OAuth discovery, so
-              # opencode walks the PKCE flow once via `opencode mcp auth
-              # healthlog` and refreshes the short-lived health:read token
-              # itself. 404s until the `mcp` module is enabled in HealthLog
-              # Settings → MCP.
-              healthlog = {
-                type = "remote";
-                url = "https://health.wickhay.uk/mcp";
                 enabled = true;
                 timeout = 20000;
               };
