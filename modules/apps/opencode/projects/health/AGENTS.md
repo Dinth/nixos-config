@@ -28,6 +28,9 @@ nutrition and other tracked metrics.
 
 - Always give the date range and units with any figure.
 - Keep files written here (notes, visit prep, exports) inside this folder.
+- **Privacy:** this file comes from a public repo. Never put personal details
+  (conditions, goals, measurements, medications) into it, into nixos-config, or into commit messages — keep them
+  in notes inside this folder, which stays local.
 
 > `AGENTS.md`, `CLAUDE.md`, `.mcp.json` and `opencode.json` here are deployed by
 > nixos-config (Home Manager) — change them in `modules/apps/{opencode,claude-code}`,
