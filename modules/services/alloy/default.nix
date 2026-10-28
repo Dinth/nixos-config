@@ -72,15 +72,17 @@
         }
       }
 
-      // Read journald. `job` is pinned to the value Alloy would generate from
-      // this component's own ID, which is what the Alloy container on r720-omv
-      // emits — spelling it out keeps the two hosts on one selector without
-      // depending on that default staying stable across Alloy releases.
+      // Read journald. `job` matches the Alloy container on r720-omv, which
+      // sets job = "systemd-journal" and since Alloy 1.20 actually emits it
+      // (older releases overrode a configured job with the generated
+      // "loki.source.journal.systemd", which this module used to copy). One
+      // value keeps every host on one selector; r720's host overview
+      // dashboard queries {job="systemd-journal"}.
       loki.source.journal "systemd" {
         path          = "/var/log/journal"
         max_age       = "12h"
         labels        = {
-          job = "loki.source.journal.systemd",
+          job = "systemd-journal",
         }
         relabel_rules = loki.relabel.journal_fields.rules
         forward_to    = [loki.process.drop_noise.receiver]
