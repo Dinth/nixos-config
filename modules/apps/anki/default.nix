@@ -8,6 +8,16 @@
   cfg = config.kde;
   primaryUsername = config.primaryUser.name;
 
+  # Read at profile open by HM's sync add-on, so the secrets never reach the
+  # store and prefs21.db staying a store symlink doesn't log us out.
+  syncWith = prefix: {
+    url = "https://anki.wickhay.uk/";
+    usernameFile = config.age.secrets."${prefix}-username".path;
+    keyFile = config.age.secrets."${prefix}-key".path;
+    autoSync = true;
+    syncMedia = true;
+  };
+
   # Anki has two independent update checks, both run right after the profile
   # opens: the program check (meta["check_for_updates"], the Preferences
   # checkbox) and the add-on check against AnkiWeb. The program is updated by
@@ -43,6 +53,16 @@ in {
   # source build has, and anki-bin also lags it by several releases. The source
   # build is built by Hydra, so it's still a cache download, not a local compile.
   config = mkIf cfg.enable {
+    # Username and sync key per sync-server account (the anki-sync stack on
+    # omv). Both come from modules/apps/anki/sync-login.sh <prefix>, which logs
+    # in once and writes them; re-run it after a password change.
+    age.secrets = lib.genAttrs (lib.concatMap (prefix: ["${prefix}-username" "${prefix}-key"]) ["anki-sync" "anki-sync-paulina"]) (name: {
+      file = ../../../secrets/${name}.age;
+      owner = primaryUsername;
+      group = "users";
+      mode = "0400";
+    });
+
     home-manager.users.${primaryUsername}.programs.anki = {
       enable = true;
       # Matches i18n.defaultLocale, and setting it also skips the first-run
@@ -51,7 +71,14 @@ in {
       addons = [noUpdateCheckAddon];
       # prefs21.db becomes a store symlink, so profiles must be declared or
       # the existing collection under "User 1/" is no longer listed.
-      profiles."User 1".default = true;
+      profiles = {
+        "User 1" = {
+          default = true;
+          sync = syncWith "anki-sync";
+        };
+        # Second account on the sync server, picked from File > Switch Profile.
+        Paulina.sync = syncWith "anki-sync-paulina";
+      };
     };
   };
 }

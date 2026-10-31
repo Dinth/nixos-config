@@ -30,4 +30,8 @@ in {
   "wazuh-enrolment.age".publicKeys = users ++ systems;
   "krdp-password.age".publicKeys = users ++ systems;
   "mosyle-knowledge.age".publicKeys = users ++ systems;
+  "anki-sync-username.age".publicKeys = users ++ systems;
+  "anki-sync-key.age".publicKeys = users ++ systems;
+  "anki-sync-paulina-username.age".publicKeys = users ++ systems;
+  "anki-sync-paulina-key.age".publicKeys = users ++ systems;
 }
