@@ -17,6 +17,12 @@ in {
     openssh.authorizedKeys.keys = config.primaryUser.publicKeys;
   };
 
+  # agenix decrypts with the shared Mac fleet key (recipient `mac-fleet` in
+  # secrets/secrets.nix), not the SSH host key: host keys are per machine, so
+  # every new or re-imaged Mac would need a rekey. Mosyle writes this file
+  # (root:wheel 0400) before the nix-darwin bootstrap runs.
+  age.identityPaths = ["/etc/agenix/mac-fleet.key"];
+
   # Nix GUI apps are copied (not symlinked) into ~/Applications/Home Manager
   # Apps so Spotlight indexes them and the Dock can pin them. This is HM's
   # default from stateVersion 25.11; spelled out so nobody adds mac-app-util.
