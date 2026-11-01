@@ -738,11 +738,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793552399,
-        "narHash": "sha256-OG/qIT58/EPK8sRLkgraSu5II12XeFC5FCHuPr9DWOs=",
+        "lastModified": 1793554097,
+        "narHash": "sha256-PzJNYwRoFP4Wivlx9iy/iOSceOCuW1BJrT+0mb8aXt0=",
         "owner": "Dinth",
         "repo": "swos-scout",
-        "rev": "dd796629aa06f3874b95574cdaf0350db33ca7ca",
+        "rev": "cfc60ec7a193b6f0c25328b7cbfc25aab777966f",
         "type": "github"
       },
       "original": {
