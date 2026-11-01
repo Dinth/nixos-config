@@ -54,6 +54,11 @@
       url = "github:wlfn1116/OpenTyrian2000-Engaged/latest";
       flake = false;
     };
+    # No release tags: main is what the itch.io drops are cut from.
+    openswos = {
+      url = "git+https://github.com/benbaker76/OpenSWOS?submodules=1&shallow=1";
+      flake = false;
+    };
     # VCMI mods follow each repo's vcmi-1.7 branch (the branch the launcher's
     # mod repository tracks for VCMI 1.7.x). Input name = vcmi-mod-<mod id>.
     vcmi-mod-vcmi-extras = {
@@ -138,6 +143,7 @@
     nix-index-database,
     lnxlink,
     opentyrian2000-engaged,
+    openswos,
     wazuh-agent,
     nix-darwin,
     determinate,
@@ -155,6 +161,7 @@
     # source tree, collected from every vcmi-mod-* input.
     gamesOverlay = final: _: {
       opentyrian2000-engaged = final.callPackage ./modules/system/gaming/opentyrian2000-engaged.nix {src = opentyrian2000-engaged;};
+      openswos = final.callPackage ./modules/system/gaming/openswos.nix {src = openswos;};
       vcmiMods =
         nixpkgs.lib.mapAttrs' (name: src: nixpkgs.lib.nameValuePair (nixpkgs.lib.removePrefix "vcmi-mod-" name) src)
         (nixpkgs.lib.filterAttrs (name: _: nixpkgs.lib.hasPrefix "vcmi-mod-" name) inputs);

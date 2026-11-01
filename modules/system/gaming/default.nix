@@ -109,7 +109,7 @@ in {
         default = cfg.enable;
         defaultText = lib.literalExpression "config.gaming.enable";
         description = ''
-          Game engines (OpenTTD, VCMI, DamnationX/DevilutionX, OpenTyrian) and
+          Game engines (OpenTTD, VCMI, DamnationX/DevilutionX, OpenTyrian, OpenSWOS) and
           the GOG data import that feeds them. Separate from `enable` so light
           hosts (the tablet) get these without Wine/Lutris/scx/gamemode.
         '';
@@ -267,6 +267,7 @@ in {
         innoextract # unpack GOG setup_*.exe for the above
         gogGameData # manual re-run: gog-game-data
         opentyrian2000-engaged
+        openswos # SWOS 96/97 engine, 25/26 season data built in
       ];
 
       # Import the GOG data once per user. The script skips games already

@@ -621,6 +621,25 @@
         "type": "github"
       }
     },
+    "openswos": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793521920,
+        "narHash": "sha256-hroP+x7Yvv5UN0eclnEW+Wttx8P5JqGQmTS9ODCwq3s=",
+        "ref": "refs/heads/main",
+        "rev": "d2e008b6fddb292e6eba21b13948d90b15d87a4e",
+        "shallow": true,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/benbaker76/OpenSWOS"
+      },
+      "original": {
+        "shallow": true,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/benbaker76/OpenSWOS"
+      }
+    },
     "opentyrian2000-engaged": {
       "flake": false,
       "locked": {
@@ -675,6 +694,7 @@
         "nixpkgs": "nixpkgs_4",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nixvirt": "nixvirt",
+        "openswos": "openswos",
         "opentyrian2000-engaged": "opentyrian2000-engaged",
         "plasma-manager": "plasma-manager",
         "vcmi-mod-hota": "vcmi-mod-hota",
