@@ -62,6 +62,12 @@
       (builtins.readFile ./openswos-data.sh);
   };
 
+  # Read-only career scouting report: squad and world players rated for their
+  # position, with market values (see the script's docstring).
+  swosScout = pkgs.writers.writePython3Bin "swos-scout" {
+    flakeIgnore = ["E501" "W503"];
+  } (builtins.readFile ./swos-scout.py);
+
   # Vanilla OpenTTD and JGRPP both ship bin/openttd and openttd.desktop, so
   # expose JGRPP as `openttd-jgrpp` with its own launcher. Its data dir is
   # compiled in as an absolute store path, so a renamed symlink is enough.
@@ -295,6 +301,7 @@ in {
         opentyrian2000-engaged
         openswos # SWOS 96/97 engine, 25/26 season data built in
         openswosData # manual re-run: openswos-data
+        swosScout # career scouting report: swos-scout
       ];
 
       # Import the GOG data once per user. The script skips games already
