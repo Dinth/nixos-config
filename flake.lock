@@ -697,6 +697,7 @@
         "openswos": "openswos",
         "opentyrian2000-engaged": "opentyrian2000-engaged",
         "plasma-manager": "plasma-manager",
+        "swos-scout": "swos-scout",
         "vcmi-mod-hota": "vcmi-mod-hota",
         "vcmi-mod-market-of-time": "vcmi-mod-market-of-time",
         "vcmi-mod-new-old-spells-plus": "vcmi-mod-new-old-spells-plus",
@@ -727,6 +728,26 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "swos-scout": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793552399,
+        "narHash": "sha256-OG/qIT58/EPK8sRLkgraSu5II12XeFC5FCHuPr9DWOs=",
+        "owner": "Dinth",
+        "repo": "swos-scout",
+        "rev": "dd796629aa06f3874b95574cdaf0350db33ca7ca",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Dinth",
+        "repo": "swos-scout",
         "type": "github"
       }
     },

@@ -59,6 +59,11 @@
       url = "git+https://github.com/benbaker76/OpenSWOS?submodules=1&shallow=1";
       flake = false;
     };
+    # Read-only OpenSWOS career scouting report (own repo).
+    swos-scout = {
+      url = "github:Dinth/swos-scout";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # VCMI mods follow each repo's vcmi-1.7 branch (the branch the launcher's
     # mod repository tracks for VCMI 1.7.x). Input name = vcmi-mod-<mod id>.
     vcmi-mod-vcmi-extras = {
@@ -144,6 +149,7 @@
     lnxlink,
     opentyrian2000-engaged,
     openswos,
+    swos-scout,
     wazuh-agent,
     nix-darwin,
     determinate,
@@ -162,6 +168,7 @@
     gamesOverlay = final: _: {
       opentyrian2000-engaged = final.callPackage ./modules/system/gaming/opentyrian2000-engaged.nix {src = opentyrian2000-engaged;};
       openswos = final.callPackage ./modules/system/gaming/openswos.nix {src = openswos;};
+      swos-scout = swos-scout.packages.${final.stdenv.hostPlatform.system}.default;
       vcmiMods =
         nixpkgs.lib.mapAttrs' (name: src: nixpkgs.lib.nameValuePair (nixpkgs.lib.removePrefix "vcmi-mod-" name) src)
         (nixpkgs.lib.filterAttrs (name: _: nixpkgs.lib.hasPrefix "vcmi-mod-" name) inputs);
