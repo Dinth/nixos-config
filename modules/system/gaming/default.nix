@@ -44,6 +44,24 @@
     ${macVcmiEnv} ${lib.getExe vcmiConfig} ${vcmiPresets}
   '';
 
+  # Rebuilds ~/.swos/assets from the season pack plus the GOG PC game (see
+  # openswos.nix for the Amiga-only fallback in the store).
+  openswosData = pkgs.writeShellApplication {
+    name = "openswos-data";
+    runtimeInputs = with pkgs; [coreutils findutils gawk innoextract openswos];
+    text =
+      builtins.replaceStrings
+      ["@gogLibrary@" "@seasonPack@" "@seasonAssets@" "@resDir@" "@teams@"]
+      [
+        cfg.gogLibrary
+        "${pkgs.openswos.seasonPack}"
+        "${pkgs.openswos.assets}"
+        "${pkgs.openswos.unwrapped}/share/openswos"
+        cfg.openswosTeams
+      ]
+      (builtins.readFile ./openswos-data.sh);
+  };
+
   # Vanilla OpenTTD and JGRPP both ship bin/openttd and openttd.desktop, so
   # expose JGRPP as `openttd-jgrpp` with its own launcher. Its data dir is
   # compiled in as an absolute store path, so a renamed symlink is enough.
@@ -130,6 +148,14 @@ in {
           default = "/Data/Games/GOG";
           description = "macOS only: path of the GOG library on `gogRemote.host` (the desktop sees it as gogLibrary via sshfs).";
         };
+      };
+      openswosTeams = mkOption {
+        type = lib.types.enum ["season" "96/97"];
+        default = "season";
+        description = ''
+          Teams OpenSWOS plays with the GOG PC game installed: the season pack's
+          (25/26) or the PC game's 96/97 ones, which online play is built around.
+        '';
       };
       heroes3Language = mkOption {
         type = lib.types.enum ["en" "pl"];
@@ -268,6 +294,7 @@ in {
         gogGameData # manual re-run: gog-game-data
         opentyrian2000-engaged
         openswos # SWOS 96/97 engine, 25/26 season data built in
+        openswosData # manual re-run: openswos-data
       ];
 
       # Import the GOG data once per user. The script skips games already
@@ -282,6 +309,18 @@ in {
             ExecStart = lib.getExe gogGameData;
             # Enable a freshly imported hd-edition mod without waiting for a rebuild.
             ExecStartPost = "${lib.getExe vcmiConfig} ${vcmiPresets}";
+            TimeoutStartSec = "30min";
+          };
+          Install.WantedBy = ["default.target"];
+        };
+
+        # PC extras for OpenSWOS from the GOG installer on the NAS; like
+        # gog-game-data, retries on the next login when the NAS is away.
+        systemd.user.services.openswos-data = {
+          Unit.Description = "Build OpenSWOS game data from the season pack and the GOG PC game";
+          Service = {
+            Type = "oneshot";
+            ExecStart = lib.getExe openswosData;
             TimeoutStartSec = "30min";
           };
           Install.WantedBy = ["default.target"];

@@ -8,8 +8,9 @@
 # setup converts it from the player's copy. Here that copy is SWOS United's
 # 25/26 season update for the Amiga (WHDLoad pack, sensiblesoccer.de), fed
 # through upstream's swosdata converter into a store tree the game reads via
-# SWOS_ASSETS. Bump seasonPack per season. Without the PC (GOG) game, the
-# DOS-only extras (PC graphics, sound and commentary) are skipped.
+# SWOS_ASSETS. Bump seasonPack per season. That tree has no DOS extras (PC
+# graphics, sound, commentary); the gaming module's openswos-data service adds
+# them from the GOG PC game in ~/.swos/assets, which the wrapper prefers.
 {
   lib,
   stdenv,
@@ -102,8 +103,13 @@ in
   } ''
     mkdir -p $out/bin $out/share/applications
     # exec the real binary (not a symlink) so /proc/self/exe is the store dir.
+    # ~/.swos/assets (built with the PC game by the gaming module's
+    # openswos-data service) wins; the Amiga-only store tree is the fallback.
+    # PC commentary over the Amiga sounds by default (SWOS_COMMENTARY beats
+    # SWOS.ini, so change it in the environment, not the ini).
     makeWrapper ${unwrapped}/share/openswos/SWOS.x86_64 $out/bin/openswos \
-      --set-default SWOS_ASSETS ${assets}
+      --run 'if [ -z "''${SWOS_ASSETS:-}" ] && [ ! -e "$HOME/.swos/assets/ASSETS.ini" ]; then export SWOS_ASSETS=${assets}; fi' \
+      --set-default SWOS_COMMENTARY on
     ln -s ${unwrapped}/bin/swosdata $out/bin/swosdata
     ln -s ${unwrapped}/share/icons $out/share/icons
     ln -s ${desktopItem}/share/applications/openswos.desktop $out/share/applications/
