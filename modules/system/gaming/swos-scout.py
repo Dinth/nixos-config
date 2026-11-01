@@ -223,8 +223,40 @@ def main():
     """Parse the command line and print the chosen report."""
     ap = argparse.ArgumentParser(
         description="Read-only OpenSWOS career scouting report.",
-        epilog="Skills: Pas(sing) Vel(ocity: shot power) Hea(ding) Tck (tackling) "
-               "Ctl (ball control) Spd (speed) Fin(ishing), each 0-7.")
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""\
+commands and their options:
+  (none)                       squad, then best buys
+  squad                        your squad with keep/upgrade verdicts
+      --pos POS                only this position
+      --budget M               money for upgrades, in £M (default: bank balance)
+  buy                          best buys per position, rated above your best
+      --pos POS                only this position
+      --budget M               max price in £M (default: bank balance)
+      --top N                  players per position (default 5)
+  team NAME                    any club's full squad (part of the name is enough)
+  find                         search every player in the world
+      --pos POS                only this position
+      --min SKILL=N ...        minimum skills, e.g. --min s=6 c=5
+      --max-price M            max value in £M
+      --name TEXT              player name contains
+      --sort KEY               rating (default), value, or a skill
+      --top N                  rows shown (default 25)
+
+--save goes before the command: swos-scout --save ~/.swos/save/D.CAR squad
+Without it, the newest ~/.swos/save/*.CAR is read (named on the first line).
+
+positions: GK RB LB D RW LW M A
+skills (0-7): p/pas passing, v/vel velocity (shot power), h/hea heading,
+  t/tck tackling, c/ctl ball control, s/spd speed, f/fin finishing
+Rtg (0-100): skills weighted for the position, speed and ball control most;
+  goalkeepers have no skills, so theirs is their price index.
+Clubs marked * are not in your save: skills and value as the season started.
+
+examples:
+  swos-scout find --pos A --min s=6 c=6 --max-price 1
+  swos-scout find --pos RB --sort s --top 10
+  swos-scout team legia""")
     ap.add_argument("--save", help="career save (default: newest ~/.swos/save/*.CAR)")
     sub = ap.add_subparsers(dest="cmd")
     p_squad = sub.add_parser("squad", help="your squad with keep/upgrade verdicts")
