@@ -1,13 +1,19 @@
 """swos-scout: read-only scouting report for an OpenSWOS career save.
 
 Purpose:
-    Rate every player in your squad and in the world database by how well
-    their skills suit their position, next to their market value, so you can
-    see who is worth keeping and who is worth buying. The save is only read.
+    Rate every player in your squad and in the world database (every club,
+    transfer-listed or not) by how well their skills suit their position,
+    next to their market value, so you can see who is worth keeping and who
+    is worth buying. The save is only read.
+
+    swos-scout                 squad with verdicts, then best buys
+    swos-scout squad|buy       one of the two
+    swos-scout team NAME       any club's full squad
+    swos-scout find [filters]  search every player by position/skill/price
 
     Rating (0-100): the player's seven skills (0-7) weighted by how much each
-    one counts at his position (WEIGHTS below, a judgement call, not a game
-    table). Goalkeepers have no skills in SWOS. Their quality is their price
+    one counts at his position (WEIGHTS below: speed and ball control first
+    for everyone, a judgement call, not a game table). Goalkeepers have no skills in SWOS. Their quality is their price
     index, so their rating is that index scaled to 0-100.
 
     Value: what the game shows as the player's price. It is the price index
@@ -37,22 +43,25 @@ POS_LONG = {
 # Order the game shows skills in, and the save's field names.
 SKILLS = ["passing", "velocity", "heading", "tackling",
           "control", "speed", "finishing"]
-SKILL_LETTERS = ["P", "V", "H", "T", "C", "S", "F"]
+SKILL_LABELS = ["Pas", "Vel", "Hea", "Tck", "Ctl", "Spd", "Fin"]
+SKILL_ALIASES = {
+    "p": "passing", "pas": "passing", "v": "velocity", "vel": "velocity",
+    "h": "heading", "hea": "heading", "t": "tackling", "tck": "tackling",
+    "c": "control", "ctl": "control", "s": "speed", "spd": "speed",
+    "f": "finishing", "fin": "finishing",
+}
 
-# How much each skill (P V H T C S F) counts at each outfield position.
-# Hand-set from how the match engine uses them: speed everywhere; tackling
-# and heading at the back; passing and control in midfield; finishing,
-# control, shot power (V) and heading up front. (The game's own
-# position-value tables, docs/TACTICS_POSITION_VALUE.md, set the price and
-# barely weigh finishing for attackers, so they are not a scouting guide.)
+# How much each skill counts at each outfield position. Speed and ball
+# control matter most for every player, whatever the position; the rest
+# only separates players who are otherwise level.
 WEIGHTS = {
-    1: dict(passing=2, velocity=0, heading=1, tackling=4, control=1, speed=3, finishing=0),  # RB
-    2: dict(passing=2, velocity=0, heading=1, tackling=4, control=1, speed=3, finishing=0),  # LB
-    3: dict(passing=1, velocity=0, heading=3, tackling=4, control=1, speed=2, finishing=0),  # D
-    4: dict(passing=2, velocity=1, heading=0, tackling=1, control=3, speed=4, finishing=1),  # RW
-    5: dict(passing=2, velocity=1, heading=0, tackling=1, control=3, speed=4, finishing=1),  # LW
-    6: dict(passing=4, velocity=1, heading=1, tackling=2, control=3, speed=2, finishing=1),  # M
-    7: dict(passing=1, velocity=2, heading=2, tackling=0, control=3, speed=3, finishing=4),  # A
+    1: dict(speed=4, control=4, tackling=3, passing=2, heading=1, velocity=0, finishing=0),  # RB
+    2: dict(speed=4, control=4, tackling=3, passing=2, heading=1, velocity=0, finishing=0),  # LB
+    3: dict(speed=4, control=4, tackling=3, heading=2, passing=1, velocity=0, finishing=0),  # D
+    4: dict(speed=4, control=4, passing=2, velocity=1, finishing=1, tackling=1, heading=0),  # RW
+    5: dict(speed=4, control=4, passing=2, velocity=1, finishing=1, tackling=1, heading=0),  # LW
+    6: dict(speed=4, control=4, passing=3, tackling=2, velocity=1, heading=1, finishing=1),  # M
+    7: dict(speed=4, control=4, finishing=3, velocity=2, heading=1, passing=1, tackling=0),  # A
 }
 
 # _avgTeamValues (price index + form -> value step) and _avgTeamValueBases
@@ -148,10 +157,12 @@ def world_players(save, db_dir, own_gtn):
     seen_teams, players = set(), []
 
     def add(team, plist, source):
-        gtn = team["global_team_number"]
-        if gtn == own_gtn or gtn in seen_teams:
+        # A club can be in the save twice (league and European pool) under
+        # two numbers, so its name counts as seen too.
+        gtn, name = team["global_team_number"], team["team_name"]
+        if gtn == own_gtn or gtn in seen_teams or name in seen_teams:
             return
-        seen_teams.add(gtn)
+        seen_teams.update((gtn, name))
         for p in plist:
             if p.get("player_name"):
                 players.append((team["team_name"], source, p))
@@ -171,102 +182,133 @@ def world_players(save, db_dir, own_gtn):
     return players
 
 
-def row(p, team=None):
-    """One table row: position, rating, skills, value, status."""
+def skill_name(text):
+    """Full skill name from a name or abbreviation (s, spd, speed...)."""
+    t = text.lower()
+    if t in SKILLS:
+        return t
+    if t in SKILL_ALIASES:
+        return SKILL_ALIASES[t]
+    sys.exit(f"swos-scout: unknown skill {text} (P V H T C S F or full names)")
+
+
+def row(p, club=None):
+    """One table row: position, rating, each skill, value, status."""
     skills = " ".join(
-        "-" if p["position"] == 0 else str(skill(p, s)) for s in SKILLS)
+        f"{'-' if p['position'] == 0 else skill(p, s):>3}" for s in SKILLS)
     name = p["player_name"].title()
-    club = f"{team.title()[:18]:<18} " if team is not None else ""
-    return (f"{POS[p['position']]:<3}{rating(p):>4}  {name[:22]:<22} {club}"
+    c = f"{club.title()[:18]:<18} " if club is not None else ""
+    return (f"{POS[p['position']]:<3}{rating(p):>4}  {name[:22]:<22} {c}"
             f"{skills}  {money(value_k(p)):>6}  {status(p)}")
 
 
 def header(with_club):
     """Column header matching row()."""
-    club = f"{'Club':<18} " if with_club else ""
-    return (f"Pos Rtg  {'Name':<22} {club}{' '.join(SKILL_LETTERS)}  "
+    c = f"{'Club':<18} " if with_club else ""
+    return (f"Pos Rtg  {'Name':<22} {c}{' '.join(SKILL_LABELS)}  "
             f"{'Value':>6}  Status")
 
 
+def parse_pos(text):
+    """Position code (GK RB LB D RW LW M A) to its number."""
+    if text is None:
+        return None
+    t = text.upper()
+    if t not in POS:
+        sys.exit(f"swos-scout: unknown position {text} (one of {' '.join(POS)})")
+    return POS.index(t)
+
+
 def main():
-    """Print the squad report, then the best buys per position."""
+    """Parse the command line and print the chosen report."""
     ap = argparse.ArgumentParser(
-        description="Read-only OpenSWOS career scouting report.")
-    ap.add_argument("save", nargs="?", help="career save (default: newest ~/.swos/save/*.CAR)")
-    ap.add_argument("--pos", help="only this position (GK RB LB D RW LW M A)")
-    ap.add_argument("--top", type=int, default=5, help="buys listed per position (default 5)")
-    ap.add_argument("--budget", type=float,
-                    help="max price in £M (default: your bank balance)")
-    ap.add_argument("--squad", action="store_true", help="squad only, no market")
-    ap.add_argument("--market", action="store_true", help="market only, no squad")
+        description="Read-only OpenSWOS career scouting report.",
+        epilog="Skills: Pas(sing) Vel(ocity: shot power) Hea(ding) Tck (tackling) "
+               "Ctl (ball control) Spd (speed) Fin(ishing), each 0-7.")
+    ap.add_argument("--save", help="career save (default: newest ~/.swos/save/*.CAR)")
+    sub = ap.add_subparsers(dest="cmd")
+    p_squad = sub.add_parser("squad", help="your squad with keep/upgrade verdicts")
+    p_buy = sub.add_parser("buy", help="best buys per position within budget")
+    for p in (p_squad, p_buy):
+        p.add_argument("--pos", help="only this position (GK RB LB D RW LW M A)")
+        p.add_argument("--budget", type=float, help="max price in £M (default: your bank balance)")
+    p_buy.add_argument("--top", type=int, default=5, help="players per position (default 5)")
+    p_team = sub.add_parser("team", help="any club's full squad (name or part of it)")
+    p_team.add_argument("name", nargs="+")
+    p_find = sub.add_parser("find", help="search every player in the world")
+    p_find.add_argument("--pos", help="position (GK RB LB D RW LW M A)")
+    p_find.add_argument("--min", nargs="+", default=[], metavar="SKILL=N",
+                        help="minimum skills, e.g. --min s=6 c=5")
+    p_find.add_argument("--sort", default="rating",
+                        help="sort by rating (default), value, or a skill (s, c, f...)")
+    p_find.add_argument("--max-price", type=float, help="max value in £M")
+    p_find.add_argument("--name", help="player name contains")
+    p_find.add_argument("--top", type=int, default=25, help="rows shown (default 25)")
     args = ap.parse_args()
+    cmd = args.cmd or "all"
 
     home = os.path.expanduser("~/.swos")
     path = args.save or latest_save(os.path.join(home, "save"))
     with open(path, encoding="utf-8") as f:
         save = json.load(f)
 
-    sc = save["career_scalars"]
     team = save["career_team"]["team"]
     squad = save["career_team"]["players"] + (save.get("career_team_reserves") or [])
     squad = [p for p in squad if p.get("player_name")]
-    balance = sc.get("new_balance", 0)
-    budget_k = (args.budget * 1000 if args.budget is not None
-                else max(balance, 0) / 1000)
-    only = args.pos.upper() if args.pos else None
-    if only and only not in POS:
-        sys.exit(f"swos-scout: unknown position {args.pos} (one of {' '.join(POS)})")
+    balance = save["career_scalars"].get("new_balance", 0)
+    budget = getattr(args, "budget", None)
+    budget_k = budget * 1000 if budget is not None else max(balance, 0) / 1000
+    only = parse_pos(getattr(args, "pos", None))
 
     print(f"{team['team_name'].title()} - {os.path.basename(path)} - "
           f"balance £{balance:,} - squad value "
           f"{money(sum(value_k(p) for p in squad))}")
-    print("Rating: skills weighted for the position (GK: price index), 0-100. "
-          "Skills shown 0-7.\n")
+    print("Rtg: 0-100, speed and ball control weigh most (GK: price index). "
+          "Skills 0-7.\n")
 
-    market = []
-    if not args.squad:
-        db_dir = os.path.join(home, "assets", "data_json", "teams")
-        market = world_players(save, db_dir, team["global_team_number"])
+    db_dir = os.path.join(home, "assets", "data_json", "teams")
+    world = world_players(save, db_dir, team["global_team_number"])
+    note = "\n* not in your save: skills and value as the season started."
 
     def upgrades(pos, floor, cap_k):
-        """Market players at `pos` rated above `floor` and costing <= cap_k."""
+        """World players at `pos` rated above `floor` and valued <= cap_k."""
         return sorted(
-            (m for m in market
+            (m for m in world
              if m[2]["position"] == pos and rating(m[2]) > floor
              and value_k(m[2]) <= cap_k),
             key=lambda m: (-rating(m[2]), value_k(m[2])))
 
-    if not args.market:
+    if cmd in ("all", "squad"):
         print("YOUR SQUAD (by position, best first)")
         print(header(False) + "  Verdict")
         for pos in range(8):
-            if only and POS[pos] != only:
+            if only is not None and pos != only:
                 continue
             group = sorted((p for p in squad if p["position"] == pos),
                            key=rating, reverse=True)
             for i, p in enumerate(group):
                 verdict = "keep"
-                if market:
-                    # Could you replace him with someone clearly better using
-                    # your balance plus his own sale price?
-                    better = upgrades(pos, rating(p) + 10, budget_k + value_k(p))
-                    if better:
-                        b = better[0][2]
-                        verdict = (f"upgrade: {b['player_name'].title()} "
-                                   f"({rating(b)}, {money(value_k(b))})")
-                if i >= 2 and verdict == "keep" and pos != 0:
+                # Could you replace him with someone clearly better using
+                # your balance plus his own sale price?
+                better = upgrades(pos, rating(p) + 10, budget_k + value_k(p))
+                if better:
+                    club, _, b = better[0]
+                    verdict = (f"upgrade: {b['player_name'].title()} of "
+                               f"{club.title()} ({rating(b)}, {money(value_k(b))})")
+                elif i >= 2 and pos != 0:
                     verdict = "depth"
                 print(f"{row(p)}  {verdict}")
         print()
 
-    if market and not args.squad:
+    if cmd in ("all", "buy"):
         print(f"BEST BUYS within {money(int(budget_k))} "
               f"(rated above your best at the position)")
+        top = getattr(args, "top", 5)
         for pos in range(8):
-            if only and POS[pos] != only:
+            if only is not None and pos != only:
                 continue
             mine = max((rating(p) for p in squad if p["position"] == pos), default=0)
-            best = upgrades(pos, mine, budget_k)[: args.top]
+            best = upgrades(pos, mine, budget_k)[:top]
             print(f"\n{POS_LONG[POS[pos]]} (your best: {mine})")
             if not best:
                 print("  nobody better within budget")
@@ -274,7 +316,67 @@ def main():
             print("  " + header(True))
             for club, src, p in best:
                 print("  " + row(p, club) + ("" if src == "save" else "  *"))
-        print("\n* not in your save: skills and value as the season started.")
+        print(note)
+
+    if cmd == "team":
+        want = " ".join(args.name).upper()
+        clubs = {}
+        for club, src, p in world:
+            clubs.setdefault(club, (src, []))[1].append(p)
+        hits = [c for c in clubs if want in c.upper()]
+        exact = [c for c in hits if c.upper() == want]
+        hits = exact or hits
+        if not hits:
+            sys.exit(f"swos-scout: no club matching {want}")
+        if len(hits) > 1:
+            print(f"{len(hits)} clubs match: " + ", ".join(sorted(c.title() for c in hits)))
+            print("Give more of the name.")
+            return
+        club = hits[0]
+        src, players = clubs[club]
+        players = sorted(players, key=lambda p: (p["position"], -rating(p)))
+        print(f"{club.title()}{'' if src == 'save' else '  *'}")
+        print(header(False))
+        for p in players:
+            print(row(p))
+        outfield = [p for p in players if p["position"]]
+        if outfield:
+            avg = " ".join(f"{sum(skill(p, s) for p in outfield) / len(outfield):>3.1f}"[-3:]
+                           for s in SKILLS)
+            print(f"{'':<7}{'outfield average':<23}{avg}")
+        if src != "save":
+            print(note)
+
+    if cmd == "find":
+        mins = []
+        for m in args.min:
+            k, _, v = m.partition("=")
+            if not v.isdigit():
+                sys.exit(f"swos-scout: --min wants SKILL=N, got {m}")
+            mins.append((skill_name(k), int(v)))
+        cap_k = args.max_price * 1000 if args.max_price is not None else None
+        name = args.name.upper() if args.name else None
+        hits = [
+            (club, src, p) for club, src, p in world
+            if (only is None or p["position"] == only)
+            and (cap_k is None or value_k(p) <= cap_k)
+            and (name is None or name in p["player_name"].upper())
+            and all(p["position"] and skill(p, s) >= n for s, n in mins)
+        ]
+        sort = args.sort.lower()
+        if sort == "rating":
+            key = lambda m: (-rating(m[2]), value_k(m[2]))  # noqa: E731
+        elif sort == "value":
+            key = lambda m: (value_k(m[2]), -rating(m[2]))  # noqa: E731
+        else:
+            s = skill_name(sort)
+            key = lambda m: (-skill(m[2], s), -rating(m[2]), value_k(m[2]))  # noqa: E731
+        hits.sort(key=key)
+        print(f"{len(hits)} players match; showing {min(len(hits), args.top)}")
+        print(header(True))
+        for club, src, p in hits[: args.top]:
+            print(row(p, club) + ("" if src == "save" else "  *"))
+        print(note)
 
 
 if __name__ == "__main__":
