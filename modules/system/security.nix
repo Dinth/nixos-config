@@ -413,6 +413,11 @@ in {
         # bubblewrap which needs `mount`/`pivot_root` — both granted in
         # the permissive base.
         #
+        # attach_disconnected: Lutris's FHS bwrap → umu-run → pressure-vessel
+        # nests bwrap, and inside the inner namespace /proc/<pid>/uid_map is a
+        # "disconnected path" that /** never matches — without the flag bwrap
+        # dies with "setting up uid map: Permission denied".
+        #
         # `ix` on `/** rwlkmix` makes child processes (Proton, game .exe
         # under Wine, Steam Runtime helpers) inherit this profile, so we
         # don't need to enumerate every game binary.
@@ -422,49 +427,49 @@ in {
             abi <abi/4.0>,
             include <tunables/global>
 
-            profile games-steam /nix/store/*-steam-*/bin/steam flags=(enforce) {
+            profile games-steam /nix/store/*-steam-*/bin/steam flags=(enforce, attach_disconnected) {
               ${apparmorPermissiveBase}
               ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
-            profile games-lutris /nix/store/*-lutris-*/bin/lutris flags=(enforce) {
+            profile games-lutris /nix/store/*-lutris-*/bin/lutris flags=(enforce, attach_disconnected) {
               ${apparmorPermissiveBase}
               ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
-            profile games-wine /nix/store/*-wine-*/bin/wine flags=(enforce) {
+            profile games-wine /nix/store/*-wine-*/bin/wine flags=(enforce, attach_disconnected) {
               ${apparmorPermissiveBase}
               ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
-            profile games-wine64 /nix/store/*-wine-*/bin/wine64 flags=(enforce) {
+            profile games-wine64 /nix/store/*-wine-*/bin/wine64 flags=(enforce, attach_disconnected) {
               ${apparmorPermissiveBase}
               ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
-            profile games-wineserver /nix/store/*-wine-*/bin/wineserver flags=(enforce) {
+            profile games-wineserver /nix/store/*-wine-*/bin/wineserver flags=(enforce, attach_disconnected) {
               ${apparmorPermissiveBase}
               ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
-            profile games-gamescope /nix/store/*-gamescope-*/bin/gamescope flags=(enforce) {
+            profile games-gamescope /nix/store/*-gamescope-*/bin/gamescope flags=(enforce, attach_disconnected) {
               ${apparmorPermissiveBase}
               ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
               ${apparmorDenyChrome}
             }
 
-            profile games-heroic /nix/store/*-heroic-unwrapped-*/bin/heroic flags=(enforce) {
+            profile games-heroic /nix/store/*-heroic-unwrapped-*/bin/heroic flags=(enforce, attach_disconnected) {
               ${apparmorPermissiveBase}
               ${apparmorDenySecrets {}}
               ${apparmorDenyOtherBrowsers}
