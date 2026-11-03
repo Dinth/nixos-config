@@ -161,6 +161,21 @@ in {
           path = "${config.users.users.${primaryUsername}.home}/Documents/${project}/PERSONAL.md";
         };
       }) ["finance" "health"]))
+    # On a fresh Mac the agenix launchd job links mosyle.md before Home
+    # Manager has run, creating ~/.config/opencode/knowledge as root, and HM
+    # (running as the user) then can't link the topics below beside it.
+    # Create the directories as the user first; chown also repairs a Mac that
+    # already hit this. optionalAttrs: the option doesn't exist on NixOS.
+    (lib.optionalAttrs isDarwin {
+      system.activationScripts.preActivation.text = let
+        home = config.users.users.${primaryUsername}.home;
+      in ''
+        for d in .config .config/opencode .config/opencode/knowledge; do
+          mkdir -p "${home}/$d"
+          chown ${primaryUsername}:staff "${home}/$d"
+        done
+      '';
+    })
     (mkIf (builtins.pathExists ../../../secrets/mosyle-knowledge.age) {
       age.secrets.mosyle-knowledge = {
         file = ../../../secrets/mosyle-knowledge.age;
